@@ -20,4 +20,4 @@ fi\n\
 exec "$@"' > /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["npm", "start"]
+CMD ["npm", "run", "serve"]
