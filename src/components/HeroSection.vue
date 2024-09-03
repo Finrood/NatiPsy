@@ -12,7 +12,7 @@
       <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-blue mb-4 text-center lg:text-left font-serif">
         Your Name
       </h1>
-      <h2 class="text-xl text-primary-pink-dark md:text-2xl lg:text-3xl text-primary-pink mb-6 text-center lg:text-left font-sans">
+      <h2 class="text-xl text-primary-pink-dark md:text-2xl lg:text-3xl mb-6 text-center lg:text-left font-sans">
         Professional Psychologist
       </h2>
       <p class="text-lg mb-8 text-center lg:text-left font-sans">
