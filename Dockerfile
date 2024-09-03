@@ -20,4 +20,4 @@ fi\n\
 exec "$@"' > /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["npm", "run", "serve"]
+CMD ["sh", "-c", "while :; do sleep 2073600; done"]
