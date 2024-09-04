@@ -11,8 +11,8 @@ RUN npm run build
 
 # Create a script to copy files
 RUN echo '#!/bin/sh\n\
-if [ -d "/app/dist" ]; then\n\
-  cp -r /app/dist/* /app/dist/\n\
+if [ -d "/app/natipsy/dist" ]; then\n\
+  cp -r /app/natipsy/dist/* /app/dist/\n\
   echo "Files copied successfully"\n\
 else\n\
   echo "Source directory does not exist"\n\
