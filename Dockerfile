@@ -1,5 +1,5 @@
 FROM node:22 AS build
-WORKDIR /app
+WORKDIR /app/natipsy
 COPY ./package*.json ./
 RUN npm install
 COPY . .
