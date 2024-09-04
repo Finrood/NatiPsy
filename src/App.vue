@@ -4,7 +4,7 @@
     <JobDescriptionComponent id="jobDescription" />
     <ServicesInfo id="service" />
     <ContactInfo id="contactInfo" />
-    <!-- Other sections -->
+    <WebsiteFooter></WebsiteFooter>
   </div>
 </template>
 
@@ -13,9 +13,11 @@ import HeroSection from './components/HeroSection.vue'
 import JobDescriptionComponent from "@/components/JobDescription.vue";
 import ServicesInfo from "@/components/Service.vue";
 import ContactInfo from "@/components/contact.vue";
+import WebsiteFooter from "@/components/footer.vue";
 
 export default {
   components: {
+    WebsiteFooter,
     ContactInfo,
     ServicesInfo,
     JobDescriptionComponent,
