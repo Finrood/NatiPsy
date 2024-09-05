@@ -1,5 +1,5 @@
 <template>
-  <section class="bg-gradient-to-r from-primary-pink via-purple-200 to-primary-pink py-16 px-4 sm:px-6 lg:px-8">
+  <section class="bg-gradient-to-br from-primary-blue to-primary-pink py-16 px-4 sm:px-6 lg:px-8">
     <div class="max-w-5xl mx-auto">
       <h2 class="text-4xl font-extrabold text-primary-blue text-center mb-8">
         Sobre Mim
@@ -7,31 +7,27 @@
 
       <!-- Profile Image -->
       <div class="flex justify-center mb-8">
-        <img src="@/assets/meelo.png" alt="Natalia Ferreira" class="w-48 h-48 rounded-full object-cover shadow-lg">
+        <img src="@/assets/img_1.png" alt="Natalia Ferreira" class="w-48 h-48 rounded-full object-cover shadow-lg">
       </div>
 
       <!-- Main Content -->
       <div class="bg-white bg-opacity-75 rounded-lg shadow-xl p-8">
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Olá! Sou Natalia, Psicóloga Clínica e Orientadora de Carreira, formada pela Universidade Federal de Santa Catarina (UFSC). Minha jornada profissional é marcada por uma rica experiência no atendimento clínico, com formação em Terapia Relacional Sistêmica pelo renomado Instituto Familiare de Florianópolis e por 8 anos na área de Psicologia Organizacional.
+          Olá! Sou Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira, formada pela Universidade Federal de Santa Catarina (UFSC). Minha jornada profissional é enriquecida pela formação em Terapia Relacional Sistêmica e por 8 anos de experiência em Psicologia Organizacional.
         </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Acredito profundamente no poder transformador da escuta atenta e do diálogo aberto. Meu trabalho é pautado pela abordagem sistêmica, que nos permite compreender o indivíduo em seu contexto mais amplo, considerando suas relações e o ambiente em que está inserido.
+          Acredito no poder transformador da escuta atenta e do diálogo aberto. Minha abordagem sistêmica me permite uma compreensão mais ampla do seu contexto de vida, considerando suas relações e o ambiente em que está inserido.
         </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Dedico-me continuamente ao estudo de temáticas raciais, de gênero, sexualidade e questões relacionadas à vida imigrante. Meu objetivo é trazer contribuições valiosas numa perspectiva intercultural e interracial, promovendo um ambiente de terapia verdadeiramente inclusivo e acolhedor.
+          Para além da técnica, me dedico ao estudo contínuo de temáticas sociais, raciais, de gênero, sexualidade e questões relacionadas à vida imigrante. Meu objetivo é proporcionar um ambiente terapêutico verdadeiramente inclusivo e acolhedor, trazendo uma perspectiva intercultural e interracial.
         </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Cada pessoa que cruza meu caminho me ensina algo novo. Refino constantemente minha prática, considerando cuidadosamente os aspectos sociais e relacionais que contribuem para o bem-estar de cada indivíduo. Acredito que a jornada terapêutica é uma parceria, na qual caminhamos juntos em direção ao seu crescimento e autodescoberta.
+          Além da psicologia, sou apaixonada por artes, especialmente pintura, e adoro explorar novas culturas através de viagens e gastronomia. Essas experiências enriquecem minha perspectiva e me ajudam a compreender melhor a diversidade humana, refletindo diretamente na minha prática clínica.        </p>
+        <p class="text-lg text-gray-800 leading-relaxed mb-6">
+          Se você busca clareza, apoio ou transformação em algum aspecto da sua vida, estou aqui para oferecer um espaço seguro, confidencial e livre de julgamentos. Juntos, podemos trabalhar para alcançar seus objetivos e promover seu bem-estar integral.
         </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Além da minha paixão pela psicologia, sou uma entusiasta das artes, especialmente da pintura. Encontro na expressão artística uma forma de conexão profunda com o mundo e comigo mesma. Meu fiel companheiro, Fred, um cachorro cheio de personalidade, me ensina diariamente sobre amor incondicional e presença no momento.
-        </p>
-        <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Sou uma ávida viajante e adoro explorar novas culturas através da gastronomia. Acredito que essas experiências enriquecem minha perspectiva e me ajudam a compreender melhor a diversidade humana, o que se reflete diretamente na minha prática clínica.
-        </p>
-        <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Se você chegou até aqui, é porque está buscando clareza, apoio ou transformação em algum aspecto da sua vida. Saiba que este primeiro passo já é uma demonstração de coragem e autocuidado. Estou aqui para oferecer um espaço seguro, confidencial e livre de julgamentos, onde podemos trabalhar juntos para alcançar seus objetivos e promover seu bem-estar integral.
+          Será uma honra te acompanhar nessa jornada de autoconhecimento e crescimento pessoal. Sinta-se à vontade para entrar em contato e agendar uma consulta.
         </p>
         <p class="text-lg text-gray-800 leading-relaxed mt-6 font-semibold">
           Com carinho e dedicação,<br>
@@ -71,7 +67,7 @@ export default {
   data() {
     return {
       phoneNumber: '+554884323764',
-      message: 'Hello! You need to modify me',
+      message: '',
     }
   },
   computed: {

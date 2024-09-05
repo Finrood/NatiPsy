@@ -33,7 +33,7 @@ export default {
       instagramLink: 'https://www.instagram.com/curacriativa/',
       emailLink: 'mailto:psinataliaferreira@gmail.com',
       phoneNumber: '+554884323764',
-      message: 'Hello! You need to modify me',
+      message: '',
     }
   },
   computed: {

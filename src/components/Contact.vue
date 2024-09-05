@@ -65,7 +65,7 @@ export default {
   data() {
     return {
       phoneNumber: '+554884323764',
-      message: 'Hello! You need to modify me',
+      message: '',
     };
   },
   computed: {

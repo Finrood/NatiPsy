@@ -1,22 +1,35 @@
 <template>
   <section :id="id" class="min-h-screen bg-white text-primary-blue flex flex-col lg:flex-row items-center justify-center p-8 lg:p-16">
     <!-- Left side - Photo -->
-    <div class="w-full md:w-1/2 lg:w-1/2 mb-8 lg:mb-0 flex justify-center lg:justify-end">
-      <div class="relative w-full h-auto rounded-3xl overflow-hidden shadow-xl">
-        <img src="../assets/kaaristote.jpg" alt="Your Name" class="w-full h-full object-cover" />
+    <div class="relative w-full md:w-1/2 lg:w-1/2 mb-8 lg:mb-0 flex justify-center lg:justify-end">
+      <div class="absolute inset-0 bg-gradient-to-l from-primary-pink to-primary-pink shadow-lg transform -skew-y-6 sm:skew-y-0 sm:rotate-6 sm:rounded-3xl"></div>
+      <div class="relative w-auto h-auto rounded-3xl overflow-hidden shadow-xl z-20">
+        <img src="@/assets/img.png" alt="Natalia Ferreira" class="w-auto h-full object-cover" />
       </div>
     </div>
+
+
+
 
     <!-- Right side - Presentation -->
     <div class="w-full lg:w-1/2 lg:pl-16 flex flex-col items-center lg:items-start">
       <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-blue mb-4 text-center lg:text-left font-serif">
-        Your Name
+        Descubra o poder da terapia online!
       </h1>
       <h2 class="text-xl text-primary-pink-dark md:text-2xl lg:text-3xl mb-6 text-center lg:text-left font-sans">
-        Professional Psychologist
+        Natalia Ferreira | Psicóloga - CRP 12/19892
       </h2>
       <p class="text-lg mb-8 text-center lg:text-left font-sans">
-        With over 10 years of experience, I'm dedicated to helping individuals overcome challenges and achieve mental well-being. My approach combines evidence-based techniques with compassionate care to provide personalized support for each client.
+        Com um olhar sistêmico, ofereço um espaço seguro e acolhedor para jovens, adultos e idosos que buscam equilíbrio, crescimento pessoal e bem-estar.
+      </p>
+      <p class="text-lg mb-8 text-center lg:text-left font-sans">
+        Através da terapia online, estou aqui para te ajudar a navegar pelos desafios da vida, desenvolver estratégias eficazes e construir uma ponte entre sua realidade atual e seus objetivos futuros.
+      </p>
+      <p class="text-lg mb-8 text-center lg:text-left font-sans">
+        Invista em seu autocuidado e descubra como nosso trabalho conjunto pode transformar sua jornada pessoal.
+      </p>
+      <p class="text-lg mb-8 text-center lg:text-left font-sans">
+        Agende sua consulta e comece sua jornada de transformação hoje mesmo!
       </p>
       <a
           :href="whatsappLink"
@@ -52,7 +65,7 @@ export default {
   data() {
     return {
       phoneNumber: '+554884323764',
-      message: 'Hello! You need to modify me',
+      message: '',
     };
   },
   computed: {

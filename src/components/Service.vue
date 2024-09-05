@@ -2,7 +2,7 @@
   <section class="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-primary-pink bg-opacity-20">
     <div class="container mx-auto">
       <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-primary-blue mb-8 sm:mb-10 text-center relative">
-        Our Services
+        Como posso te ajudar
         <span class="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-4/5 sm:w-3/5 h-1 bg-primary-pink"></span>
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -52,11 +52,11 @@ export default {
   data() {
     return {
       phoneNumber: '+554884323764',
-      message: 'Hello! You need to modify me',
+      message: '',
       services: [
         {
-          title: 'Desenvolvimento de Rotinas de Qualidade',
-          description: 'Você experiencia a vida através de uma desordem em atenção ou humor? Imagine como rotinas mais estruturadas podem favorecer o equilíbrio e a sua qualidade de vida.'
+          title: 'Ter Rotinas de Qualidade',
+          description: 'Imagine como rotinas mais estruturadas podem favorecer o equilíbrio e a sua qualidade de vida.'
         },
         {
           title: 'Autoconhecimento e Vida Independente',
@@ -64,19 +64,19 @@ export default {
         },
         {
           title: 'Relacionamentos Saudáveis',
-          description: 'Construa relacionamentos mais saudáveis com amigos, familiares e parceiros, através da melhória da comunicação e compreensão das dinâmicas emocionais.'
+          description: 'Construa relacionamentos mais saudáveis com amigos, familiares e parceiros, através da melhoria da comunicação e compreensão das dinâmicas emocionais.'
         },
         {
-          title: 'Desenvolvimento de Autoconfiança e Autoestima',
+          title: 'Autoconfiança e Autoestima',
           description: 'Reconheça suas forças e potencialidades, fortalecendo a confiança em si mesmo e cultivando uma autoestima positiva.'
         },
         {
-          title: 'Gerenciamento de Medos, Ansiedades e Estresse',
-          description: 'Desenvolva estratégias para lidar de forma mais eficiente com o estresse, medos e ansiedade, promovendo maior tranquilidade no dia a dia.'
+          title: 'Depressão, Medos, Ansiedades e Estresse',
+          description: 'Desenvolva estratégias para lidar com esses sentimentos promovendo maior tranquilidade no dia a dia.'
         },
         {
           title: 'Transição de Carreira e Orientação Profissional',
-          description: 'Posso te ajudar a identificar novos caminhos e superar desafios com mais clareza e confiança.'
+          description: 'Te ajudo a identificar novos caminhos e superar desafios com mais clareza e confiança.'
         }
       ]
     }
