@@ -22,7 +22,7 @@
               :href="whatsappLink"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center bg-primary-pink-dark text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-opacity-90 transition duration-300 transform hover:scale-105 mt-6">
+              class="inline-flex items-center bg-primary-blue text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-opacity-90 transition duration-300 transform hover:scale-105 mt-6">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="5 0 48 48"
@@ -34,7 +34,7 @@
               <path fill="#40c351" d="M35.2,12.8c-3-3-6.9-4.6-11.2-4.6C15.3,8.2,8.2,15.3,8.2,24c0,3,0.8,5.9,2.4,8.4L11,33l-1.6,5.8l6-1.6l0.6,0.3  c2.4,1.4,5.2,2.2,8,2.2h0c8.7,0,15.8-7.1,15.8-15.8C39.8,19.8,38.2,15.8,35.2,12.8z"></path>
               <path fill="#fff" fill-rule="evenodd" d="M19.3,16c-0.4-0.8-0.7-0.8-1.1-0.8c-0.3,0-0.6,0-0.9,0s-0.8,0.1-1.3,0.6c-0.4,0.5-1.7,1.6-1.7,4 s1.7,4.6,1.9,4.9s3.3,5.3,8.1,7.2c4,1.6,4.8,1.3,5.7,1.2c0.9-0.1,2.8-1.1,3.2-2.3c0.4-1.1,0.4-2.1,0.3-2.3c-0.1-0.2-0.4-0.3-0.9-0.6  s-2.8-1.4-3.2-1.5c-0.4-0.2-0.8-0.2-1.1,0.2c-0.3,0.5-1.2,1.5-1.5,1.9c-0.3,0.3-0.6,0.4-1,0.1c-0.5-0.2-2-0.7-3.8-2.4  c-1.4-1.3-2.4-2.8-2.6-3.3c-0.3-0.5,0-0.7,0.2-1c0.2-0.2,0.5-0.6,0.7-0.8c0.2-0.3,0.3-0.5,0.5-0.8c0.2-0.3,0.1-0.6,0-0.8 C20.6,19.3,19.7,17,19.3,16z" clip-rule="evenodd"></path>
             </svg>
-            Book a Consultation
+            Vamos conversar
           </a>
         </div>
       </div>
