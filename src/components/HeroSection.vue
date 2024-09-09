@@ -3,8 +3,8 @@
     <!-- Left side - Photo -->
     <div class="relative w-full md:w-1/3 lg:w-1/3 mb-8 lg:mb-0 flex justify-center lg:justify-end">
       <div class="absolute inset-0 bg-gradient-to-l from-primary-pink to-primary-pink shadow-lg transform -skew-y-6 sm:skew-y-0 sm:rotate-6 sm:rounded-3xl"></div>
-      <div class="relative w-auto h-auto rounded-3xl overflow-hidden shadow-xl z-20">
-        <img src="@/assets/img.png" alt="Natalia Ferreira" class="w-auto h-full object-cover" />
+      <div class="relative w-full h-auto rounded-3xl overflow-hidden shadow-xl z-20">
+        <img src="@/assets/img.png" alt="Natalia Ferreira" class="w-full h-auto object-cover" />
       </div>
     </div>
 
