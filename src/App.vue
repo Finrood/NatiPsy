@@ -1,21 +1,28 @@
 <template>
-  <div class="bg-bg-white min-h-screen relative">
-    <MenuComponent />
-    <HeroSection id="hero" />
-    <ServicesInfo id="service" />
-    <MyApproachSection id="myApproach" />
-    <TherapyAdvantages></TherapyAdvantages>
-    <AboutMeSection id="aboutMe" />
-    <WebsiteFooter></WebsiteFooter>
+  <div class="bg-white min-h-screen relative">
+    <header>
+      <MenuComponent />
+    </header>
+    <main id="main-content" class="relative z-0">
+      <HeroSection id="inicio" />
+      <ServicesInfo id="meus-servicos" />
+      <MyApproachSection id="abordagem" />
+      <TherapyAdvantages id="vantagens" />
+      <AboutMeSection id="sobre-mim" />
+    </main>
+    <WebsiteFooter />
 
     <!-- WhatsApp Button -->
     <a
         href="https://wa.me/+554884323764"
         target="_blank"
-        class="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
+        rel="noopener noreferrer"
+        aria-label="entre em contato pelo WhatsApp"
+        class="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 z-50"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="h-10 w-10">
-        <!-- WhatsApp SVG paths -->
+      <span class="sr-only">WhatsApp</span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="h-10 w-10" aria-hidden="true" focusable="false">
+        <!-- WhatsApp SVG paths (unchanged) -->
         <path fill="#fff" d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19c0,0,0,0,0,0h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z"></path>
         <path fill="#fff" d="M4.9,43.8c-0.1,0-0.3-0.1-0.4-0.1c-0.1-0.1-0.2-0.3-0.1-0.5L7,33.5c-1.6-2.9-2.5-6.2-2.5-9.6C4.5,13.2,13.3,4.5,24,4.5c5.2,0,10.1,2,13.8,5.7c3.7,3.7,5.7,8.6,5.7,13.8c0,10.7-8.7,19.5-19.5,19.5c-3.2,0-6.3-0.8-9.1-2.3L5,43.8C5,43.8,4.9,43.8,4.9,43.8z"></path>
         <path fill="#cfd8dc" d="M24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5 M24,43L24,43L24,43 M24,43L24,43L24,43 M24,4L24,4C13,4,4,13,4,24c0,3.4,0.8,6.7,2.5,9.6L3.9,43c-0.1,0.3,0,0.7,0.3,1c0.2,0.2,0.4,0.3,0.7,0.3c0.1,0,0.2,0,0.3,0l9.7-2.5c2.8,1.5,6,2.2,9.2,2.2c11,0,20-9,20-20c0-5.3-2.1-10.4-5.8-14.1C34.4,6.1,29.4,4,24,4L24,4z"></path>
@@ -28,9 +35,7 @@
 
 <script>
 import HeroSection from './components/HeroSection.vue'
-import JobDescriptionComponent from "@/components/JobDescription.vue";
 import ServicesInfo from "@/components/Service.vue";
-import ContactInfo from "@/components/Contact.vue";
 import WebsiteFooter from "@/components/Footer.vue";
 import MyApproachSection from "@/components/Approach.vue";
 import TherapyAdvantages from "@/components/Advantages.vue";
@@ -38,16 +43,15 @@ import AboutMeSection from "@/components/AboutMe.vue";
 import MenuComponent from "@/components/MenuComponent.vue";
 
 export default {
+  name: 'App',
   components: {
     MenuComponent,
-    AboutMeSection,
-    TherapyAdvantages,
-    MyApproachSection,
-    WebsiteFooter,
-    ContactInfo,
-    ServicesInfo,
-    JobDescriptionComponent,
     HeroSection,
+    ServicesInfo,
+    MyApproachSection,
+    TherapyAdvantages,
+    AboutMeSection,
+    WebsiteFooter,
   },
 }
 </script>

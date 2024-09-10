@@ -1,22 +1,24 @@
 <template>
-  <section class="py-16 sm:py-24 bg-white">
+  <section id="minha-abordagem" class="my-approach-section py-16 sm:py-24 bg-white">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-4xl sm:text-5xl font-bold text-primary-blue mb-12 text-center">
         Minha Abordagem
       </h2>
       <div class="rounded-xl shadow-2xl p-8 sm:p-12 bg-primary-pink bg-opacity-20">
-        <p class="text-lg sm:text-xl text-gray-700 mb-8 leading-relaxed">
-          Na minha prática clínica, utilizo a Terapia Relacional Sistêmica como principal ferramenta de trabalho. Esta abordagem nos permite olhar para o indivíduo não de forma isolada, mas como parte de um sistema complexo de relações e contextos que influenciam sua vida.
-        </p>
-        <p class="text-lg sm:text-xl text-gray-700 mb-8 leading-relaxed">
-          A Terapia Relacional Sistêmica reconhece que cada pessoa é única, com sua própria história, experiências e formas de se relacionar com o mundo. Partindo desse princípio, meu trabalho se baseia em:
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div v-for="(principle, index) in principles" :key="index" class="rounded-lg p-6 transform hover:scale-105 transition-transform duration-300">
+        <div class="space-y-8">
+          <p class="text-lg sm:text-xl text-gray-700 leading-relaxed">
+            Na minha prática clínica, utilizo a Terapia Relacional Sistêmica como principal ferramenta de trabalho. Esta abordagem nos permite olhar para o indivíduo não de forma isolada, mas como parte de um sistema complexo de relações e contextos que influenciam sua vida.
+          </p>
+          <p class="text-lg sm:text-xl text-gray-700 leading-relaxed">
+            A Terapia Relacional Sistêmica reconhece que cada pessoa é única, com sua própria história, experiências e formas de se relacionar com o mundo. Partindo desse princípio, meu trabalho se baseia em:
+          </p>
+        </div>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8" role="list">
+          <li v-for="(principle, index) in principles" :key="index" class="rounded-lg p-6 transform hover:scale-105 transition-transform duration-300">
             <h3 class="text-xl font-semibold text-primary-blue mb-4">{{ principle.title }}</h3>
             <p class="text-gray-700">{{ principle.description }}</p>
-          </div>
-        </div>
+          </li>
+        </ul>
         <div class="mt-12 text-lg sm:text-xl text-gray-700 space-y-6">
           <p>
             Através desta abordagem, busco criar um espaço seguro e acolhedor, onde você possa explorar suas questões, reconhecer seus recursos internos e externos, e construir novos significados para suas experiências.
