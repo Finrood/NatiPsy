@@ -3,7 +3,7 @@
     <!-- About Me and My Work -->
     <div class="container mx-auto flex flex-col lg:flex-row items-center mb-12 lg:mb-16">
       <div class="w-full lg:w-1/3 mb-8 lg:mb-0 px-4 lg:px-0">
-        <img src="../assets/meelo.png" alt="About Me" class="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-lg shadow-lg"/>
+        <img src="../assets/meelo.png" alt="About Me" class="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-lg shadow-lg" loading="lazy"/>
       </div>
       <div class="relative w-full lg:w-2/3 lg:pl-12 mt-4 lg:mt-0 px-4 lg:px-0">
         <div
@@ -29,7 +29,7 @@
     <!-- Explaining the Therapy Type -->
     <div class="container mx-auto flex flex-col lg:flex-row-reverse items-center mb-12 lg:mb-16">
       <div class="w-full lg:w-1/3 mb-8 lg:mb-0 px-4 lg:px-0">
-        <img src="../assets/meelo.png" alt="Therapy Type" class="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-lg shadow-lg"/>
+        <img src="../assets/meelo.png" alt="Therapy Type" class="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-lg shadow-lg loading="lazy""/>
       </div>
       <div class="relative w-full lg:w-2/3 lg:pr-12 mt-4 lg:mt-0 px-4 lg:px-0">
         <div
@@ -55,7 +55,7 @@
     <!-- How I Work -->
     <div class="container mx-auto flex flex-col lg:flex-row items-center mb-12 lg:mb-16">
       <div class="w-full lg:w-1/3 mb-8 lg:mb-0 px-4 lg:px-0">
-        <img src="../assets/meelo.png" alt="How I Work" class="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-lg shadow-lg"/>
+        <img src="../assets/meelo.png" alt="How I Work" class="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-lg shadow-lgloading="lazy""/>
       </div>
       <div class="relative w-full lg:w-2/3 lg:pl-12 mt-4 lg:mt-0 px-4 lg:px-0">
         <div
