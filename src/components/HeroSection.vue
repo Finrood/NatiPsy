@@ -20,9 +20,6 @@
         Com um olhar sistêmico, ofereço um <strong>espaço seguro</strong> e <strong>acolhedor</strong> para <strong>jovens, adultos e idosos</strong> que buscam equilíbrio, crescimento pessoal e <strong>bem-estar</strong>.
       </p>
       <p class="text-2xl mb-8 text-center lg:text-left font-sans">
-        Através da terapia online, estou aqui para te ajudar a navegar pelos desafios da vida, desenvolver estratégias eficazes e construir uma ponte entre sua realidade atual e seus objetivos futuros.
-      </p>
-      <p class="text-2xl mb-8 text-center lg:text-left font-sans">
         Invista em seu <strong>autocuidado</strong> e descubra como nosso trabalho conjunto pode transformar sua jornada pessoal.
       </p>
       <p class="text-2xl font-semibold mb-8 text-center lg:text-left font-sans">
