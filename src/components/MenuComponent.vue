@@ -11,14 +11,14 @@
       <a href="/" class="flex items-center" @click.prevent="refreshPage" aria-label="Home">
         <img src="../assets/logo.png" alt="Company Logo" class="ml-10 h-16 w-auto transform scale-125 transition-transform duration-300 hover:scale-110" loading="lazy">
       </a>
-      <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
-        <a v-for="item in menuItems" :key="item" :href="`#${item}`"
-           @click.prevent="scrollToSection(item)"
-           class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
-           :aria-label="`Navigate to ${capitalizeFirstLetter(item)} section`">
-          {{ capitalizeFirstLetter(item) }}
-        </a>
-      </nav>
+    <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
+      <a v-for="item in menuItems" :key="item" :href="`#${item}`"
+         @click.prevent="scrollToSection(item)"
+         class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
+         :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`">
+        {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
+      </a>
+    </nav>
       <button class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
               @click="toggleMenu"
               aria-expanded="false"
@@ -75,7 +75,14 @@ export default {
       isScrolled: false,
       isHidden: false,
       lastScrollPosition: 0,
-      menuItems: ['inicio', 'meus-servicos', 'abordagem', 'vantagens', 'sobre-mim']
+      menuItems: ['inicio', 'meus-servicos', 'abordagem', 'vantagens', 'sobre-mim'],
+      menuDisplayNames: {
+        'inicio': 'inicio',
+        'meus-servicos': 'meus servicos',
+        'abordagem': 'abordagem',
+        'vantagens': 'vantagens',
+        'sobre-mim': 'sobre mim'
+      }
     }
   },
   methods: {
