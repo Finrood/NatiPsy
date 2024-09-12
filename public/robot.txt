@@ -1,4 +1,4 @@
 user-agent: *
 Disallow: /private/
 Allow: /
-Sitemap: https://yourwebsite.com/sitemap.xml
+Sitemap: https://psicologanataliaferreira.com/sitemap.xml

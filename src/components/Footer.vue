@@ -55,7 +55,7 @@ export default {
   metaInfo() {
     return {
       link: [
-        {rel: 'canonical', href: 'https://www.nataliaferreira.com.br'}, // Replace with your actual domain
+        {rel: 'canonical', href: 'https://www.psicologanataliaferreira.com'},
       ],
       script: [
         {
@@ -65,7 +65,7 @@ export default {
             "@type": "Person",
             "name": "Natalia Ferreira",
             "jobTitle": "Psicóloga Clínica e Orientadora de Carreira",
-            "url": "https://www.nataliaferreira.com.br", // Replace with your actual domain
+            "url": "https://www.psicologanataliaferreira.com",
             "sameAs": [
               this.instagramLink,
               this.whatsappLink,
