@@ -13,16 +13,16 @@
       <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-blue mb-4 text-center lg:text-left font-serif">
         Descubra o poder da terapia online!
       </h1>
-      <h2 class="text-2xl text-primary-pink-dark md:text-2xl lg:text-3xl mb-6 text-center lg:text-left font-sans">
+      <h2 class="text-2xl text-primary-pink-dark md:text-2xl lg:text-3xl mb-6 text-center lg:text-left">
         Natalia Ferreira | Psicóloga - CRP 12/19892
       </h2>
-      <p class="text-2xl mb-8 text-center lg:text-left font-sans">
-        Com um olhar sistêmico, ofereço um <strong>espaço seguro</strong> e <strong>acolhedor</strong> para <strong>jovens, adultos e idosos</strong> que buscam equilíbrio, crescimento pessoal e <strong>bem-estar</strong>.
+      <p class="text-2xl mb-8 text-center lg:text-left">
+        Com um olhar sistêmico, ofereço um <strong>espaço seguro</strong> e <strong>acolhedor</strong> para <strong>jovens, adultos e idosos</strong> que buscam equilíbrio, crescimento pessoal e <strong>bem-estar</strong> de forma <strong>individual</strong> ou em <strong>casal</strong>.
       </p>
-      <p class="text-2xl mb-8 text-center lg:text-left font-sans">
+      <p class="text-2xl mb-8 text-center lg:text-left">
         Invista em seu <strong>autocuidado</strong> e descubra como nosso trabalho conjunto pode transformar sua jornada pessoal.
       </p>
-      <p class="text-2xl font-semibold mb-8 text-center lg:text-left font-sans">
+      <p class="text-2xl font-semibold mb-8 text-center lg:text-left">
         Agende sua consulta e comece sua jornada de transformação hoje mesmo!
       </p>
       <a
@@ -91,13 +91,5 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;700&display=swap');
 
-.font-serif {
-  font-family: 'Playfair Display', serif;
-}
-
-.font-sans {
-  font-family: 'Raleway', sans-serif;
-}
 </style>

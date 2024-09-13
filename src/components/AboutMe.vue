@@ -14,25 +14,15 @@
       <div class="bg-primary-pink bg-opacity-20 rounded-lg shadow-xl p-8">
         <h2 class="sr-only">Biografia de Natalia Ferreira</h2>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Olá! Sou Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira, formada pela Universidade Federal de Santa Catarina (UFSC). Minha jornada profissional é enriquecida pela formação em Terapia Relacional Sistêmica e por 8 anos de experiência em Psicologia Organizacional.
-        </p>
+          Olá! Sou Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira graduada pela Universidade Federal de Santa Catarina (UFSC). Com formação em Terapia Relacional Sistêmica e experiência em ambientes hospitalares, organizacionais além da clínica, ofereço uma abordagem que considera seu contexto de vida e de relações como um todo.        </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Acredito no poder transformador da escuta atenta e do diálogo aberto. Minha abordagem sistêmica me permite uma compreensão mais ampla do seu contexto de vida, considerando suas relações e o ambiente em que está inserido.
-        </p>
+          Meu compromisso é criar um espaço terapêutico verdadeiramente inclusivo, fundamentado em estudos contínuos sobre questões sociais, raciais, de gênero e sexualidade, para além de cuidar do seu sofrimento ou dificuldades. Trago uma perspectiva intercultural para nossa jornada conjunta.        </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Para além da técnica, me dedico ao estudo contínuo de temáticas sociais, raciais, de gênero, sexualidade e questões relacionadas à vida imigrante. Meu objetivo é proporcionar um ambiente terapêutico verdadeiramente inclusivo e acolhedor, trazendo uma perspectiva intercultural e interracial.
-        </p>
+          Apaixonada por artes e novas culturas, busco compreender a diversidade humana em toda sua riqueza. Se você procura clareza, apoio ou transformação, estou aqui para oferecer um ambiente seguro e livre de julgamentos.        </p>
         <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Além da psicologia, sou apaixonada por artes, especialmente pintura, e adoro explorar novas culturas através de viagens e gastronomia. Essas experiências enriquecem minha perspectiva e me ajudam a compreender melhor a diversidade humana, refletindo diretamente na minha prática clínica.
-        </p>
-        <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Se você busca clareza, apoio ou transformação em algum aspecto da sua vida, estou aqui para oferecer um espaço seguro, confidencial e livre de julgamentos. Juntos, podemos trabalhar para alcançar seus objetivos e promover seu bem-estar integral.
-        </p>
-        <p class="text-lg text-gray-800 leading-relaxed mb-6">
-          Será uma honra te acompanhar nessa jornada de autoconhecimento e crescimento pessoal. Sinta-se à vontade para entrar em contato e agendar uma consulta.
-        </p>
+          Vamos trabalhar juntos pelo seu bem-estar e crescimento pessoal. Sinta-se à vontade para agendar uma consulta e iniciar sua jornada de autoconhecimento.        </p>
         <p class="text-lg text-gray-800 leading-relaxed mt-6 font-semibold">
-          Com carinho e dedicação,<br>
+          Com afeto,<br>
           Natalia Ferreira<br>
           <span itemprop="credentials">CRP 12/19892</span>
         </p>

@@ -14,9 +14,9 @@
           </p>
         </div>
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8" role="list">
-          <li v-for="(principle, index) in principles" :key="index" class="rounded-lg p-6 transform hover:scale-105 transition-transform duration-300">
-            <h3 class="text-xl font-semibold text-primary-blue mb-4">{{ principle.title }}</h3>
-            <p class="text-gray-700">{{ principle.description }}</p>
+          <li v-for="(principle, index) in principles" :key="index" class="rounded-lg p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),_4px_0_6px_-1px_rgba(0,0,0,0.1)] transform hover:scale-105 transition-transform duration-300">
+            <h3 class="text-2xl font-semibold text-primary-blue mb-4">{{ principle.title }}</h3>
+            <p class="text-lg sm:text-xl text-gray-700">{{ principle.description }}</p>
           </li>
         </ul>
         <div class="mt-12 text-lg sm:text-xl text-gray-700 space-y-6">

@@ -8,17 +8,18 @@
     }
   ]" role="banner">
     <div class="container mx-auto px-4 py-2 flex justify-between items-center">
-      <a href="/" class="flex items-center" @click.prevent="refreshPage" aria-label="Home">
-        <img src="../assets/logo.png" alt="Company Logo" class="ml-10 h-16 w-auto transform scale-125 transition-transform duration-300 hover:scale-110" loading="lazy">
+      <a href="/" class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125" @click.prevent="refreshPage" aria-label="Home">
+        <img src="@/assets/logo.png" alt="Company Logo" class="h-16 w-auto" loading="lazy">
+        <img src="@/assets/logo_signature.png" alt="Company Signature Logo" class=" h-12 w-auto" loading="lazy">
       </a>
-    <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
-      <a v-for="item in menuItems" :key="item" :href="`#${item}`"
-         @click.prevent="scrollToSection(item)"
-         class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
-         :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`">
-        {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
-      </a>
-    </nav>
+      <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
+        <a v-for="item in menuItems" :key="item" :href="`#${item}`"
+           @click.prevent="scrollToSection(item)"
+           class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
+           :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`">
+          {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
+        </a>
+      </nav>
       <button class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
               @click="toggleMenu"
               aria-expanded="false"
@@ -57,8 +58,8 @@
           <a v-for="item in menuItems" :key="item" :href="`#${item}`"
              @click.prevent="scrollToSection(item)"
              class="text-3xl font-semibold text-white hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-             :aria-label="`Navigate to ${capitalizeFirstLetter(item)} section`">
-            {{ capitalizeFirstLetter(item) }}
+             :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`">
+            {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
           </a>
         </nav>
       </div>
@@ -77,10 +78,10 @@ export default {
       lastScrollPosition: 0,
       menuItems: ['inicio', 'meus-servicos', 'abordagem', 'vantagens', 'sobre-mim'],
       menuDisplayNames: {
-        'inicio': 'inicio',
-        'meus-servicos': 'meus servicos',
+        'inicio': 'início',
+        'meus-servicos': 'meus serviços',
         'abordagem': 'abordagem',
-        'vantagens': 'vantagens',
+        'vantagens': 'terapia online',
         'sobre-mim': 'sobre mim'
       }
     }
@@ -96,30 +97,47 @@ export default {
       this.isMenuOpen = false;
       document.querySelector('button[aria-controls="mobile-menu"]').setAttribute('aria-expanded', 'false');
     },
-    refreshPage() {
+    refreshPage(event) {
+      event.preventDefault();
+      // Add #inicio to the URL
+      history.pushState(null, null, '/#inicio');
+      // Optionally, you can reload the page if needed
       window.location.reload();
     },
     scrollToSection(sectionId) {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        const headerOffset = 100;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
+      if (sectionId === 'inicio') {
+        // Scroll to the top of the page
         window.scrollTo({
-          top: offsetPosition,
+          top: 0,
           behavior: "smooth"
         });
-
-        history.pushState(null, null, `#${sectionId}`);
-
-        element.tabIndex = -1;
-        element.focus({ preventScroll: true });
+        // Remove the hash from the URL
+        history.pushState("", document.title, window.location.pathname + window.location.search);
+      } else {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          this.scrollToElement(element);
+          // Update the URL without triggering a page reload
+          history.pushState(null, null, `#${sectionId}`);
+        }
       }
       this.closeMenu();
     },
+    scrollToElement(element) {
+      const headerOffset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+
+      element.tabIndex = -1;
+      element.focus({ preventScroll: true });
+    },
     handleScroll() {
-      const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+      const currentScrollPosition = window.scrollY || document.documentElement.scrollTop;
 
       if (currentScrollPosition < 0) {
         return;
@@ -135,6 +153,25 @@ export default {
 
       this.lastScrollPosition = currentScrollPosition;
     },
+    handleInitialHash() {
+      if (window.location.hash) {
+        const sectionId = window.location.hash.slice(1); // Remove the '#' character
+        if (sectionId === 'inicio') {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+        } else {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            // Use setTimeout to ensure the scroll happens after the page has fully loaded
+            setTimeout(() => {
+              this.scrollToElement(element);
+            }, 0);
+          }
+        }
+      }
+    },
     capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
     }
@@ -146,6 +183,9 @@ export default {
         this.closeMenu();
       }
     });
+    this.handleInitialHash();
+
+    window.addEventListener('hashchange', this.handleInitialHash);
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);

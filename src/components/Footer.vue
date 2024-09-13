@@ -2,7 +2,7 @@
   <footer class="bg-primary-blue text-white py-8 px-4 md:px-8" role="contentinfo">
     <div class="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between">
       <div class="mb-6 md:mb-0">
-        <p class="text-sm font-sans">&copy; {{ currentYear }} Natalia Ferreira. Todos os direitos reservados.</p>
+        <p class="text-sm">&copy; {{ currentYear }} Natalia Ferreira. Todos os direitos reservados.</p>
       </div>
       <nav aria-label="Links de redes sociais">
         <ul class="flex space-x-4">

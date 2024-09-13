@@ -13,7 +13,7 @@
             <div class="divide-y divide-gray-200">
               <div class="py-6 sm:py-8 lg:py-10 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
                 <h2 class="text-2xl sm:text-3xl font-bold mb-4 font-serif">About Me and My Work</h2>
-                <p class="text-base sm:text-lg font-sans">
+                <p class="text-base sm:text-lg">
                   As a dedicated psychologist, I bring a wealth of experience and a passion for helping individuals
                   navigate life's challenges. My approach is rooted in evidence-based practices, combining traditional
                   therapeutic methods with innovative techniques to provide personalized care that addresses each
@@ -39,7 +39,7 @@
             <div class="divide-y divide-gray-200">
               <div class="py-6 sm:py-8 lg:py-10 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
                 <h2 class="text-2xl sm:text-3xl font-bold mb-4 font-serif">My Therapeutic Approach</h2>
-                <p class="text-base sm:text-lg font-sans">
+                <p class="text-base sm:text-lg">
                   I specialize in cognitive-behavioral therapy (CBT), which focuses on identifying and changing negative
                   thought patterns and behaviors. This approach is highly effective for treating a wide range of issues,
                   including anxiety, depression, and stress management. Additionally, I incorporate mindfulness
@@ -65,7 +65,7 @@
             <div class="divide-y divide-gray-200">
               <div class="py-6 sm:py-8 lg:py-10 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
                 <h2 class="text-2xl sm:text-3xl font-bold mb-4 font-serif">How I Work</h2>
-                <p class="text-base sm:text-lg font-sans">
+                <p class="text-base sm:text-lg">
                   My process begins with a comprehensive assessment to understand your unique situation and goals. From there,
                   we collaborate to develop a tailored treatment plan. Sessions are conducted in a safe, non-judgmental
                   environment where you can explore your thoughts and feelings freely. I emphasize practical strategies and
@@ -93,13 +93,5 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Raleway:wght@400;700&display=swap');
 
-.font-serif {
-  font-family: 'Playfair Display', serif;
-}
-
-.font-sans {
-  font-family: 'Raleway', sans-serif;
-}
 </style>

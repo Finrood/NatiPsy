@@ -77,9 +77,5 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap');
 
-section {
-  font-family: 'Raleway', sans-serif;
-}
 </style>
