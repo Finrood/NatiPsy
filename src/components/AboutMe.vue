@@ -8,9 +8,9 @@
       <!-- Profile Image -->
       <div class="flex justify-center mb-8">
         <picture>
-          <source srcset="@/assets/NatiAboutMe.webp" type="image/webp">
-          <source srcset="@/assets/NatiAboutMe.png" type="image/png">
-          <img src="@/assets/NatiAboutMe.webp" alt="Foto de Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira" class="w-64 h-64 rounded-full object-cover shadow-lg" width="256" height="256" loading="lazy">
+          <source srcset="/assets/NatiAboutMe.webp" type="image/webp">
+          <source srcset="/assets/NatiAboutMe.png" type="image/png">
+          <img src="/assets/NatiAboutMe.webp" alt="Foto de Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira" class="w-64 h-64 rounded-full object-cover shadow-lg" width="256" height="256" loading="lazy">
         </picture>
       </div>
 
@@ -81,11 +81,11 @@ export default {
         { property: 'og:title', content: 'Sobre Natalia Ferreira - Psicóloga Clínica e Orientadora de Carreira' },
         { property: 'og:description', content: 'Conheça Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira. Especializada em Terapia Relacional Sistêmica, oferecendo atendimento inclusivo e personalizado.' },
         { property: 'og:type', content: 'website' },
-        { property: 'og:image', content: '@/assets/NatiAboutMe.webp' },
+        { property: 'og:image', content: '/assets/NatiAboutMe.webp' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Sobre Natalia Ferreira - Psicóloga Clínica e Orientadora de Carreira' },
         { name: 'twitter:description', content: 'Conheça Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira. Especializada em Terapia Relacional Sistêmica, oferecendo atendimento inclusivo e personalizado.' },
-        { name: 'twitter:image', content: '@/assets/NatiAboutMe.webp' },
+        { name: 'twitter:image', content: '/assets/NatiAboutMe.webp' },
       ],
     }
   },

@@ -10,14 +10,14 @@
     <div class="container mx-auto px-4 py-2 flex justify-between items-center">
       <a href="/" class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125" @click.prevent="refreshPage" aria-label="Home">
         <picture>
-          <source srcset="@/assets/logo.webp" type="image/webp">
-          <source srcset="@/assets/logo.png" type="image/png">
-          <img src="@/assets/logo.webp" alt="Company Logo" class="h-16 w-auto" loading="lazy">
+          <source srcset="/assets/logo.webp" type="image/webp">
+          <source srcset="/assets/logo.png" type="image/png">
+          <img src="/assets/logo.webp" alt="Company Logo" class="h-16 w-auto" loading="lazy">
         </picture>
         <picture>
-          <source srcset="@/assets/logo_signature.webp" type="image/webp">
-          <source srcset="@/assets/logo_signature.png" type="image/png">
-          <img src="@/assets/logo_signature.webp" alt="Company Signature Logo" class=" h-12 w-auto" loading="lazy">
+          <source srcset="/assets/logo_signature.webp" type="image/webp">
+          <source srcset="/assets/logo_signature.png" type="image/png">
+          <img src="/assets/logo_signature.webp" alt="Company Signature Logo" class=" h-12 w-auto" loading="lazy">
         </picture>
       </a>
       <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">

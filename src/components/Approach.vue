@@ -25,9 +25,9 @@
           </div>
           <div class="lg:w-1/2 flex items-center">
             <picture>
-              <source srcset="@/assets/abordagem1.webp" type="image/webp">
-              <source srcset="@/assets/abordagem1.jpg" type="image/jpeg">
-              <img src="@/assets/abordagem1.jpg" alt="Therapy approach image 1" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy">
+              <source srcset="/assets/abordagem1.webp" type="image/webp">
+              <source srcset="/assets/abordagem1.jpg" type="image/jpeg">
+              <img src="/assets/abordagem1.jpg" alt="Therapy approach image 1" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy">
             </picture>
           </div>
         </div>
@@ -35,9 +35,9 @@
         <div class="flex flex-col lg:flex-row gap-8">
           <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
             <picture>
-              <source srcset="@/assets/abordagem2.webp" type="image/webp">
-              <source srcset="@/assets/abordagem2.jpg" type="image/jpeg">
-              <img src="@/assets/abordagem2.jpg" alt="Therapy approach image 2" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy">
+              <source srcset="/assets/abordagem2.webp" type="image/webp">
+              <source srcset="/assets/abordagem2.jpg" type="image/jpeg">
+              <img src="/assets/abordagem2.jpg" alt="Therapy approach image 2" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy">
             </picture>
           </div>
           <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
