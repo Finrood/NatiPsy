@@ -57,7 +57,8 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Quicksand:wght@300..700&display=swap');html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
-  font-family: 'Hind Siliguri', sans-serif !important;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
+  font-family: 'Montserrat', sans-serif !important;
 }
 </style>

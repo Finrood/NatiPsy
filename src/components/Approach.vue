@@ -5,7 +5,7 @@
         Minha Abordagem
       </h2>
       <div class="rounded-xl shadow-2xl p-8 sm:p-12 bg-primary-pink bg-opacity-20">
-        <div class="space-y-8">
+        <div class="space-y-8 mb-12">
           <p class="text-lg sm:text-xl text-gray-700 leading-relaxed">
             Na minha prática clínica, utilizo a Terapia Relacional Sistêmica como principal ferramenta de trabalho. Esta abordagem nos permite olhar para o indivíduo não de forma isolada, mas como parte de um sistema complexo de relações e contextos que influenciam sua vida.
           </p>
@@ -13,12 +13,43 @@
             A Terapia Relacional Sistêmica reconhece que cada pessoa é única, com sua própria história, experiências e formas de se relacionar com o mundo. Partindo desse princípio, meu trabalho se baseia em:
           </p>
         </div>
-        <ul class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8" role="list">
-          <li v-for="(principle, index) in principles" :key="index" class="rounded-lg p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),_4px_0_6px_-1px_rgba(0,0,0,0.1)] transform hover:scale-105 transition-transform duration-300">
-            <h3 class="text-2xl font-semibold text-primary-blue mb-4">{{ principle.title }}</h3>
-            <p class="text-lg sm:text-xl text-gray-700">{{ principle.description }}</p>
-          </li>
-        </ul>
+
+        <div class="flex flex-col lg:flex-row gap-8 mb-12">
+          <div class="lg:w-1/2 flex flex-col justify-center">
+            <ul class="space-y-4" role="list">
+              <li v-for="principle in principles.slice(0, 3)" :key="principle.title" class="rounded-lg p-4 sm:p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),_4px_0_6px_-1px_rgba(0,0,0,0.1)] transform hover:scale-105 transition-transform duration-300">
+                <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">{{ principle.title }}</h3>
+                <p class="text-base sm:text-lg text-gray-700">{{ principle.description }}</p>
+              </li>
+            </ul>
+          </div>
+          <div class="lg:w-1/2 flex items-center">
+            <picture>
+              <source srcset="@/assets/abordagem1.webp" type="image/webp">
+              <source srcset="@/assets/abordagem1.jpg" type="image/jpeg">
+              <img src="@/assets/abordagem1.jpg" alt="Therapy approach image 1" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy">
+            </picture>
+          </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+          <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
+            <picture>
+              <source srcset="@/assets/abordagem2.webp" type="image/webp">
+              <source srcset="@/assets/abordagem2.jpg" type="image/jpeg">
+              <img src="@/assets/abordagem2.jpg" alt="Therapy approach image 2" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy">
+            </picture>
+          </div>
+          <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
+            <ul class="space-y-4" role="list">
+              <li v-for="principle in principles.slice(3)" :key="principle.title" class="rounded-lg p-4 sm:p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),_4px_0_6px_-1px_rgba(0,0,0,0.1)] transform hover:scale-105 transition-transform duration-300">
+                <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">{{ principle.title }}</h3>
+                <p class="text-base sm:text-lg text-gray-700">{{ principle.description }}</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div class="mt-12 text-lg sm:text-xl text-gray-700 space-y-6">
           <p>
             Através desta abordagem, busco criar um espaço seguro e acolhedor, onde você possa explorar suas questões, reconhecer seus recursos internos e externos, e construir novos significados para suas experiências.
@@ -67,3 +98,7 @@ export default {
   }
 }
 </script>
+
+<style>
+
+</style>
