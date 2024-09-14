@@ -9,8 +9,8 @@
   ]" role="banner">
     <div class="container mx-auto px-4 py-2 flex justify-between items-center">
       <a href="/" class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125" @click.prevent="refreshPage" aria-label="Home">
-        <img src="@/assets/logo.png" alt="Company Logo" class="h-16 w-auto" loading="lazy">
-        <img src="@/assets/logo_signature.png" alt="Company Signature Logo" class=" h-12 w-auto" loading="lazy">
+        <img src="@/assets/logo.webp" alt="Company Logo" class="h-16 w-auto" loading="lazy">
+        <img src="@/assets/logo_signature.webp" alt="Company Signature Logo" class=" h-12 w-auto" loading="lazy">
       </a>
       <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
         <a v-for="item in menuItems" :key="item" :href="`#${item}`"
