@@ -6,7 +6,7 @@
       </h2>
       <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="list">
         <li v-for="(advantage, index) in advantages" :key="index" class="bg-white rounded-lg shadow-lg p-6 transition-all duration-300 ease-in-out hover:scale-105">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-primary-blue mb-4" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-primary-blue mb-4" aria-hidden="true" width="48" height="48">
             <path :d="advantage.iconPath" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <h3 class="text-xl font-semibold text-primary-blue mb-2">{{ advantage.title }}</h3>

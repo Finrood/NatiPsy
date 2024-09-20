@@ -3,11 +3,11 @@
     <!-- Left side - Photo -->
     <div class="relative w-full md:w-1/3 lg:w-1/3 mb-8 lg:mb-0 flex justify-center lg:justify-end">
       <div class="absolute inset-0 bg-gradient-to-l from-primary-pink to-primary-pink shadow-lg transform -skew-y-6 sm:skew-y-0 sm:rotate-6 sm:rounded-3xl" aria-hidden="true"></div>
-      <div class="relative w-full h-auto rounded-3xl overflow-hidden shadow-xl z-20">
+      <div class="relative w-full h-0 pb-[150%] rounded-3xl overflow-hidden shadow-xl z-20">
         <picture>
           <source srcset="/assets/NatiHero.webp" type="image/webp">
           <source srcset="/assets/NatiHero.png" type="image/png">
-          <img src="/assets/NatiHero.webp" alt="Natalia Ferreira, Psicóloga" class="w-full h-auto object-cover" width="400" height="600" />
+          <img src="/assets/NatiHero.webp" alt="Natalia Ferreira, Psicóloga" class="absolute top-0 left-0 w-full h-full object-cover" width="400" height="600" loading="eager" fetchpriority="high" />
         </picture>
       </div>
     </div>
@@ -40,7 +40,9 @@
             viewBox="5 0 48 48"
             fill="currentColor"
             class="w-8 h-8 mr-2"
-            aria-hidden="true">
+            aria-hidden="true"
+            width="32"
+            height="32">
           <path fill="#fff" d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24	c0,10.5-8.5,19-19,19c0,0,0,0,0,0h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z"></path>
           <path fill="#fff" d="M4.9,43.8c-0.1,0-0.3-0.1-0.4-0.1c-0.1-0.1-0.2-0.3-0.1-0.5L7,33.5c-1.6-2.9-2.5-6.2-2.5-9.6	C4.5,13.2,13.3,4.5,24,4.5c5.2,0,10.1,2,13.8,5.7c3.7,3.7,5.7,8.6,5.7,13.8c0,10.7-8.7,19.5-19.5,19.5c-3.2,0-6.3-0.8-9.1-2.3	L5,43.8C5,43.8,4.9,43.8,4.9,43.8z"></path>
           <path fill="#cfd8dc" d="M24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3	l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5 M24,43L24,43L24,43 M24,43L24,43L24,43 M24,4L24,4C13,4,4,13,4,24	c0,3.4,0.8,6.7,2.5,9.6L3.9,43c-0.1,0.3,0,0.7,0.3,1c0.2,0.2,0.4,0.3,0.7,0.3c0.1,0,0.2,0,0.3,0l9.7-2.5c2.8,1.5,6,2.2,9.2,2.2	c11,0,20-9,20-20c0-5.3-2.1-10.4-5.8-14.1C34.4,6.1,29.4,4,24,4L24,4z"></path>
@@ -75,5 +77,17 @@ export default {
       return `https://wa.me/${this.phoneNumber}?text=${encodeURIComponent(this.message)}`;
     },
   },
+  mounted() {
+    useHead({
+      link: [
+        {
+          rel: 'preload',
+          as: 'image',
+          href: '/assets/NatiHero.webp',
+          type: 'image/webp'
+        }
+      ]
+    })
+  }
 }
 </script>

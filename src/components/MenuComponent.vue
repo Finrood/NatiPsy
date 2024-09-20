@@ -1,41 +1,70 @@
 <template>
-  <header :class="[
-    'fixed w-full z-50 transition-all duration-300',
-    {
-      'bg-red-50 bg-opacity-100 shadow-lg': isScrolled,
-      'bg-red-50 bg-opacity-100': !isScrolled,
-      '-translate-y-full': isHidden
-    }
-  ]" role="banner">
+  <header
+      :class="[
+      'fixed w-full z-50 transition-all duration-300',
+      {
+        'bg-red-50 bg-opacity-100 shadow-lg': isScrolled,
+        'bg-red-50 bg-opacity-100': !isScrolled,
+        'transform -translate-y-full': isHidden
+      }
+    ]"
+      role="banner"
+  >
     <div class="container mx-auto px-4 py-2 flex justify-between items-center">
-      <a href="/" class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125" @click.prevent="refreshPage" aria-label="Home">
+      <a
+          href="/"
+          class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125"
+          @click.prevent="refreshPage"
+          aria-label="Home"
+      >
         <picture>
           <source srcset="/assets/logo.webp" type="image/webp">
           <source srcset="/assets/logo.png" type="image/png">
-          <img src="/assets/logo.webp" alt="Company Logo" class="h-16 w-auto" loading="lazy">
+          <img
+              src="/assets/logo.png"
+              alt="Company Logo"
+              class="h-16 w-16"
+              width="64"
+              height="64"
+              fetchpriority="high"
+          >
         </picture>
         <picture>
           <source srcset="/assets/logo_signature.webp" type="image/webp">
           <source srcset="/assets/logo_signature.png" type="image/png">
-          <img src="/assets/logo_signature.webp" alt="Company Signature Logo" class=" h-12 w-auto" loading="lazy">
+          <img
+              src="/assets/logo_signature.png"
+              alt="Company Signature Logo"
+              class="h-12 w-auto"
+              width="48"
+              height="48"
+              fetchpriority="high"
+          >
         </picture>
       </a>
       <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
-        <a v-for="item in menuItems" :key="item" :href="`#${item}`"
-           @click.prevent="scrollToSection(item)"
-           class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
-           :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`">
+        <a
+            v-for="item in menuItems"
+            :key="item"
+            :href="`#${item}`"
+            @click.prevent="scrollToSection(item)"
+            class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
+            :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`"
+        >
           {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
         </a>
       </nav>
-      <button class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
-              @click="toggleMenu"
-              aria-expanded="false"
-              aria-controls="mobile-menu"
-              aria-label="Toggle mobile menu">
+      <button
+          class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
+          @click="toggleMenu"
+          :aria-expanded="isMenuOpen.toString()"
+          aria-controls="mobile-menu"
+          aria-label="Toggle mobile menu"
+      >
         <span class="sr-only">Open main menu</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+             aria-hidden="true" width="32" height="32">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
         </svg>
       </button>
     </div>
@@ -47,26 +76,35 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
     >
-      <div v-if="isMenuOpen"
-           class="fixed inset-0 bg-primary-pink-dark bg-opacity-90 z-50 lg:hidden"
-           id="mobile-menu"
-           role="dialog"
-           aria-modal="true">
+      <div
+          v-if="isMenuOpen"
+          class="mobile-menu-container fixed inset-0 bg-primary-pink-dark bg-opacity-90 z-50 lg:hidden"
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+      >
         <div class="container mx-auto px-4 py-6 flex justify-end">
-          <button @click="closeMenu"
-                  class="text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-                  aria-label="Close mobile menu">
+          <button
+              @click="closeMenu"
+              class="text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+              aria-label="Close mobile menu"
+          >
             <span class="sr-only">Close menu</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" aria-hidden="true" width="32" height="32">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         </div>
         <nav class="flex flex-col items-center space-y-8 mt-16" aria-label="Mobile Navigation">
-          <a v-for="item in menuItems" :key="item" :href="`#${item}`"
-             @click.prevent="scrollToSection(item)"
-             class="text-3xl font-semibold text-white hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-             :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`">
+          <a
+              v-for="item in menuItems"
+              :key="item"
+              :href="`#${item}`"
+              @click.prevent="scrollToSection(item)"
+              class="text-3xl font-semibold text-white hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+              :aria-label="`Navigate to ${capitalizeFirstLetter(menuDisplayNames[item])} section`"
+          >
             {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
           </a>
         </nav>
@@ -97,88 +135,47 @@ export default {
   methods: {
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen;
-      this.$nextTick(() => {
-        document.querySelector('button[aria-controls="mobile-menu"]').setAttribute('aria-expanded', this.isMenuOpen);
-      });
+      document.body.style.overflow = this.isMenuOpen ? 'hidden' : '';
     },
     closeMenu() {
       this.isMenuOpen = false;
-      document.querySelector('button[aria-controls="mobile-menu"]').setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
     },
     refreshPage(event) {
       event.preventDefault();
-      // Add #inicio to the URL
-      history.pushState(null, null, '/#inicio');
-      // Optionally, you can reload the page if needed
-      window.location.reload();
+      window.scrollTo({top: 0, behavior: "smooth"});
+      history.pushState(null, null, '/');
     },
     scrollToSection(sectionId) {
-      if (sectionId === 'inicio') {
-        // Scroll to the top of the page
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const headerOffset = 100;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
         window.scrollTo({
-          top: 0,
+          top: offsetPosition,
           behavior: "smooth"
         });
-        // Remove the hash from the URL
-        history.pushState("", document.title, window.location.pathname + window.location.search);
-      } else {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          this.scrollToElement(element);
-          // Update the URL without triggering a page reload
-          history.pushState(null, null, `#${sectionId}`);
-        }
+
+        history.pushState(null, null, `#${sectionId}`);
+        element.focus({preventScroll: true});
+      } else if (sectionId === 'inicio') {
+        window.scrollTo({top: 0, behavior: "smooth"});
+        history.pushState(null, null, '/');
       }
       this.closeMenu();
     },
-    scrollToElement(element) {
-      const headerOffset = 100;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
-
-      element.tabIndex = -1;
-      element.focus({ preventScroll: true });
-    },
     handleScroll() {
-      const currentScrollPosition = window.scrollY || document.documentElement.scrollTop;
+      const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
       if (currentScrollPosition < 0) {
         return;
       }
 
-      this.isScrolled = currentScrollPosition > 200;
-
-      if (this.isScrolled) {
-        this.isHidden = currentScrollPosition > this.lastScrollPosition;
-      } else {
-        this.isHidden = false;
-      }
-
+      this.isScrolled = currentScrollPosition > 50;
+      this.isHidden = currentScrollPosition > 100 && currentScrollPosition > this.lastScrollPosition;
       this.lastScrollPosition = currentScrollPosition;
-    },
-    handleInitialHash() {
-      if (window.location.hash) {
-        const sectionId = window.location.hash.slice(1); // Remove the '#' character
-        if (sectionId === 'inicio') {
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-          });
-        } else {
-          const element = document.getElementById(sectionId);
-          if (element) {
-            // Use setTimeout to ensure the scroll happens after the page has fully loaded
-            setTimeout(() => {
-              this.scrollToElement(element);
-            }, 0);
-          }
-        }
-      }
     },
     capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
@@ -186,17 +183,25 @@ export default {
   },
   mounted() {
     window.addEventListener('scroll', this.handleScroll);
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isMenuOpen) {
-        this.closeMenu();
+    this.$nextTick(() => {
+      if (window.location.hash) {
+        const sectionId = window.location.hash.slice(1);
+        this.scrollToSection(sectionId);
       }
     });
-    this.handleInitialHash();
-
-    window.addEventListener('hashchange', this.handleInitialHash);
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
   }
 }
 </script>
+
+<style scoped>
+header {
+  height: 80px; /* Adjust based on your design */
+}
+
+.mobile-menu-container {
+  contain: content;
+}
+</style>
