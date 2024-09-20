@@ -7,7 +7,7 @@
         <picture>
           <source srcset="/assets/NatiHero.webp" type="image/webp">
           <source srcset="/assets/NatiHero.png" type="image/png">
-          <img src="/assets/NatiHero.webp" alt="Natalia Ferreira, Psicóloga" class="w-full h-auto object-cover" width="400" height="600" loading="lazy" />
+          <img src="/assets/NatiHero.webp" alt="Natalia Ferreira, Psicóloga" class="w-full h-auto object-cover" width="400" height="600" />
         </picture>
       </div>
     </div>
@@ -75,25 +75,5 @@ export default {
       return `https://wa.me/${this.phoneNumber}?text=${encodeURIComponent(this.message)}`;
     },
   },
-  mounted() {
-    useHead({
-      title: 'Terapia Online com Natalia Ferreira - Psicóloga CRP 12/19892',
-      meta: [
-        { name: 'description', content: 'Descubra o poder da terapia online com Natalia Ferreira, Psicóloga CRP 12/19892. Espaço seguro e acolhedor para jovens, adultos e idosos. Agende sua consulta!' },
-        { property: 'og:title', content: 'Terapia Online com Natalia Ferreira - Psicóloga CRP 12/19892' },
-        { property: 'og:description', content: 'Descubra o poder da terapia online com Natalia Ferreira, Psicóloga CRP 12/19892. Espaço seguro e acolhedor para jovens, adultos e idosos. Agende sua consulta!' },
-        { property: 'og:image', content: '/assets/NatiHero.webp' },
-        { property: 'og:type', content: 'website' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Terapia Online com Natalia Ferreira - Psicóloga CRP 12/19892' },
-        { name: 'twitter:description', content: 'Descubra o poder da terapia online com Natalia Ferreira, Psicóloga CRP 12/19892. Espaço seguro e acolhedor para jovens, adultos e idosos. Agende sua consulta!' },
-        { name: 'twitter:image', content: '/assets/NatiHero.webp' },
-      ],
-    })
-  },
 }
 </script>
-
-<style scoped>
-
-</style>
