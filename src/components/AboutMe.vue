@@ -10,7 +10,7 @@
         <picture>
           <source srcset="/assets/NatiAboutMe.webp" type="image/webp">
           <source srcset="/assets/NatiAboutMe.png" type="image/png">
-          <img src="/assets/NatiAboutMe.webp" alt="Foto de Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira" class="w-64 h-64 rounded-full object-cover shadow-lg" width="256" height="256" loading="lazy">
+          <img src="/assets/NatiAboutMe.webp" alt="Foto de Natalia Ferreira, Psicóloga Clínica e Orientadora de Carreira" class="w-64 h-64 rounded-full object-cover shadow-lg" width="256" height="256" loading="lazy" fetchpriority="low">
         </picture>
       </div>
 
