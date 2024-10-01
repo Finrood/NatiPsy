@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Any custom styles */
+html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
+    font-family: 'Quicksand', sans-serif !important;
+}

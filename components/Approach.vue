@@ -37,7 +37,7 @@
             <picture>
               <source srcset="/assets/abordagem2.webp" type="image/webp">
               <source srcset="/assets/abordagem2.jpg" type="image/jpeg">
-              <img src="/assets/abordagem2.jpg" alt="Therapy approach image 2" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy"fetchpriority="low" width="600" height="400">
+              <img src="/assets/abordagem2.jpg" alt="Therapy approach image 2" class="w-full h-auto object-cover rounded-lg shadow-lg" loading="lazy" fetchpriority="low" width="600" height="400">
             </picture>
           </div>
           <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
