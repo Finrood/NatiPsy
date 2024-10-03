@@ -35,7 +35,13 @@ export default defineNuxtConfig({
         { rel: 'canonical', href: 'https://psicologanataliaferreira.com' }
       ],
       noscript: [
-        { children: '<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">' }
+        { children: '<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">' },
+        {
+          children: `
+            <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PVQJWCR4"
+                    height="0" width="0" style="display:none;visibility:hidden"></iframe>
+          `
+        }
       ],
       script: [
         {
@@ -49,6 +55,17 @@ export default defineNuxtConfig({
             "image": "https://psicologanataliaferreira.com/assets/logo.webp",
             "sameAs": ["https://www.linkedin.com/in/natalia-ferreira-santos"]
           })
+        },
+        {
+          // Google Tag Manager
+          type: 'text/javascript',
+          children: `
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-PVQJWCR4');
+          `
         }
       ]
     }
@@ -62,14 +79,7 @@ export default defineNuxtConfig({
   // Modules
   modules: [
     '@nuxtjs/tailwindcss',
-    '@nuxtjs/gtm'
   ],
-
-  gtm: {
-    id: 'GTM-PVQJWCR4',
-    pageTracking: true,
-    pageViewEventName: 'nuxtRoute'
-  },
 
   // Add PostCSS configuration here
   postcss: {
