@@ -38,7 +38,7 @@ export default defineNuxtConfig({
         { children: '<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">' },
         {
           children: `
-            <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NJW3365L"
+            <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PVQJWCR4L"
 height="0" width="0" style="display:none;visibility:hidden"></iframe>
           `
         }
@@ -64,7 +64,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe>
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-NJW3365L');
+})(window,document,'script','dataLayer','GTM-PVQJWCR4');
           `
         }
       ]
