@@ -61,8 +61,15 @@ export default defineNuxtConfig({
 
   // Modules
   modules: [
-    '@nuxtjs/tailwindcss'
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/gtm'
   ],
+
+  gtm: {
+    id: 'GTM-PVQJWCR4',
+    pageTracking: true,
+    pageViewEventName: 'nuxtRoute'
+  },
 
   // Add PostCSS configuration here
   postcss: {
