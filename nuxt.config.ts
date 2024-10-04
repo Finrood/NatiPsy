@@ -11,6 +11,9 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: {
+        lang: 'pt-BR'
+      },
       title: 'Psicóloga Natalia Ferreira',
       meta: [
         { charset: 'utf-8' },
