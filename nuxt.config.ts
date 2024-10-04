@@ -97,6 +97,27 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     },
   },
 
+  // Optimize for production
+  nitro: {
+    compressPublicAssets: true,
+    minify: true,
+  },
+
+  // Vite optimizations
+  vite: {
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+        },
+      },
+    },
+    optimizeDeps: {
+      include: ['vue'],
+    },
+  },
+
   // Enable auto-import of components
   components: true,
 
