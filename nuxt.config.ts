@@ -1,11 +1,8 @@
 export default defineNuxtConfig({
-  // For static site generation
   target: 'static',
   ssr: true,
 
-  // Generate configuration
   generate: {
-    // Since it's a single page, we only need to generate the home route
     routes: ['/']
   },
 
@@ -38,13 +35,7 @@ export default defineNuxtConfig({
         { rel: 'canonical', href: 'https://psicologanataliaferreira.com' }
       ],
       noscript: [
-        { children: '<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">' },
-        {
-          children: `
-            <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PVQJWCR4L"
-height="0" width="0" style="display:none;visibility:hidden"></iframe>
-          `
-        }
+        { children: '<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">' }
       ],
       script: [
         {
@@ -60,7 +51,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe>
           })
         },
         {
-          // Google Tag Manager
           type: 'text/javascript',
           children: `
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -74,36 +64,50 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     }
   },
 
-  // Include your global CSS
   css: [
     '@/assets/css/main.css'
   ],
 
-  // Modules
   modules: [
     '@nuxtjs/tailwindcss',
+    '@nuxtjs/robots',
+    '@nuxtjs/sitemap'
   ],
 
   plugins: [
-      'plugins/vue-gtm-client.js',
+    'plugins/vue-gtm-client.js',
   ],
 
-  // Add PostCSS configuration here
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
-      // Add any other PostCSS plugins you're using
+      cssnano: {
+        preset: 'default',
+      },
     },
   },
 
-  // Optimize for production
+  site: {
+    url: 'https://psicologanataliaferreira.com',
+  },
+
+  sitemap: {
+    hostname: 'https://psicologanataliaferreira.com',
+    routes: ['/']
+  },
+
+  robots: {
+    UserAgent: '*',
+    Allow: '/',
+    Sitemap: 'https://psicologanataliaferreira.com/sitemap.xml'
+  },
+
   nitro: {
     compressPublicAssets: true,
     minify: true,
   },
 
-  // Vite optimizations
   vite: {
     build: {
       minify: 'terser',
@@ -112,14 +116,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           drop_console: true,
         },
       },
+      cssCodeSplit: true, // Ensure CSS is split into separate files
     },
     optimizeDeps: {
       include: ['vue'],
     },
   },
 
-  // Enable auto-import of components
   components: true,
 
-  compatibilityDate: '2024-10-01'
+  compatibilityDate: '2024-10-07'
 })
