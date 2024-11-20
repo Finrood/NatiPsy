@@ -5,7 +5,7 @@
     <header class="mb-8">
       <!-- Back Button -->
       <NuxtLink
-          to="/pages"
+          to="/"
           class="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 mb-8 transition-colors"
       >
         <span class="mr-2">←</span> Back to Articles
@@ -30,20 +30,6 @@
         <span>{{ post.readTime }}</span>
       </div>
 
-      <!-- Author -->
-      <div class="flex items-center space-x-4 mb-8 p-4 bg-gray-50 rounded-lg">
-        <img
-            v-if="post.author?.avatar"
-            :src="post.author.avatar"
-            :alt="post.author.name"
-            class="h-12 w-12 rounded-full object-cover ring-2 ring-white"
-        />
-        <div>
-          <div class="font-medium text-gray-900">{{ post.author?.name }}</div>
-          <div class="text-sm text-gray-600">{{ post.author?.credentials }}</div>
-        </div>
-      </div>
-
       <!-- Featured Image -->
       <div class="relative h-64 sm:h-96 rounded-xl overflow-hidden mb-8">
         <img
@@ -65,7 +51,7 @@
       <!-- Share buttons or related articles could go here -->
       <div class="flex justify-between items-center">
         <NuxtLink
-            to="/pages"
+            to="/"
             class="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors"
         >
           <span class="mr-2">←</span> Back to Articles
@@ -81,20 +67,6 @@ const { path } = useRoute()
 // Fetch current post
 const { data: post } = await useAsyncData(`post-${path}`, () => queryContent(path).findOne())
 
-// Get author data
-if (post.value?.author) {
-  const authorData = await queryContent('blog/_authors')
-      .where({ slug: post.author })
-      .findOne()
-
-  if (authorData) {
-    post.author = authorData
-  } else {
-    console.error('Author not found:', post.author)
-    post.author = {}
-  }
-}
-
 // Format date helper
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -109,11 +81,9 @@ useHead({
   title: post.value?.title,
   meta: [
     { name: 'description', content: post.value?.description },
-    // Open Graph
     { property: 'og:title', content: post.value?.title },
     { property: 'og:description', content: post.value?.description },
     { property: 'og:image', content: post.value?.image },
-    // Twitter
     { name: 'twitter:title', content: post.value?.title },
     { name: 'twitter:description', content: post.value?.description },
     { name: 'twitter:image', content: post.value?.image },

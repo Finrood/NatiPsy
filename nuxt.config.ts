@@ -72,7 +72,14 @@ export default defineNuxtConfig({
     '@/assets/css/main.css',
   ],
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/robots', '@nuxtjs/sitemap', '@nuxt/content', '@nuxt/image'],
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/robots',
+    '@nuxtjs/sitemap',
+    '@nuxt/content',
+    '@nuxtjs/mdc',
+    '@nuxt/image'
+  ],
 
   content: {
     markdown: {
@@ -87,6 +94,15 @@ export default defineNuxtConfig({
         copyButton: false,
         highlight: {
           theme: 'github-light'
+        }
+      },
+      anchorLinks: {
+        depth: 0  // Disable heading links
+      },
+      sources: {
+        content: {
+          driver: 'fs',
+          base: './content'
         }
       }
     }

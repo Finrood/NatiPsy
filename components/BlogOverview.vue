@@ -1,10 +1,10 @@
 // components/BlogOverview.vue
 <template>
-  <section id="blog-overview" class="py-16 sm:py-24 bg-gradient-to-b from-white to-gray-50">
+  <section id="minha-abordagem" class="my-approach-section py-16 sm:py-24 bg-primary-pink bg-opacity-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="max-w-2xl mx-auto text-center mb-16">
-        <h2 class="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+        <h2 class="text-4xl sm:text-5xl font-bold text-primary-blue mb-12 text-center">
           Blog
         </h2>
         <p class="text-gray-600 text-lg">
@@ -19,7 +19,7 @@
             :key="post._path"
             class="group relative bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
         >
-          <NuxtLink :to="post._path" class="block h-full">
+          <NuxtLink :to="`/blog/${post._path.split('/').pop()}`" class="block h-full">
             <!-- Category Tag -->
             <span
                 v-if="post.category"
@@ -64,15 +64,6 @@
               <!-- Author Section -->
               <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                 <div class="flex items-center space-x-3">
-                  <nuxt-img
-                      v-if="post.author?.avatar"
-                      :src="post.author.avatar"
-                      :alt="post.author.name"
-                      width="40"
-                      height="40"
-                      loading="lazy"
-                      class="rounded-full object-cover ring-2 ring-white"
-                  />
                   <span class="font-medium text-gray-900">{{ post.author?.name }}</span>
                 </div>
                 <span class="text-blue-600 group-hover:translate-x-1 transition-transform duration-300" aria-hidden="true">
@@ -90,7 +81,12 @@
 <script setup>
 const { data: posts } = await useAsyncData('blog-preview', () =>
     queryContent('blog')
-        .where({ draft: { $ne: true }}) // Exclude draft posts
+        .where({
+          draft: { $ne: true },
+          _path: { $ne: null },  // Ensure path exists
+          _path: { $not: /\/_authors/ },  // Exclude author paths
+          _type: 'markdown'  // Ensure it's a markdown document
+          }) // Exclude draft posts
         .sort({ date: -1 })
         .limit(3) // Only get latest 3 posts
         .find()
