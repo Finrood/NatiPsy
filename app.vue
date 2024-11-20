@@ -4,11 +4,7 @@
       <MenuComponent />
     </header>
     <main id="main-content" class="relative z-0">
-      <HeroSection id="inicio" />
-      <ServicesInfo id="meus-servicos" />
-      <MyApproachSection id="abordagem" />
-      <TherapyAdvantages id="vantagens" />
-      <AboutMeSection id="sobre-mim" />
+      <NuxtPage />
     </main>
     <WebsiteFooter />
 
@@ -33,27 +29,9 @@
   </div>
 </template>
 
-<script>
-import HeroSection from './components/HeroSection.vue'
-import ServicesInfo from "@/components/Service.vue";
-import WebsiteFooter from "@/components/Footer.vue";
-import MyApproachSection from "@/components/Approach.vue";
-import TherapyAdvantages from "@/components/Advantages.vue";
-import AboutMeSection from "@/components/AboutMe.vue";
-import MenuComponent from "@/components/MenuComponent.vue";
-
-export default {
-  name: 'App',
-  components: {
-    MenuComponent,
-    HeroSection,
-    ServicesInfo,
-    MyApproachSection,
-    TherapyAdvantages,
-    AboutMeSection,
-    WebsiteFooter,
-  },
-}
+<script setup>
+import MenuComponent from '@/components/MenuComponent.vue'
+import WebsiteFooter from '@/components/Footer.vue'
 </script>
 
 <style>
