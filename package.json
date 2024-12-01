@@ -16,7 +16,7 @@
     "@nuxtjs/robots": "^4.1.10",
     "@nuxtjs/sitemap": "^6.1.4",
     "@tailwindcss/typography": "^0.5.15",
-    "@unhead/vue": "^1.11.10",
+    "@unhead/vue": "^1.11.13",
     "@vueuse/head": "^2.0.0",
     "nuxt": "^3.13.2",
     "remark-html": "^16.0.1",
