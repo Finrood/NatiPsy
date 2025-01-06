@@ -1,5 +1,5 @@
 # Stage 1: Build with a lighter node image
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 
 WORKDIR /app/natipsy
 
@@ -7,7 +7,7 @@ WORKDIR /app/natipsy
 COPY package*.json ./
 
 # Install dependencies with specific optimizations
-RUN npm install --production --no-optional \
+RUN npm install \
     && npm cache clean --force
 
 # Copy only necessary source files
@@ -20,7 +20,7 @@ RUN npm run build \
     && npm prune --production
 
 # Stage 2: Runtime with minimal image
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 # Add curl for healthcheck but remove after installation
 RUN apk add --no-cache --virtual .healthcheck-deps curl \
