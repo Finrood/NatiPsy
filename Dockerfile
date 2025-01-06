@@ -1,41 +1,53 @@
-# Stage 1: Build
-FROM node:22 AS build
+# Stage 1: Build with a lighter node image
+FROM node:20-slim AS build
 
 WORKDIR /app/natipsy
 
-# Copy package.json and package-lock.json (if present) for caching npm install
-COPY ./package*.json ./
+# Copy only package files first
+COPY package*.json ./
 
-# Install all dependencies
-RUN npm install
+# Install dependencies with specific optimizations
+RUN npm install --production --no-optional \
+    && npm cache clean --force
 
-# Copy the rest of the application code
-COPY . .
+# Copy only necessary source files
+COPY src/ ./src/
+COPY tsconfig*.json ./
 
-# Build the application
+# Build with optimizations
 ARG NODE_ENV=production
-ARG BUILD_TIMESTAMP
-RUN echo "NODE_ENV is set to $NODE_ENV" # Print NODE_ENV
-RUN npm run build
+RUN npm run build \
+    && npm prune --production
 
-# Stage 2: Runtime
-FROM node:22-alpine
+# Stage 2: Runtime with minimal image
+FROM node:20-alpine AS runtime
+
+# Add curl for healthcheck but remove after installation
+RUN apk add --no-cache --virtual .healthcheck-deps curl \
+    && apk del .healthcheck-deps
+
+# Create non-root user
+RUN addgroup -S nodeapp && adduser -S nodeapp -G nodeapp
 
 WORKDIR /app
 
-# Copy only the build files from the build stage
-COPY --from=build /app/natipsy/dist /app/dist
+# Copy only production dependencies and built files
+COPY --from=build /app/natipsy/dist ./dist
+COPY --from=build /app/natipsy/node_modules ./node_modules
 
-# Create the entrypoint script
-RUN echo '#!/bin/sh\n\
-if [ -d "/app/dist" ]; then\n\
-  echo "Files copied successfully"\n\
-else\n\
-  echo "Source directory does not exist"\n\
-fi\n\
-exec "$@"' > /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
+# Set proper permissions
+RUN chown -R nodeapp:nodeapp /app
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Use non-root user
+USER nodeapp
 
-# Default command to keep the container running
-CMD ["sh", "-c", "while :; do sleep 2073600; done"]
+# Reduce memory usage with these environment variables
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=512 --optimize-for-size"
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').request({ host: 'localhost', port: process.env.PORT || 3000, path: '/health', timeout: 2000 }, (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1)).end()"
+
+# Start application
+CMD ["node", "--optimize-for-size", "--gc-interval=100", "dist/main.js"]
