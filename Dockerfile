@@ -6,8 +6,8 @@ WORKDIR /app/natipsy
 # Copy package.json and package-lock.json (if present) for caching npm install
 COPY ./package*.json ./
 
-# Install dependencies (production only)
-RUN npm install --production
+# Install all dependencies
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
