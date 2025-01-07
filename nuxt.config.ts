@@ -97,15 +97,15 @@ export default defineNuxtConfig({
 
   vite: {
     build: {
+      minify: 'terser',
+      terserOptions: {
+        compress: {drop_console: true},
+      },
       cssCodeSplit: true,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vue-vendor': ['vue'],
-          }
-        }
-      }
-    }
+    },
+    optimizeDeps: {
+      include: ['vue'],
+    },
   },
 
   postcss: {
