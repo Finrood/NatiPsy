@@ -1,17 +1,8 @@
 export default defineNuxtConfig({
-  target: 'static',
+  // Runtime config
   ssr: true,
 
-  generate: {
-    fallback: true,
-    routes: async () => {
-      const contentModule = await import('@nuxt/content')
-      const { $content } = contentModule
-      const posts = await $content('blog').fetch()
-      return posts.map(post => `/blog/${post.slug}`)
-    }
-  },
-
+  // App configuration
   app: {
     head: {
       htmlAttrs: { lang: 'pt-BR' },
@@ -22,24 +13,24 @@ export default defineNuxtConfig({
         { name: 'description', content: 'Psicóloga Natalia Ferreira - Terapia Online e Consultoria em Psicologia. Descubra o poder da terapia online para sua saúde mental.' },
         { name: 'keywords', content: 'psicologia, terapia online, psicóloga, psicóloga Natalia Ferreira, saúde mental, psicoterapia, ansiedade, depressão, burnout, estresse, consultoria psicológica' },
         { name: 'author', content: 'Natalia Ferreira' },
+        // SEO meta tags
         { name: 'robots', content: 'index, follow' },
         { name: 'googlebot', content: 'index, follow' },
+        // Open Graph meta tags
         { property: 'og:title', content: 'Psicóloga Natalia Ferreira' },
         { property: 'og:description', content: 'Descubra o poder da terapia online com a psicóloga Natalia Ferreira. Consultoria e terapia para sua saúde mental.' },
-        { property: 'og:image', content: 'https://psicologanataliaferreira.com/assets/logo.webp' },
+        { property: 'og:image', content: '/assets/logo.webp' },
         { property: 'og:url', content: 'https://psicologanataliaferreira.com' },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Psicóloga Natalia Ferreira' },
       ],
       link: [
-        { rel: 'icon', href: '/favicon.ico' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: true },
-        { rel: 'preload', href: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap', as: 'style', onload: "this.onload=null;this.rel='stylesheet'" },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'preload', as: 'style', href: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap', media: 'print', onload: "this.media='all'" },
         { rel: 'canonical', href: 'https://psicologanataliaferreira.com' },
-      ],
-      noscript: [
-        { children: '<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">' }
       ],
       script: [
         {
@@ -50,7 +41,7 @@ export default defineNuxtConfig({
             "name": "Natalia Ferreira",
             "description": "Psicóloga especializada em terapia online e consultoria em psicologia.",
             "url": "https://psicologanataliaferreira.com",
-            "image": "https://psicologanataliaferreira.com/assets/logo.webp",
+            "image": "/assets/logo.webp",
             "sameAs": ["https://www.linkedin.com/in/natalia-ferreira-santos"],
           })
         },
@@ -68,49 +59,54 @@ export default defineNuxtConfig({
     }
   },
 
-  css: [
-    '@/assets/css/main.css',
-  ],
+  // CSS configuration
+  css: ['@/assets/css/main.css'],
 
+  // Modules configuration
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxtjs/robots',
     '@nuxtjs/sitemap',
     '@nuxt/content',
     '@nuxtjs/mdc',
-    '@nuxt/image'
+    '@nuxt/image',
   ],
 
+  // Content configuration
   content: {
     markdown: {
-      toc: {
-        depth: 3,
-        searchDepth: 3
-      },
-      remarkPlugins: () => [
-        'remark-html'
-      ],
+      toc: { depth: 3, searchDepth: 3 },
+      remarkPlugins: ['remark-html'],
       prose: {
         copyButton: false,
-        highlight: {
-          theme: 'github-light'
-        }
+        highlight: { theme: 'github-light' }
       },
-      anchorLinks: {
-        depth: 0  // Disable heading links
-      },
-      sources: {
-        content: {
-          driver: 'fs',
-          base: './content'
+      anchorLinks: { depth: 0 }
+    }
+  },
+
+  // Build optimization
+  nitro: {
+    compressPublicAssets: true,
+    minify: true,
+    prerender: {
+      crawlLinks: true,
+      routes: ['/']
+    }
+  },
+
+  vite: {
+    build: {
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vue-vendor': ['vue'],
+          }
         }
       }
     }
   },
-
-  plugins: [
-    'plugins/vue-gtm-client.js',
-  ],
 
   postcss: {
     plugins: {
@@ -120,44 +116,27 @@ export default defineNuxtConfig({
     },
   },
 
-  site: { url: 'https://psicologanataliaferreira.com' },
-
-  sitemap: {
-    hostname: 'https://psicologanataliaferreira.com',
-    routes: async () => {
-      const contentModule = await import('@nuxt/content')
-      const { $content } = contentModule
-      const posts = await $content('blog').fetch()
-      return posts.map(post => `/blog/${post.slug}`).concat(['/'])
-    },
-    exclude: ['/static'],
+  // Site configuration
+  site: {
+    url: 'https://psicologanataliaferreira.com'
   },
 
+  // Sitemap configuration
+  sitemap: {
+    hostname: 'https://psicologanataliaferreira.com',
+  },
+
+  // Robots configuration
   robots: {
     UserAgent: '*',
     Allow: '/',
-    Sitemap: 'https://psicologanataliaferreira.com/sitemap.xml',
+    Sitemap: 'https://psicologanataliaferreira.com/sitemap.xml'
   },
 
-  nitro: {
-    compressPublicAssets: true,
-    minify: true,
+  // Development configuration
+  typescript: {
+    strict: true
   },
 
-  vite: {
-    build: {
-      minify: 'terser',
-      terserOptions: {
-        compress: { drop_console: true },
-      },
-      cssCodeSplit: true,
-    },
-    optimizeDeps: {
-      include: ['vue'],
-    },
-  },
-
-  components: true,
-
-  compatibilityDate: '2024-10-07',
+  compatibilityDate: '2025-01-08'
 })
