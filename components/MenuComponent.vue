@@ -12,7 +12,7 @@
   >
     <div class="container mx-auto px-4 py-2 flex justify-between items-center">
       <a
-          href="/"
+          href="/static"
           class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125"
           @click.prevent="refreshPage"
           aria-label="Home"
