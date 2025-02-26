@@ -1,0 +1,9 @@
+{
+  "documentDriven": true,
+  "markdown": {
+    "remarkPlugins": ["remark-html"]
+  },
+  "navigation": {
+    "fields": ["title", "description", "date", "category", "author"]
+  }
+} 

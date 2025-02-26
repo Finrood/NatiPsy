@@ -1,0 +1,17 @@
+{
+  "documentDriven": true,
+  "markdown": {
+    "remarkPlugins": ["remark-html"]
+  },
+  "navigation": {
+    "fields": ["title", "description", "date", "category", "author"]
+  },
+  "collections": {
+    "blog": {
+      "path": "content/blog"
+    },
+    "authors": {
+      "path": "content/blog/_authors"
+    }
+  }
+} 
