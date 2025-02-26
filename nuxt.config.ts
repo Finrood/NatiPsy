@@ -73,38 +73,28 @@ export default defineNuxtConfig({
   ],
 
   modules: [
-    '@nuxtjs/tailwindcss',
     '@nuxtjs/robots',
     '@nuxtjs/sitemap',
     '@nuxt/content',
-    '@nuxtjs/mdc',
-    '@nuxt/image'
+    '@nuxtjs/tailwindcss',
+    '@nuxt/image',
+    '@nuxtjs/mdc'
   ],
 
   content: {
+    documentDriven: true,
+    highlight: {
+      theme: 'github-light'
+    },
     markdown: {
       toc: {
         depth: 3,
         searchDepth: 3
       },
-      remarkPlugins: () => [
-        'remark-html'
-      ],
-      prose: {
-        copyButton: false,
-        highlight: {
-          theme: 'github-light'
-        }
-      },
-      anchorLinks: {
-        depth: 0  // Disable heading links
-      },
-      sources: {
-        content: {
-          driver: 'fs',
-          base: './content'
-        }
-      }
+      mdc: true
+    },
+    experimental: {
+      clientDB: true
     }
   },
 
@@ -114,29 +104,34 @@ export default defineNuxtConfig({
 
   postcss: {
     plugins: {
+      'tailwindcss/nesting': {},
       tailwindcss: {},
       autoprefixer: {},
-      cssnano: { preset: 'default' },
     },
   },
 
-  site: { url: 'https://psicologanataliaferreira.com' },
+  site: {
+    url: process.env.SITE_URL || 'https://example.com',
+  },
 
   sitemap: {
-    hostname: 'https://psicologanataliaferreira.com',
-    routes: async () => {
-      const contentModule = await import('@nuxt/content')
-      const { $content } = contentModule
-      const posts = await $content('blog').fetch()
-      return posts.map(post => `/blog/${post.slug}`).concat(['/'])
-    },
-    exclude: ['/static'],
+    hostname: process.env.SITE_URL || 'https://example.com',
+    gzip: true,
+    exclude: ['/private/**', '/admin/**'],
+    defaults: {
+      changefreq: 'daily',
+      priority: 0.8,
+      lastmod: new Date().toISOString()
+    }
   },
 
   robots: {
-    UserAgent: '*',
-    Allow: '/',
-    Sitemap: 'https://psicologanataliaferreira.com/sitemap.xml',
+    rules: {
+      UserAgent: '*',
+      Allow: '/',
+      Disallow: ['/private', '/admin']
+    },
+    sitemap: ['/sitemap.xml']
   },
 
   nitro: {
@@ -160,4 +155,10 @@ export default defineNuxtConfig({
   components: true,
 
   compatibilityDate: '2024-10-07',
+
+  tailwindcss: {
+    configPath: '~/tailwind.config.js',
+    exposeConfig: true,
+    viewer: true
+  },
 })
