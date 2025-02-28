@@ -1,0 +1,79 @@
+<section id="minha-abordagem" class="my-approach-section py-16 sm:py-24 bg-white">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-4xl sm:text-5xl font-bold text-primary-blue mb-12 text-center">
+      Minha Abordagem
+    </h2>
+
+    <div class="rounded-xl shadow-2xl p-8 sm:p-12 bg-primary-pink/20">
+      <div class="space-y-8 mb-12">
+        <p class="text-lg sm:text-xl text-gray-700 leading-relaxed">
+          Na minha prática clínica, utilizo a Terapia Relacional Sistêmica como principal ferramenta de trabalho. Esta abordagem nos permite olhar para o indivíduo não de forma isolada, mas como parte de um sistema complexo de relações e contextos que influenciam sua vida.
+        </p>
+        <p class="text-lg sm:text-xl text-gray-700 leading-relaxed">
+          A Terapia Relacional Sistêmica reconhece que cada pessoa é única, com sua própria história, experiências e formas de se relacionar com o mundo. Partindo desse princípio, meu trabalho se baseia em:
+        </p>
+      </div>
+
+      <!-- Primeira seção de princípios -->
+      <div class="flex flex-col lg:flex-row gap-8 mb-12">
+        <div class="lg:w-1/2 flex flex-col justify-center">
+          <ul class="space-y-4" role="list">
+            <li *ngFor="let principle of principles.slice(0, 3); trackBy: trackByFn"
+                class="rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+              <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
+                {{ principle.title }}
+              </h3>
+              <p class="text-base sm:text-lg text-gray-700">
+                {{ principle.description }}
+              </p>
+            </li>
+          </ul>
+        </div>
+        <div class="lg:w-1/2 flex items-center">
+          <picture>
+            <source srcset="/assets/abordagem1.webp" type="image/webp">
+            <source srcset="/assets/abordagem1.jpg" type="image/jpeg">
+            <img src="/assets/abordagem1.jpg" alt="Therapy approach image 1"
+                 class="w-full h-auto object-cover rounded-lg shadow-lg"
+                 loading="lazy" fetchpriority="low" width="600" height="400">
+          </picture>
+        </div>
+      </div>
+
+      <!-- Segunda seção de princípios -->
+      <div class="flex flex-col lg:flex-row gap-8">
+        <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
+          <picture>
+            <source srcset="/assets/abordagem2.webp" type="image/webp">
+            <source srcset="/assets/abordagem2.jpg" type="image/jpeg">
+            <img ngSrc="/assets/abordagem2.jpg" alt="Therapy approach image 2"
+                 class="w-full h-auto object-cover rounded-lg shadow-lg"
+                 loading="lazy" fetchpriority="low" width="600" height="400">
+          </picture>
+        </div>
+        <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
+          <ul class="space-y-4" role="list">
+            <li *ngFor="let principle of principles.slice(3); trackBy: trackByFn"
+                class="rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+              <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
+                {{ principle.title }}
+              </h3>
+              <p class="text-base sm:text-lg text-gray-700">
+                {{ principle.description }}
+              </p>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-12 text-lg sm:text-xl text-gray-700 space-y-6">
+        <p>
+          Através desta abordagem, busco criar um espaço seguro e acolhedor, onde você possa explorar suas questões, reconhecer seus recursos internos e externos, e construir novos significados para suas experiências.
+        </p>
+        <p>
+          Acredito que, ao olharmos para nossas vivências através de uma lente sistêmica e relacional, abrimos portas para transformações profundas e duradouras, que reverberam não apenas em nós, mas em todo o sistema do qual fazemos parte.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

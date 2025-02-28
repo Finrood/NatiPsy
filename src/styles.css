@@ -1,1 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary-pink: oklch(91.41% 0.0277 40.19);
+  --color-primary-pink-dark: oklch(81.19% 0.0298 44.98);
+  --color-primary-blue: oklch(22.97% 0.0517 269.16);
+  --color-white: oklch(100% 0 0);
+}
+
+html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
+  font-family: 'Montserrat', sans-serif !important;
+}

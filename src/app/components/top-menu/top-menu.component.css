@@ -1,0 +1,9 @@
+header {
+  height: 80px;
+}
+
+.mobile-menu-container {
+  contain: content;
+}
+
+/* Additional styles to match Vue implementation */

@@ -1,0 +1,32 @@
+<section class="min-h-screen bg-white flex items-center justify-center px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-6xl sm:text-8xl font-bold text-primary-blue mb-8">404</h1>
+      <h2 class="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6">Página Não Encontrada</h2>
+      <p class="text-lg text-gray-600 mb-8">
+        Desculpe, a página que você está procurando não existe ou foi movida.
+      </p>
+      <div class="bg-primary-pink/20 rounded-lg shadow-xl p-8 mb-8">
+        <p class="text-lg text-gray-800 leading-relaxed">
+          Que tal voltarmos para a página inicial e recomeçarmos nossa jornada?
+        </p>
+      </div>
+      <button
+        (click)="goHome()"
+        class="inline-flex items-center px-6 py-3 text-lg font-semibold text-white bg-primary-blue rounded-lg hover:bg-primary-pink-dark transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 cursor-pointer"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-2"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        Voltar para Início
+      </button>
+    </div>
+  </section>
