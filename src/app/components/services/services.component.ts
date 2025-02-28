@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {NgForOf} from '@angular/common';
 import {DomSanitizer} from '@angular/platform-browser';
+import { Meta, Title } from '@angular/platform-browser';
 
 interface Service {
   title: string;

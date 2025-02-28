@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AboutMeComponent } from '../about-me/about-me.component';
 import { FooterComponent } from '../footer/footer.component';
 import { TopMenuComponent } from '../top-menu/top-menu.component';
@@ -6,6 +6,8 @@ import { HeroComponent } from '../hero/hero.component';
 import { ServicesComponent } from '../services/services.component';
 import { ApproachComponent } from '../approach/approach.component';
 import { AdvantagesComponent } from '../advantages/advantages.component';
+import { Meta, Title } from '@angular/platform-browser';
+import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-home',
@@ -51,6 +53,15 @@ import { AdvantagesComponent } from '../advantages/advantages.component';
     </div>
   `
 })
-export class HomeComponent {
-  title = 'NatiPsy';
+export class HomeComponent implements OnInit {
+  constructor(private seoService: SeoService) {}
+
+  ngOnInit() {
+    this.seoService.updateMetaTags({
+      title: 'Psicóloga Natalia Ferreira | Terapia Online - CRP 12/19892',
+      description: 'Psicóloga Clínica especializada em Terapia Relacional Sistêmica. Atendimento online para jovens, adultos e casais. Experiência em terapia sistêmica, ansiedade, depressão e relacionamentos.',
+      keywords: 'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
+      url: 'https://psicologanataliaferreira.com'
+    });
+  }
 } 

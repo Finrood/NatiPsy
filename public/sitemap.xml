@@ -3,7 +3,56 @@
   <url>
     <loc>https://psicologanataliaferreira.com/</loc>
     <lastmod>2025-02-28</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://psicologanataliaferreira.com/assets/NatiHero.webp</image:loc>
+      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
+      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://psicologanataliaferreira.com/#meus-servicos</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://psicologanataliaferreira.com/assets/NatiHero.webp</image:loc>
+      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
+      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://psicologanataliaferreira.com/#abordagem</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://psicologanataliaferreira.com/assets/NatiHero.webp</image:loc>
+      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
+      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://psicologanataliaferreira.com/#vantagens</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://psicologanataliaferreira.com/assets/NatiHero.webp</image:loc>
+      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
+      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://psicologanataliaferreira.com/#sobre-mim</loc>
+    <lastmod>2025-02-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://psicologanataliaferreira.com/assets/NatiHero.webp</image:loc>
+      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
+      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
+    </image:image>
   </url>
 </urlset>
