@@ -10,7 +10,7 @@ import {AdvantagesComponent} from './components/advantages/advantages.component'
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AboutMeComponent, FooterComponent, TopMenuComponent, HeroComponent, ServicesComponent, ApproachComponent, AdvantagesComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
