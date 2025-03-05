@@ -50,16 +50,6 @@ export class HeroComponent implements OnInit {
         "sameAs": [
           "https://www.instagram.com/curacriativa/",
         ]
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "url": "https://psicologanataliaferreira.com",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://psicologanataliaferreira.com/search?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
       }
     ];
 
