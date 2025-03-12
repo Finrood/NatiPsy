@@ -8,6 +8,7 @@ import { ApproachComponent } from '../approach/approach.component';
 import { AdvantagesComponent } from '../advantages/advantages.component';
 import { Meta, Title } from '@angular/platform-browser';
 import { SeoService } from '../../services/seo.service';
+import {BlogListComponent} from '../blog-list/blog-list.component';
 
 @Component({
   selector: 'app-home',
@@ -19,7 +20,8 @@ import { SeoService } from '../../services/seo.service';
     HeroComponent,
     ServicesComponent,
     ApproachComponent,
-    AdvantagesComponent
+    AdvantagesComponent,
+    BlogListComponent
   ],
   template: `
     <div class="bg-white min-h-screen relative">
@@ -32,6 +34,7 @@ import { SeoService } from '../../services/seo.service';
         <app-approach id="abordagem"></app-approach>
         <app-advantages id="vantagens"></app-advantages>
         <app-about-me id="sobre-mim"></app-about-me>
+        <app-blog-list></app-blog-list>
       </main>
       <app-footer></app-footer>
 
@@ -64,4 +67,4 @@ export class HomeComponent implements OnInit {
       url: 'https://psicologanataliaferreira.com'
     });
   }
-} 
+}

@@ -1,0 +1,37 @@
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4 max-w-3xl">
+    <a routerLink="/blog" class="text-blue-600 hover:underline mb-6 inline-block">
+      ← Voltar para o blog
+    </a>
+
+    <div *ngIf="post">
+      <h1 class="text-4xl font-bold mb-4">{{ post.title }}</h1>
+      <p class="text-gray-600 mb-8">{{ post.date | date:'longDate' }}</p>
+
+      <div *ngIf="post.image" class="mb-8">
+        <img [src]="'/assets/content/blog/images/' + post.image"
+             [alt]="post.title" class="w-full rounded-lg shadow-md">
+      </div>
+
+      <div class="prose prose-lg max-w-none" [innerHTML]="post.content"></div>
+
+      <div class="mt-12 pt-6 border-t border-gray-200">
+        <div class="flex flex-wrap gap-2">
+              <span *ngFor="let category of post.categories"
+                    class="text-sm px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                {{ category }}
+
+              </span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!post && !loading" class="text-center py-12">
+      <p class="text-2xl text-gray-600">Post não encontrado</p>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-12">
+      <p class="text-xl text-gray-600">Carregando...</p>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,107 @@
+/* Custom styles for blog content */
+:host ::ng-deep .prose h1 {
+  font-size: 2.25rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+:host ::ng-deep .prose h2 {
+  font-size: 1.875rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+:host ::ng-deep .prose h3 {
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+:host ::ng-deep .prose p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+:host ::ng-deep .prose ul {
+  list-style-type: disc;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+:host ::ng-deep .prose ol {
+  list-style-type: decimal;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+:host ::ng-deep .prose li {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+:host ::ng-deep .prose blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #4b5563;
+  margin: 1.5rem 0;
+  background-color: #f3f4f6;
+  padding: 1rem;
+}
+
+:host ::ng-deep .prose pre {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+:host ::ng-deep .prose code {
+  background-color: #f1f5f9;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+}
+
+:host ::ng-deep .prose img {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin: 1.5rem 0;
+}
+
+:host ::ng-deep .prose a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+:host ::ng-deep .prose a:hover {
+  text-decoration: underline;
+}
+
+:host ::ng-deep .prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+:host ::ng-deep .prose th,
+:host ::ng-deep .prose td {
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+:host ::ng-deep .prose th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
