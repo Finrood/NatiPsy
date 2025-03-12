@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map, catchError, of } from 'rxjs';
-import { BlogPost } from '../models/blog-post.model';
-import { marked } from 'marked';
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {catchError, map, Observable, of} from 'rxjs';
+import {BlogPost} from '../models/blog-post.model';
+import {marked} from 'marked';
 
 @Injectable({
   providedIn: 'root',
@@ -10,11 +10,10 @@ import { marked } from 'marked';
 export class BlogService {
   constructor(private http: HttpClient) {}
 
-  calculateReadingTime(content: string): string {
-    const wordsPerMinute = 200;
+  calculateReadingTime(content: string): number {
+    const wordsPerMinute = 100;
     const words = content.trim().split(/\s+/).length;
-    const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} min de leitura`;
+    return Math.ceil(words / wordsPerMinute);
   }
 
   getPostsList(): Observable<BlogPost[]> {
@@ -22,7 +21,7 @@ export class BlogService {
       .pipe(
         map(posts => posts.map(post => ({
           ...post,
-          readTime: post.content ? this.calculateReadingTime(post.content) : '3 min de leitura'
+          readTime: post.content ? this.calculateReadingTime(post.content) : null
         }))),
         map(posts => posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()))
       );
@@ -44,31 +43,69 @@ export class BlogService {
             const frontMatterText = match[1];
             const content = match[2];
 
-            // Parse frontmatter
+            // Parse frontmatter (improved to handle multi-line arrays)
             const data: Record<string, any> = {};
-            frontMatterText.split('\n').forEach(line => {
-              const colonIndex = line.indexOf(':');
-              if (colonIndex > 0) {
-                const key = line.slice(0, colonIndex).trim();
-                const rawValue = line.slice(colonIndex + 1).trim();
+            let currentKey: string | null = null;
+            let inArray = false;
+            const lines = frontMatterText.split('\n');
 
-                // Handle arrays in frontmatter (like categories)
-                if (rawValue.startsWith('[') && rawValue.endsWith(']')) {
-                  data[key] = rawValue.slice(1, -1).split(',').map(v =>
-                    v.trim().replace(/^["']|["']$/g, '')
-                  );
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i].trim();
+
+              // Skip empty lines
+              if (!line) continue;
+
+              // Check if this is a new key-value pair
+              const keyMatch = line.match(/^(\w+):\s*(.*)$/);
+
+              if (keyMatch) {
+                currentKey = keyMatch[1];
+                const value = keyMatch[2].trim();
+
+                // If there's a value on the same line, use it
+                if (value) {
+                  // Handle inline arrays [item1, item2]
+                  if (value.startsWith('[') && value.endsWith(']')) {
+                    data[currentKey] = value.slice(1, -1).split(',').map(v =>
+                      v.trim().replace(/^["']|["']$/g, '')
+                    );
+                    inArray = false;
+                  } else {
+                    data[currentKey] = value.replace(/^["']|["']$/g, '');
+                    inArray = false;
+                  }
                 } else {
-                  // Remove quotes if present
-                  data[key] = rawValue.replace(/^["']|["']$/g, '');
+                  // If no value on the same line, check if the next line is an array item
+                  const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
+                  inArray = nextLine.startsWith('-');
+
+                  if (inArray) {
+                    data[currentKey] = [];
+                  } else {
+                    data[currentKey] = '';
+                  }
                 }
               }
-            });
+              // Check if this is an array item
+              else if (line.startsWith('-') && currentKey && inArray) {
+                if (!Array.isArray(data[currentKey])) {
+                  data[currentKey] = [];
+                }
+
+                const value = line.substring(1).trim();
+                data[currentKey].push(value);
+              }
+              // Multiline value (not array)
+              else if (currentKey && !inArray) {
+                data[currentKey] += ' ' + line;
+              }
+            }
 
             const parsedContent = marked.parse(content);
 
             // Ensure categories is always an array
-            let categories = data['categories'];
-            if (typeof categories === 'string') {
+            let categories = data['categories'] || [];
+            if (typeof categories === 'string' && categories.trim() !== '') {
               // If it's a single string, convert to array
               categories = [categories];
             } else if (!Array.isArray(categories)) {

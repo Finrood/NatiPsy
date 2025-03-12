@@ -6,7 +6,7 @@ export interface BlogPost {
     image?: string;
     categories: string[];
     content: string;
-    readTime?: string;
+    readTime?: number;
     author?: {
       name: string;
       bio?: string;

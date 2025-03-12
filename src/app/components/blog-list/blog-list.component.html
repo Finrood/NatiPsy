@@ -1,7 +1,7 @@
 <section class="py-16 bg-gray-50">
     <div class="container mx-auto px-4">
       <h2 class="text-3xl font-bold mb-8 text-center">Blog</h2>
-      
+
       <div *ngIf="loading" class="text-center py-12">
         <p class="text-xl text-gray-600">Carregando posts...</p>
       </div>
@@ -13,29 +13,29 @@
       <div *ngIf="!loading && !error && posts.length === 0" class="text-center py-12">
         <p class="text-xl text-gray-600">Nenhum post encontrado.</p>
       </div>
-      
+
       <div *ngIf="!loading && !error && posts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <article *ngFor="let post of posts" class="bg-white rounded-lg shadow-md overflow-hidden">
           <div class="h-48 bg-gray-200">
-            <img *ngIf="post.image" [src]="'/assets/content/blog/images/' + post.image" 
+            <img *ngIf="post.image" [src]="'/assets/content/blog/images/' + post.image"
                  [alt]="post.title" class="w-full h-full object-cover">
           </div>
           <div class="p-6">
             <div class="flex items-center text-sm text-gray-500">
               <span>{{ post.date | date:'longDate' }}</span>
               <span class="mx-2">•</span>
-              <span>{{ post.readTime }}</span>
+              <span>{{ post.readTime }} min de leitura</span>
             </div>
             <h3 class="text-xl font-semibold mt-2">{{ post.title }}</h3>
             <p class="mt-2 text-gray-600">{{ post.description }}</p>
             <div class="mt-4 flex flex-wrap gap-2">
-              <span *ngFor="let category of post.categories" 
-                    class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+              <span *ngFor="let category of post.categories"
+                    class="text-xs px-2 py-1 bg-primary-pink text-primary-blue rounded-full">
                 {{ category }}
               </span>
             </div>
-            <a [routerLink]="['/blog', post.slug]" 
-               class="mt-4 inline-block text-blue-600 font-medium hover:underline group">
+            <a [routerLink]="['/blog', post.slug]"
+               class="mt-4 inline-block text-primary-blue font-medium hover:underline group">
               Leia mais <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
             </a>
           </div>

@@ -20,7 +20,6 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 export class BlogPostComponent implements OnInit {
   post: BlogPost | null = null;
   loading = true;
-  safeContent: SafeHtml | null = null;
 
   constructor(
     private route: ActivatedRoute,
