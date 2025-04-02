@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import {NgForOf} from '@angular/common';
+import {TherapyAdvantage} from '../../models/therapy-advantage.model';
 
 @Component({
   selector: 'app-advantages',
@@ -10,7 +11,7 @@ import {NgForOf} from '@angular/common';
   styleUrl: './advantages.component.css'
 })
 export class AdvantagesComponent {
-  advantages: any[] = [
+  advantages: TherapyAdvantage[] = [
     {
       title: "Eficácia Comprovada",
       description: "Estudos mostram que a terapia online é tão eficaz quanto a presencial, proporcionando os mesmos benefícios em termos de autoconhecimento, superação de desafios emocionais e desenvolvimento pessoal.",

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import {NgForOf, NgOptimizedImage} from '@angular/common';
+import {TherapyPrinciple} from '../../models/therapy-principle.model';
 
 @Component({
   selector: 'app-approach',
@@ -11,7 +12,7 @@ import {NgForOf, NgOptimizedImage} from '@angular/common';
   styleUrl: './approach.component.css'
 })
 export class ApproachComponent {
-  principles: any[] = [
+  principles: TherapyPrinciple[] = [
     {
       title: 'Escuta Atenta e Empática',
       description: 'Dedico-me a ouvir profundamente cada cliente, buscando compreender não apenas suas palavras, mas também os significados por trás delas.',
