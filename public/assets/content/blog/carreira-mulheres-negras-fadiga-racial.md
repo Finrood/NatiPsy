@@ -1,14 +1,23 @@
 ---
-title: "Carreira e Mulheres Negras: Como cuidar da fadiga da batalha racial potencializa o bem-estar e realização na vida e no trabalho"
-author: "[Seu Nome ou Nome da Clínica]" # Substitua pelo seu nome ou da clínica
-date: "YYYY-MM-DD" # Substitua pela data de publicação (ex: 2024-05-21)
-tags: [Carreira, Mulheres Negras, Orientação Profissional, Psicologia, Interseccionalidade, Racismo, Racismo de Gênero, Fadiga de Batalha Racial, Bem-Estar, Saúde Mental]
-description: "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização." # Pequena descrição para SEO
+title: "Carreira e Mulheres Negras: Como cuidar da fadiga de batalha racial potencializa o bem-estar e realização na vida e no trabalho"
+author: Natalia Ferreira dos Santos
+date: 2024-05-21
+description: "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização."
+image: carreira-mulheres-negras-fadiga-racial.png
+categories:
+  - Carreira
+  - Mulheres Negras
+  - Orientação Profissional
+  - Psicologia
+  - Interseccionalidade
+  - Racismo
+  - Racismo de Gênero
+  - Fadiga de Batalha Racial
+  - Bem-Estar
+  - Saúde Mental
 ---
 
-# Carreira e Mulheres Negras: Como cuidar da fadiga da batalha racial potencializa o bem-estar e realização na vida e no trabalho
-
-Olá! Sou [Seu Nome], psicóloga e orientadora de carreira. No meu trabalho, busco ir além das abordagens tradicionais, especialmente quando se trata de apoiar mulheres negras em suas trajetórias profissionais. Hoje, quero conversar sobre um tema crucial, mas muitas vezes negligenciado ou simplificado: os desafios únicos que mulheres negras enfrentam no mundo do trabalho e como uma *orientação profissional consciente e crítica* pode fazer a diferença, com um foco especial na **fadiga de batalha racial**.
+No meu trabalho, busco ir além das abordagens tradicionais, especialmente quando se trata de apoiar mulheres negras em suas trajetórias profissionais. Hoje, quero conversar sobre um tema crucial, mas muitas vezes negligenciado ou simplificado: os desafios únicos que mulheres negras enfrentam no mundo do trabalho e como uma *orientação profissional consciente e crítica* pode fazer a diferença, com um foco especial na **fadiga de batalha racial**.
 
 ## A Falácia da Meritocracia e a Realidade da Interseccionalidade
 
@@ -45,7 +54,6 @@ Diante desse cenário, uma orientação profissional que apenas foca em "habilid
 *   **Empoderamento e Agência:** O objetivo não é apenas "se adaptar" a um sistema injusto, mas encontrar caminhos para construir uma carreira com significado, dignidade e que, na medida do possível, contribua para transformar esses espaços. Você é a especialista em sua própria vida, e meu papel é ser uma parceira nesse processo, oferecendo escuta qualificada, conhecimento técnico e um olhar crítico e acolhedor.
 *   **Vínculo Terapêutico Consciente:** Como *psicóloga e orientadora profissional preta*, estou ciente das dinâmicas de poder e me comprometo a construir uma relação horizontal e de confiança, utilizando nossa identidade compartilhada como potência no processo, sempre respeitando sua singularidade.
 
----
 
 ## Faço um Convite à Ação (e ao Acolhimento)
 
@@ -55,12 +63,9 @@ Buscar um processo de orientação de carreira com uma profissional que compreen
 
 Ainda, se você ainda não está no momento de planejar a sua carreira, mas sente o peso da **fadiga de batalha racial** e quer vivenciar um espaço seguro de acolhimento, validação e desenvolvimento de estratégias de autocuidado e enfrentamento, **vamos conversar?** Cuidar do seu bem-estar é fundamental para qualquer projeto de vida e carreira.
 
-**[Agende um primeiro contato](SEU_LINK_AQUI)**. Estou aqui para caminhar ao seu lado, com um olhar crítico, acolhedor e comprometido com a sua história.
+**[Agende um primeiro contato](https://wa.me/+554884323764)**. Estou aqui para caminhar ao seu lado, com um olhar crítico, acolhedor e comprometido com a sua história.
 
----
 
-**[Seu Nome/Nome da Clínica]**
+**Natalia Ferreira dos Santos**
 *Psicóloga e Orientadora de Carreira*
-CRP: [Seu CRP]
-Contato: [Seu Email ou Telefone Profissional]
-[Link para seu Site ou Rede Social Profissional, se desejar]
+CRP: 12/19892

@@ -1,19 +1,22 @@
 [
-    {
-      "slug": "introducao-terapia-sistemica",
-      "title": "Introdução à Terapia Sistêmica: Uma Abordagem Relacional",
-      "date": "2023-09-15",
-      "description": "Entenda os princípios básicos da terapia sistêmica e como ela pode ajudar a melhorar seus relacionamentos.",
-      "image": "terapia-sistemica.jpg",
-      "categories": ["Terapia Sistêmica", "Relacionamentos"]
-    },
   {
-    "id": "ultimate-markdown-guide",
-    "title": "O Guia Definitivo de Markdown",
-    "description": "Aprenda a utilizar a sintaxe Markdown para formatar textos de maneira simples e eficiente. Este guia cobre desde elementos básicos até recursos avançados.",
-    "date": "2023-10-15",
-    "image": "assets/images/blog/markdown-guide.jpg",
-    "slug": "ultimate-markdown-guide",
-    "tags": ["markdown", "guia", "formatação", "escrita"]
+    "slug": "carreira-mulheres-negras-fadiga-racial",
+    "id": "carreira-mulheres-negras-fadiga-racial",
+    "title": "Carreira e Mulheres Negras: Como cuidar da fadiga da batalha racial potencializa o bem-estar e realização na vida e no trabalho",
+    "date": "2024-05-21",
+    "description": "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização.",
+    "image": "carreira-mulheres-negras-fadiga-racial.png",
+    "categories": [
+      "Carreira",
+      "Mulheres Negras",
+      "Orientação Profissional",
+      "Psicologia",
+      "Interseccionalidade",
+      "Racismo",
+      "Racismo de Gênero",
+      "Fadiga de Batalha Racial",
+      "Bem-Estar",
+      "Saúde Mental"
+    ]
   }
 ]
