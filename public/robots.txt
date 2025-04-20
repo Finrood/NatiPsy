@@ -2,7 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /404
 
-Crawl-delay: 10
-Host: https://psicologanataliaferreira.com
-
 Sitemap: https://psicologanataliaferreira.com/sitemap.xml
