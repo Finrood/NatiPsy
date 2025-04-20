@@ -27,7 +27,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   safeContent: SafeHtml | null = null;
 
   private destroy$ = new Subject<void>();
-  private structuredDataScript: HTMLScriptElement | null = null; // To manage the script tag
+  private structuredDataScript: HTMLScriptElement | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -132,7 +132,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       this.metaService.updateTag({ property: 'article:published_time', content: post.date.toISOString() });
     }
     if (post.author?.name) {
-      this.metaService.updateTag({ property: 'article:author', content: post.author.name }); // Or link to author page if available
+      this.metaService.updateTag({ property: 'article:author', content: post.author.name });
     }
     post.categories.forEach(category => {
       this.metaService.addTag({ property: 'article:tag', content: category });
