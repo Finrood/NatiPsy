@@ -25,7 +25,6 @@
     "@angular/platform-server": "^19.2.7",
     "@angular/router": "^19.2.7",
     "@angular/ssr": "^19.2.8",
-    "@nguniversal/express-engine": "^7.0.2",
     "@tailwindcss/postcss": "^4.0.9",
     "buffer": "^6.0.3",
     "express": "^4.18.2",
