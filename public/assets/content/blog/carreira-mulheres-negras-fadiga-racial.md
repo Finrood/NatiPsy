@@ -6,7 +6,7 @@ author:
   avatar: "authors/natalia_ferreira.webp" # Make sure this image exists in src/assets/authors/
 date: 2025-04-21
 description: "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização."
-image: carreira-mulheres-negras-fadiga-racial.png # Relative to assets/content/blog/images/
+image: carreira-mulheres-negras-fadiga-racial.webp # Relative to assets/content/blog/images/
 categories:
   - Carreira
   - Mulheres Negras
