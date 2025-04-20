@@ -1,9 +1,12 @@
 ---
 title: "Carreira e Mulheres Negras: Como cuidar da fadiga de batalha racial potencializa o bem-estar e realização na vida e no trabalho"
-author: Natalia Ferreira dos Santos
-date: 2024-05-21
+author:
+  name: Natalia Ferreira dos Santos
+  bio: "Psicóloga Clínica (CRP 12/19892) e Orientadora de Carreira, graduada pela UFSC, com formação em Terapia Relacional Sistêmica. Comprometida com uma prática inclusiva e antirracista."
+  avatar: "authors/natalia_ferreira.webp" # Make sure this image exists in src/assets/authors/
+date: 2025-04-20 # Updated date from user input
 description: "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização."
-image: carreira-mulheres-negras-fadiga-racial.png
+image: carreira-mulheres-negras-fadiga-racial.png # Relative to assets/content/blog/images/
 categories:
   - Carreira
   - Mulheres Negras
@@ -63,9 +66,18 @@ Buscar um processo de orientação de carreira com uma profissional que compreen
 
 Ainda, se você ainda não está no momento de planejar a sua carreira, mas sente o peso da **fadiga de batalha racial** e quer vivenciar um espaço seguro de acolhimento, validação e desenvolvimento de estratégias de autocuidado e enfrentamento, **vamos conversar?** Cuidar do seu bem-estar é fundamental para qualquer projeto de vida e carreira.
 
-**[Agende um primeiro contato](https://wa.me/+554884323764)**. Estou aqui para caminhar ao seu lado, com um olhar crítico, acolhedor e comprometido com a sua história.
+---
 
+## Referências
 
-**Natalia Ferreira dos Santos**
-*Psicóloga e Orientadora de Carreira*
-CRP: 12/19892
+*   Cirincione-Ulezi, N. (2020). Black women and barriers to leadership in ABA. *Behavior Analysis in Practice, 13*(4), 719-724. https://doi.org/10.1007/s40617-020-00444-9
+
+*   Crenshaw, K. (1989). Demarginalizing the intersection of race and sex: A black feminist critique of antidiscrimination doctrine, feminist theory and antiracist politics. *University of Chicago Legal Forum, 1989*(1). https://chicagounbound.uchicago.edu/uclf/vol1989/iss1/8
+
+*   Departamento Intersindical de Estatística e Estudos Socioeconômicos. (2021). *A inserção da população negra e o mercado de trabalho*. Infográfico. https://www.dieese.org.br/outraspublicacoes/2021/graficosPopulacaoNegra2021.html
+
+*   Departamento Intersindical de Estatística e Estudos Socioeconômicos. (2022). *Trabalho doméstico no Brasil*. Infográfico. https://www.dieese.org.br/infografico/2022/trabalhoDomestico.html
+
+*   Melo-Silva, Lucy & Ribeiro, Marcelo & Aguillera, Fernanda & Zanoto, Pedro. (2023). *Dos contextos educativos e formativos ao mundo do trabalho: implicações para a construção de carreira*. 10.51795/9786526504512.
+
+*   Instituto de Pesquisa Econômica Aplicada. (2018). *Agenda 2030: ODS-metas nacionais dos objetivos de desenvolvimento sustentável*. https://repositorio.ipea.gov.br/bitstream/11058/8855/1/Agenda_2030_ods_metas_nac_dos_obj_de_desenv_susten_propos_de_ad%0Aequa.pdf

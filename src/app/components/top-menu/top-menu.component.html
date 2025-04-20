@@ -1,20 +1,22 @@
 <header class="fixed w-full z-50 transition-all duration-300"
         [ngClass]="{
-          'bg-red-50/100': !isScrolled,
-          'bg-red-50 shadow-lg': isScrolled,
-          'transform -translate-y-full': isHidden
+          'bg-red-50/100': !isScrolled && !isMenuOpen,
+          'bg-red-50 shadow-lg': isScrolled && !isMenuOpen,
+          'bg-primary-pink-dark/90': isMenuOpen,
+          'transform -translate-y-full': isHidden && !isMenuOpen
         }"
         role="banner">
-  <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+  <div class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]">
+
     <a href="/"
        class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125"
        (click)="refreshPage($event)"
-       aria-label="Home">
+       aria-label="Página Inicial">
       <picture>
         <source srcset="/assets/logo.webp" type="image/webp">
         <source srcset="/assets/logo.png" type="image/png">
         <img src="/assets/logo.png"
-             alt="Company Logo"
+             alt="Logotipo Natalia Ferreira Psicóloga"
              class="h-16 w-16"
              width="64"
              height="64"
@@ -24,56 +26,51 @@
         <source srcset="/assets/logo_signature.webp" type="image/webp">
         <source srcset="/assets/logo_signature.png" type="image/png">
         <img src="/assets/logo_signature.png"
-             alt="Company Signature Logo"
-             class="h-12 w-auto"
-             width="48"
-             height="48"
-             fetchpriority="high">
+             alt="Assinatura Natalia Ferreira"
+             class="h-12 w-auto ml-1"
+        width="48"
+        height="48"
+        fetchpriority="high">
       </picture>
     </a>
 
-    <nav class="hidden lg:flex space-x-8" aria-label="Main Navigation">
+    <!-- Desktop Navigation -->
+    <nav class="hidden lg:flex space-x-8" aria-label="Navegação Principal">
       <a *ngFor="let item of menuItems"
-         [href]="'#' + item"
-         (click)="$event.preventDefault(); scrollToSection(item)"
-         class="text-xl font-semibold text-primary-blue hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-hidden focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
-         [attr.aria-label]="'Navigate to ' + capitalizeFirstLetter(menuDisplayNames[item]) + ' section'">
-        {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
+         [href]="'/' + '#' + item" class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
+      [attr.aria-label]="'Ir para a seção ' + capitalizeFirstLetter(menuDisplayNames[item])">
+      {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
       </a>
     </nav>
 
-    <button class="lg:hidden text-primary-blue focus:outline-hidden focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
+    <!-- Mobile Menu Toggle Button -->
+    <button class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-md"
             (click)="toggleMenu()"
             [attr.aria-expanded]="isMenuOpen.toString()"
             aria-controls="mobile-menu"
-            aria-label="Toggle mobile menu">
-      <span class="sr-only">Open main menu</span>
-      <img src="assets/icons/menu-hamburger.svg" alt="Open Menu" class="h-8 w-8" aria-hidden="true">
+            aria-label="Abrir menu principal">
+      <span class="sr-only">Abrir menu principal</span>
+      <!-- Conditionally show open/close icon -->
+      <img *ngIf="!isMenuOpen" src="assets/icons/menu-hamburger.svg" alt="Abrir Menu" class="h-8 w-8" aria-hidden="true">
+      <img *ngIf="isMenuOpen" src="assets/icons/menu-close.svg" alt="Fechar Menu" class="h-8 w-8 text-white" aria-hidden="true">
     </button>
   </div>
 
   <div *ngIf="isMenuOpen"
        [@fadeInOut]
-       class="mobile-menu-container fixed inset-0 bg-primary-pink-dark/90 z-50 lg:hidden"
-       id="mobile-menu"
-       role="dialog"
-       aria-modal="true">
-    <div class="container mx-auto px-4 py-6 flex justify-end">
-      <button (click)="closeMenu()"
-              class="text-white focus:outline-hidden focus:ring-2 focus:ring-white focus:ring-offset-2"
-              aria-label="Close mobile menu">
-        <span class="sr-only">Close menu</span>
-        <img src="assets/icons/menu-close.svg" alt="Close Menu" class="h-8 w-8" aria-hidden="true">
-      </button>
-    </div>
-    <nav class="flex flex-col items-center space-y-8 mt-16" aria-label="Mobile Navigation">
-      <a *ngFor="let item of menuItems"
-         [href]="'#' + item"
-         (click)="$event.preventDefault(); scrollToSection(item)"
-         class="text-3xl font-semibold text-white hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-hidden focus:ring-2 focus:ring-white focus:ring-offset-2"
-         [attr.aria-label]="'Navigate to ' + capitalizeFirstLetter(menuDisplayNames[item]) + ' section'">
-        {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
-      </a>
-    </nav>
+       class="mobile-menu-container fixed inset-0 top-[80px] bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
+  id="mobile-menu"
+  role="dialog"
+  aria-modal="true">
+
+  <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
+    <a *ngFor="let item of menuItems"
+       [href]="'/' + '#' + item"
+    (click)="closeMenu()"
+    class="text-3xl font-semibold text-white hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded-sm"
+    [attr.aria-label]="'Ir para a seção ' + capitalizeFirstLetter(menuDisplayNames[item])">
+    {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
+    </a>
+  </nav>
   </div>
 </header>

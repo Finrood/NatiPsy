@@ -1,44 +1,162 @@
-<section class="py-16 bg-gray-50">
-    <div class="container mx-auto px-4">
-      <h2 class="text-3xl font-bold mb-8 text-center">Blog</h2>
+<section id="blog-list-start" class="py-16 bg-gradient-to-b from-gray-50 to-primary-pink/10 scroll-mt-20"> <!-- Added id and scroll-mt -->
+  <div class="container mx-auto px-4">
+    <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center text-primary-blue">Blog</h2>
+    <p class="text-center text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
+      Explore artigos sobre saúde mental, bem-estar, relacionamentos, carreira e desenvolvimento pessoal.
+    </p>
 
-      <div *ngIf="loading" class="text-center py-12">
-        <p class="text-xl text-gray-600">Carregando posts...</p>
-      </div>
+    <!-- Filtering and Sorting Controls -->
+    <div class="mb-10 px-4 sm:px-0">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 md:gap-6 border-b border-gray-200 pb-5">
 
-      <div *ngIf="error" class="text-center py-12">
-        <p class="text-xl text-red-600">Não foi possível carregar os posts. Tente novamente mais tarde.</p>
-      </div>
-
-      <div *ngIf="!loading && !error && posts.length === 0" class="text-center py-12">
-        <p class="text-xl text-gray-600">Nenhum post encontrado.</p>
-      </div>
-
-      <div *ngIf="!loading && !error && posts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <article *ngFor="let post of posts" class="bg-white rounded-lg shadow-md overflow-hidden">
-          <div class="h-48 bg-gray-200">
-            <img *ngIf="post.image" [src]="'/assets/content/blog/images/' + post.image"
-                 [alt]="post.title" class="w-full h-full object-cover">
-          </div>
-          <div class="p-6">
-            <div class="flex items-center text-sm text-gray-500">
-              <span>{{ post.date | date:'longDate' }}</span>
-              <span class="mx-2">•</span>
-            </div>
-            <h3 class="text-xl font-semibold mt-2">{{ post.title }}</h3>
-            <p class="mt-2 text-gray-600">{{ post.description }}</p>
-            <div class="mt-4 flex flex-wrap gap-2">
-              <span *ngFor="let category of post.categories"
-                    class="text-xs px-2 py-1 bg-primary-pink text-primary-blue rounded-full">
+        <!-- Left Side: Category Filter -->
+        <div class="flex-grow sm:flex-grow-0">
+          <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">
+            Filtrar por Categoria:
+          </label>
+          <div class="relative">
+            <select id="category-filter" name="category"
+                    [(ngModel)]="selectedCategory"
+                    (ngModelChange)="onFilterChange()"
+                    class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
+              <option value="">Todas as Categorias</option>
+              <option *ngFor="let category of allCategories" [value]="category">
                 {{ category }}
-              </span>
+              </option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
             </div>
-            <a [routerLink]="['/blog', post.slug]"
-               class="mt-4 inline-block text-primary-blue font-medium hover:underline group">
-              Leia mais <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
-            </a>
           </div>
-        </article>
+        </div>
+
+        <!-- Right Side: Sorting -->
+        <div class="flex-grow sm:flex-grow-0">
+          <label for="sort-by" class="block text-sm font-medium text-gray-700 mb-1">
+            Ordenar por:
+          </label>
+          <div class="flex items-center space-x-2">
+            <div class="relative">
+              <select id="sort-by" name="sortBy"
+                      [(ngModel)]="sortBy"
+                      (ngModelChange)="onSortChange()"
+                      class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
+                <option value="date">Mais Recentes</option>
+                <option value="title">Título (A-Z)</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+              </div>
+            </div>
+
+            <!-- Sort Direction Button (Icon Style) -->
+            <button (click)="sortDirection = (sortDirection === 'desc' ? 'asc' : 'desc'); onSortChange()"
+                    type="button"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-blue focus:ring-offset-0 transition"
+                    [attr.aria-label]="'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')"
+                    [attr.title]="'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')">
+              <svg *ngIf="sortDirection === 'desc'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>
+              <svg *ngIf="sortDirection === 'asc'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4" /></svg>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
-  </section>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4"></div>
+      <p class="text-xl text-gray-600">Carregando posts...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="text-center py-12 bg-red-50 p-6 rounded-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-xl text-red-700 font-semibold">Ocorreu um Erro</p>
+      <p class="text-red-600">{{ error }}</p>
+    </div>
+
+    <!-- Empty State (No Posts Found) -->
+    <div *ngIf="!loading && !error && displayedPosts.length === 0" class="text-center py-12">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p class="text-xl text-gray-600">
+        {{ selectedCategory ? 'Nenhum post encontrado nesta categoria.' : 'Nenhum post encontrado.' }}
+      </p>
+      <button *ngIf="selectedCategory" (click)="selectedCategory = ''; onFilterChange()"
+              class="mt-4 text-primary-blue hover:underline">
+        Mostrar todas as categorias
+      </button>
+    </div>
+
+    <!-- Posts Grid -->
+    <div *ngIf="!loading && !error && displayedPosts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <article *ngFor="let post of displayedPosts" class="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.03] flex flex-col">
+        <a [routerLink]="['/blog', post.slug]" class="block h-48 bg-gray-200 overflow-hidden">
+          <img *ngIf="post.image"
+               [ngSrc]="'/assets/content/blog/images/' + post.image"
+               [alt]="post.title"
+               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+               loading="lazy"
+               width="400" height="200"> <!-- Provide explicit width/height for NgOptimizedImage -->
+          <!-- Placeholder for posts without images -->
+          <div *ngIf="!post.image" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/20 to-primary-blue/10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </div>
+        </a>
+        <!-- Content Container -->
+        <div class="p-6 flex flex-col flex-grow">
+          <div class="flex items-center text-sm text-gray-500 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <span>{{ post.date | date:'dd MMM yyyy' }}</span>
+          </div>
+          <h3 class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors">
+            <a [routerLink]="['/blog', post.slug]" class="line-clamp-2">{{ post.title }}</a>
+          </h3>
+          <p class="mt-1 text-gray-600 line-clamp-3 flex-grow">{{ post.description }}</p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span *ngFor="let category of post.categories"
+                  class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full">
+              {{ category }}
+            </span>
+          </div>
+          <a [routerLink]="['/blog', post.slug]"
+             class="mt-5 inline-block text-primary-blue font-semibold hover:text-primary-pink-dark transition-colors group self-start">
+            Leia mais <span class="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div *ngIf="!loading && !error && totalPages > 1" class="mt-12 flex justify-center items-center space-x-2">
+      <button (click)="onPageChange(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+              aria-label="Página Anterior">
+        Anterior
+      </button>
+
+      <ng-container *ngFor="let pageNum of pages">
+        <button (click)="onPageChange(pageNum)"
+                [ngClass]="{'bg-primary-blue text-white border-primary-blue': currentPage === pageNum, 'border-gray-300 text-gray-700 hover:bg-gray-100': currentPage !== pageNum}"
+                class="px-4 py-2 border rounded-md transition-colors"
+                [attr.aria-current]="currentPage === pageNum ? 'page' : null">
+          {{ pageNum }}
+        </button>
+      </ng-container>
+
+      <button (click)="onPageChange(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+              aria-label="Próxima Página">
+        Próxima
+      </button>
+    </div>
+
+  </div>
+</section>

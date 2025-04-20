@@ -5,5 +5,3 @@ header {
 .mobile-menu-container {
   contain: content;
 }
-
-/* Additional styles to match Vue implementation */
