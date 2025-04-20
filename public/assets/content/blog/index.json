@@ -6,5 +6,14 @@
       "description": "Entenda os princípios básicos da terapia sistêmica e como ela pode ajudar a melhorar seus relacionamentos.",
       "image": "terapia-sistemica.jpg",
       "categories": ["Terapia Sistêmica", "Relacionamentos"]
-    }
-  ]
+    },
+  {
+    "id": "ultimate-markdown-guide",
+    "title": "O Guia Definitivo de Markdown",
+    "description": "Aprenda a utilizar a sintaxe Markdown para formatar textos de maneira simples e eficiente. Este guia cobre desde elementos básicos até recursos avançados.",
+    "date": "2023-10-15",
+    "image": "assets/images/blog/markdown-guide.jpg",
+    "slug": "ultimate-markdown-guide",
+    "tags": ["markdown", "guia", "formatação", "escrita"]
+  }
+]
