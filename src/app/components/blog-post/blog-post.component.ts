@@ -124,7 +124,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: post.description,
       keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
-      url: `https://psicologanataliaferreira.com/blog/${post.slug}`
+      url: `https://psicologanataliaferreira.com/blog/${post.slug}/`
     });
 
     this.metaService.updateTag({ property: 'og:type', content: 'article' });
