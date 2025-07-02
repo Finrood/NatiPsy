@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {NgForOf, NgOptimizedImage} from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 
 interface Service {
   title: string;
@@ -10,9 +10,8 @@ interface Service {
 @Component({
   selector: 'app-services',
   imports: [
-    NgForOf,
     NgOptimizedImage
-  ],
+],
   standalone: true,
   templateUrl: './services.component.html',
   styleUrl: './services.component.css'

@@ -18,21 +18,23 @@
       <div class="flex flex-col lg:flex-row gap-8 mb-12">
         <div class="lg:w-1/2 flex flex-col justify-center">
           <ul class="space-y-4" role="list">
-            <li *ngFor="let principle of principles.slice(0, 3); trackBy: trackByFn"
+            @for (principle of principles.slice(0, 3); track trackByFn($index, principle)) {
+              <li
                 class="rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
-              <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
-                {{ principle.title }}
-              </h3>
-              <p class="text-base sm:text-lg text-gray-700">
-                {{ principle.description }}
-              </p>
-            </li>
+                <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
+                  {{ principle.title }}
+                </h3>
+                <p class="text-base sm:text-lg text-gray-700">
+                  {{ principle.description }}
+                </p>
+              </li>
+            }
           </ul>
         </div>
         <div class="lg:w-1/2 flex items-center">
           <img ngSrc="/assets/abordagem1.webp" alt="Therapy approach image 1"
-               class="w-full h-auto object-cover rounded-lg shadow-lg"
-               loading="lazy" fetchpriority="low" width="600" height="400">
+            class="w-full h-auto object-cover rounded-lg shadow-lg"
+            loading="lazy" fetchpriority="low" width="600" height="400">
         </div>
       </div>
 
@@ -40,20 +42,22 @@
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
           <img ngSrc="/assets/abordagem2.webp" alt="Therapy approach image 2"
-               class="w-full h-auto object-cover rounded-lg shadow-lg"
-               loading="lazy" fetchpriority="low" width="600" height="400">
+            class="w-full h-auto object-cover rounded-lg shadow-lg"
+            loading="lazy" fetchpriority="low" width="600" height="400">
         </div>
         <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
           <ul class="space-y-4" role="list">
-            <li *ngFor="let principle of principles.slice(3); trackBy: trackByFn"
+            @for (principle of principles.slice(3); track trackByFn($index, principle)) {
+              <li
                 class="rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
-              <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
-                {{ principle.title }}
-              </h3>
-              <p class="text-base sm:text-lg text-gray-700">
-                {{ principle.description }}
-              </p>
-            </li>
+                <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
+                  {{ principle.title }}
+                </h3>
+                <p class="text-base sm:text-lg text-gray-700">
+                  {{ principle.description }}
+                </p>
+              </li>
+            }
           </ul>
         </div>
       </div>

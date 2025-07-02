@@ -1,12 +1,10 @@
 import { Component } from '@angular/core';
-import {NgForOf} from '@angular/common';
+
 import {TherapyAdvantage} from '../../models/therapy-advantage.model';
 
 @Component({
   selector: 'app-advantages',
-  imports: [
-    NgForOf
-  ],
+  imports: [],
   templateUrl: './advantages.component.html',
   styleUrl: './advantages.component.css'
 })

@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
-import {NgForOf, NgOptimizedImage} from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import {TherapyPrinciple} from '../../models/therapy-principle.model';
 
 @Component({
   selector: 'app-approach',
   imports: [
-    NgForOf,
     NgOptimizedImage
-  ],
+],
   templateUrl: './approach.component.html',
   styleUrl: './approach.component.css'
 })

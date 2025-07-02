@@ -1,4 +1,4 @@
-import { isPlatformBrowser, NgClass, NgForOf, NgIf } from '@angular/common';
+import { isPlatformBrowser, NgClass } from '@angular/common';
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -14,10 +14,8 @@ interface MenuDisplayName {
   styleUrls: ['./top-menu.component.css'],
   standalone: true,
   imports: [
-    NgClass,
-    NgForOf,
-    NgIf
-  ],
+    NgClass
+],
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

@@ -5,28 +5,30 @@
       <span class="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-4/5 sm:w-3/5 h-1 bg-primary-pink" aria-hidden="true"></span>
     </h2>
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
-      <li *ngFor="let service of services"
+      @for (service of services; track service) {
+        <li
           class="bg-white p-6 sm:p-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
-        <article>
-          <header class="flex items-center mb-6">
-            <img ngSrc="{{ service.iconPath }}" alt="{{ service.title }} icon" class="bg-primary-pink p-3 rounded-full"  aria-hidden="true" width="64" height="64">
-            <h3 class="text-xl font-bold text-primary-blue ml-4">{{ service.title }}</h3>
-          </header>
-          <p class="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
-            {{ service.description }}
-          </p>
-          <footer class="mt-6">
-            <a [href]="whatsappLink"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="inline-flex items-center bg-primary-blue text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-primary-blue/90 transition duration-300 transform hover:scale-105"
-               aria-label="Iniciar conversa no WhatsApp">
-              <img src="/assets/icons/whatsapp.svg" alt="WhatsApp Icon" class="w-5 h-5 mr-2" aria-hidden="true">
-              Vamos conversar
-            </a>
-          </footer>
-        </article>
-      </li>
+          <article>
+            <header class="flex items-center mb-6">
+              <img ngSrc="{{ service.iconPath }}" alt="{{ service.title }} icon" class="bg-primary-pink p-3 rounded-full"  aria-hidden="true" width="64" height="64">
+              <h3 class="text-xl font-bold text-primary-blue ml-4">{{ service.title }}</h3>
+            </header>
+            <p class="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
+              {{ service.description }}
+            </p>
+            <footer class="mt-6">
+              <a [href]="whatsappLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center bg-primary-blue text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-primary-blue/90 transition duration-300 transform hover:scale-105"
+                aria-label="Iniciar conversa no WhatsApp">
+                <img src="/assets/icons/whatsapp.svg" alt="WhatsApp Icon" class="w-5 h-5 mr-2" aria-hidden="true">
+                Vamos conversar
+              </a>
+            </footer>
+          </article>
+        </li>
+      }
     </ul>
   </div>
 </section>
