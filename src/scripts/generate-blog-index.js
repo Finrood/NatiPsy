@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
 
-const contentDir = path.join(__dirname, '../public/assets/content/blog');
+const contentDir = path.join(__dirname, '../../public/assets/content/blog');
 const outputIndexPath = path.join(contentDir, 'index.json');
 const imagesDir = path.join(contentDir, 'images');
 

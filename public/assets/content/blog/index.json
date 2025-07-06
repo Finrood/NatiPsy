@@ -1,9 +1,8 @@
 [
   {
     "slug": "carreira-mulheres-negras-fadiga-racial",
-    "id": "carreira-mulheres-negras-fadiga-racial",
-    "title": "Carreira e Mulheres Negras: Como cuidar da fadiga da batalha racial potencializa o bem-estar e realização na vida e no trabalho",
-    "date": "2025-04-21",
+    "title": "Carreira e Mulheres Negras: Como cuidar da fadiga de batalha racial potencializa o bem-estar e realização na vida e no trabalho",
+    "date": "2025-04-21T00:00:00.000Z",
     "description": "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização.",
     "image": "carreira-mulheres-negras-fadiga-racial.webp",
     "categories": [
@@ -17,6 +16,12 @@
       "Fadiga de Batalha Racial",
       "Bem-Estar",
       "Saúde Mental"
-    ]
+    ],
+    "author": {
+      "name": "Natalia Ferreira dos Santos",
+      "bio": "Psicóloga Clínica (CRP 12/19892) e Orientadora de Carreira, graduada pela UFSC, com formação em Terapia Relacional Sistêmica. Comprometida com uma prática inclusiva e antirracista.",
+      "avatar": "authors/natalia_ferreira.webp"
+    },
+    "readTime": 6
   }
 ]
