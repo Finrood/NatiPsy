@@ -19,7 +19,7 @@ ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 # Run the build command. This will create the final artifacts in
-# the default Angular output directory: '/app/dist/nati-psy'.
+# the default Angular output directory: '/app/dist/natipsy'.
 # We no longer need the complex shell script to move files around.
 RUN npm run build -- --configuration=${NODE_ENV}
 
@@ -34,9 +34,9 @@ FROM alpine:3.20
 # Copy the *contents* of the build output directory from the 'build' stage
 # into this image's '/app/dist' directory.
 #
-# The trailing slash on the source path '/app/dist/nati-psy/' is CRITICAL.
+# The trailing slash on the source path '/app/dist/natipsy/' is CRITICAL.
 # It tells Docker to copy the contents of the directory, not the directory itself.
-COPY --from=build --chown=1000:1000 /app/dist/nati-psy/ /app/dist/
+COPY --from=build --chown=1000:1000 /app/dist/natipsy/ /app/dist/
 
 # Create a non-root user for security best practices.
 RUN addgroup -g 1000 -S appgroup && \
