@@ -39,7 +39,7 @@ FROM alpine:3.20
 #
 # The trailing slash on the source path '/app/dist/natipsy/' is CRITICAL.
 # It tells Docker to copy the contents of the directory, not the directory itself.
-COPY --from=build --chown=1000:1000 /app/dist/nati-psy/ /app/dist/
+COPY --from=build --chown=1000:1000 /app/dist/ /app/dist/
 
 # Create a non-root user for security best practices.
 RUN addgroup -g 1000 -S appgroup && \
