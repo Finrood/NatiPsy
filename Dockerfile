@@ -29,8 +29,8 @@ FROM alpine:3.20
 
 WORKDIR /app
 
-# Copy built assets with ownership
-COPY --from=build --chown=1000:1000 dist /app/dist
+# Copy built assets with ownership (using absolute path for reliability)
+COPY --from=build --chown=1000:1000 /app/dist /app/dist
 
 # Create non-root user (uid/gid 1000 for consistency)
 RUN addgroup -g 1000 -S appgroup && \
