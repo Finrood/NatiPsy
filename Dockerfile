@@ -16,13 +16,14 @@ ENV NODE_ENV=${NODE_ENV}
 # Build the application and prepare dist
 RUN npm run build -- --configuration=${NODE_ENV} && \
     mkdir -p dist && \
-    if [ -d "dist/browser" ]; then \
-        cp -r dist/browser/* dist/; \
-    elif [ -d "dist" ]; then \
-        :; \
-    else \
-        echo "Error: No build output found" && exit 1; \
-    fi
+    if [ -d "dist/nati-psy" ]; then \
+            cp -r dist/nati-psy/* /app/dist/; \
+        elif [ -d "dist" ]; then \
+            cp -r dist/* /app/dist/; \
+        elif [ -d "build" ]; then \
+            cp -r build/* /app/dist/; \
+        else \
+            ec
 
 # Final stage (minimal runtime to populate volume)
 FROM alpine:3.20
