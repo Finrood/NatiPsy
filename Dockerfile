@@ -16,14 +16,14 @@ ENV NODE_ENV=${NODE_ENV}
 # Build the application and prepare dist
 RUN npm run build -- --configuration=${NODE_ENV} && \
     mkdir -p dist && \
-   if [ -d "dist/nati-psy" ]; then \
-           cp -r dist/nati-psy/* /app/dist/; \
+   if [ -d "dist/natipsy" ]; then \
+           cp -r dist/natipsy/* /app/dist/; \
        elif [ -d "dist" ]; then \
            cp -r dist/* /app/dist/; \
        elif [ -d "build" ]; then \
            cp -r build/* /app/dist/; \
        else \
-           echo "Error: No build output found (check dist/nati-psy, dist/, or build/)"; exit 1; \
+           echo "Error: No build output found (check dist/natipsy, dist/, or build/)"; exit 1; \
        fi
 
 # Final stage (minimal runtime to populate volume)
