@@ -17,8 +17,8 @@ ENV NODE_ENV=${NODE_ENV}
 RUN echo "Building with NODE_ENV=${NODE_ENV}" && \
     npm run build -- --configuration=${NODE_ENV} && \
     mkdir -p /app/dist && \
-    if [ -d "dist/natipsy-app/browser" ]; then \
-        cp -r dist/natipsy-app/browser/* /app/dist/; \
+    if [ -d "dist/browser" ]; then \
+        cp -r dist/browser/* /app/dist/; \
     elif [ -d "dist" ]; then \
         cp -r dist/* /app/dist/; \
     else \
