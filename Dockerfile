@@ -1,44 +1,50 @@
-# Build stage
+# =================================================================
+# Build Stage
+# This stage uses a full Node.js environment to build the Angular application.
+# =================================================================
 FROM node:22-alpine AS build
 
 WORKDIR /app
 
-# Copy package files and install dependencies (including devDependencies for build)
+# Copy package files and install dependencies. This layer is cached
+# and will only be re-run if package*.json files change.
 COPY package*.json ./
 RUN npm ci
 
-# Copy source code
+# Copy the rest of the application source code.
 COPY . .
 
+# Set build arguments for production builds.
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-# Build the application and prepare dist
-RUN npm run build -- --configuration=${NODE_ENV} && \
-    mkdir -p dist && \
-   if [ -d "dist/natipsy" ]; then \
-           cp -r dist/natipsy/* /app/dist/; \
-       elif [ -d "dist" ]; then \
-           cp -r dist/* /app/dist/; \
-       elif [ -d "build" ]; then \
-           cp -r build/* /app/dist/; \
-       else \
-           echo "Error: No build output found (check dist/natipsy, dist/, or build/)"; exit 1; \
-       fi
+# Run the build command. This will create the final artifacts in
+# the default Angular output directory: '/app/dist/nati-psy'.
+# We no longer need the complex shell script to move files around.
+RUN npm run build -- --configuration=${NODE_ENV}
 
-# Final stage (minimal runtime to populate volume)
+
+# =================================================================
+# Final Stage
+# This stage creates a minimal image containing only the built artifacts.
+# Its only purpose is to populate the Docker named volume.
+# =================================================================
 FROM alpine:3.20
 
-WORKDIR /app
+# Copy the *contents* of the build output directory from the 'build' stage
+# into this image's '/app/dist' directory.
+#
+# The trailing slash on the source path '/app/dist/nati-psy/' is CRITICAL.
+# It tells Docker to copy the contents of the directory, not the directory itself.
+COPY --from=build --chown=1000:1000 /app/dist/nati-psy/ /app/dist/
 
-# Copy built assets with ownership (using absolute path for reliability)
-COPY --from=build --chown=1000:1000 /app/dist /app/dist
-
-# Create non-root user (uid/gid 1000 for consistency)
+# Create a non-root user for security best practices.
 RUN addgroup -g 1000 -S appgroup && \
     adduser -u 1000 -S appuser -G appgroup
 
 USER appuser
 
-# Keep container running to populate the volume
+# This command does nothing except keep the container running.
+# This is necessary for Docker Compose to copy the files from the container
+# into the named volume when the service first starts.
 CMD ["tail", "-f", "/dev/null"]
