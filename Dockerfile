@@ -6,6 +6,9 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
+# Install CA certificates and curl for HTTPS
+RUN apk add --no-cache curl ca-certificates
+
 # Copy package files and install dependencies. This layer is cached
 # and will only be re-run if package*.json files change.
 COPY package*.json ./
