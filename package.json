@@ -1,5 +1,5 @@
 {
-  "name": "natipsy",
+  "name": "nati-psy",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -8,7 +8,7 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:NatiPsy": "node dist/natipsy/server/server.mjs"
+    "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
   "dependencies": {
