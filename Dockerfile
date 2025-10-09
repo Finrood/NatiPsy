@@ -20,7 +20,7 @@ FROM alpine:3.20
 WORKDIR /app
 
 # The critical COPY command pointing to the correct source
-COPY --from=build /app /app/dist/
+COPY --from=build /app/dist/nati-psy/browser/ /app/dist/
 
 # This command just keeps the container alive.
 CMD ["tail", "-f", "/dev/null"]
