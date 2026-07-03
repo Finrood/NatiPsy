@@ -1,25 +1,12 @@
 services:
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - psicologa-web
-
   psicologa-web:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    expose:
-      - "80"
+    networks:
+      - caddy-network
 
-volumes:
-  caddy_data:
-  caddy_config:
+networks:
+  caddy-network:
+    external: true
