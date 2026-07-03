@@ -54,32 +54,37 @@
       <span class="sr-only">Abrir menu principal</span>
       <!-- Conditionally show open/close icon -->
       @if (!isMenuOpen) {
-        <img src="assets/icons/menu-hamburger.svg" alt="Abrir Menu" class="h-8 w-8" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
+        </svg>
       }
       @if (isMenuOpen) {
-        <img src="assets/icons/menu-close.svg" alt="Fechar Menu" class="h-8 w-8 text-white" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
       }
     </button>
   </div>
 
-  @if (isMenuOpen) {
-    <div
-      [@fadeInOut]
-      class="mobile-menu-container fixed inset-0 top-[80px] bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
-      id="mobile-menu"
-      role="dialog"
-      aria-modal="true">
-      <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
-        @for (item of menuItems; track item) {
-          <a
-            [href]="'/' + '#' + item"
-            (click)="closeMenu()"
-            class="text-3xl font-semibold text-white hover:text-primary-blue transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded-sm"
-            [attr.aria-label]="'Ir para a seção ' + capitalizeFirstLetter(menuDisplayNames[item])">
-            {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
-          </a>
-        }
-      </nav>
-    </div>
-  }
 </header>
+
+@if (isMenuOpen) {
+  <div
+    [@fadeInOut]
+    class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
+    id="mobile-menu"
+    role="dialog"
+    aria-modal="true">
+    <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
+      @for (item of menuItems; track item) {
+        <a
+          [href]="'/' + '#' + item"
+          (click)="closeMenu()"
+          class="text-3xl font-semibold text-primary-blue hover:text-primary-blue/70 transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
+          [attr.aria-label]="'Ir para a seção ' + capitalizeFirstLetter(menuDisplayNames[item])">
+          {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
+        </a>
+      }
+    </nav>
+  </div>
+}
