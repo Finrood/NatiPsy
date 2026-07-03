@@ -9,24 +9,20 @@ RUN npm ci
 
 COPY . .
 
-# We discovered the output path is /app/dist/nati-psy/browser
+# Build output path is /app/dist/nati-psy/browser
 RUN npm run build -- --configuration=production
 
 # =================================================================
-# Final Stage - The "Data Populator"
+# Final Stage - Serving with Nginx
 # =================================================================
-FROM alpine:3.20
+FROM nginx:1.27-alpine
 
-WORKDIR /app
+# Copy built static files to Nginx's default directory
+COPY --from=build /app/dist/nati-psy/browser/ /usr/share/nginx/html/
 
-# Copy built assets
-COPY --from=build /app/dist/nati-psy/browser/ /app/dist/
+# Copy custom Nginx config for Angular routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Use a non-root user (uid/gid 1000 for consistency)
-RUN addgroup -g 1000 -S appgroup && \
-    adduser -u 1000 -S appuser -G appgroup
+EXPOSE 80
 
-USER appuser
-
-# This command just keeps the container alive.
-CMD ["tail", "-f", "/dev/null"]
+CMD ["nginx", "-g", "daemon off;"]
