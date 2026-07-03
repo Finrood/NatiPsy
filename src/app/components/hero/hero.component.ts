@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, Inject, PLATFORM_ID} from '@angular/core';
+import {Component, Input, OnInit, Inject, PLATFORM_ID, ChangeDetectionStrategy} from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {Meta} from '@angular/platform-browser';
 import {isPlatformBrowser} from '@angular/common';
@@ -9,6 +9,7 @@ import {isPlatformBrowser} from '@angular/common';
     NgOptimizedImage
   ],
   templateUrl: './hero.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './hero.component.css'
 })
 export class HeroComponent implements OnInit {

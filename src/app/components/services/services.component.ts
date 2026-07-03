@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 
 interface Service {
@@ -14,6 +14,7 @@ interface Service {
 ],
   standalone: true,
   templateUrl: './services.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './services.component.css'
 })
 export class ServicesComponent {

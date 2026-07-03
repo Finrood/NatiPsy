@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 import {TherapyAdvantage} from '../../models/therapy-advantage.model';
 
@@ -6,6 +6,7 @@ import {TherapyAdvantage} from '../../models/therapy-advantage.model';
   selector: 'app-advantages',
   imports: [],
   templateUrl: './advantages.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './advantages.component.css'
 })
 export class AdvantagesComponent {

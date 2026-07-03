@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, Renderer2, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, Renderer2, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost } from '../../models/blog-post.model';
@@ -17,6 +17,7 @@ import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
     NgOptimizedImage
   ],
   templateUrl: './blog-post.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./blog-post.component.css'],
 })
 export class BlogPostComponent implements OnInit, OnDestroy {

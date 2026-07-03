@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
@@ -18,6 +18,7 @@ import { FormsModule } from '@angular/forms';
     NgOptimizedImage,
   ],
   templateUrl: './blog-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./blog-list.component.css']
 })
 export class BlogListComponent implements OnInit, OnDestroy {

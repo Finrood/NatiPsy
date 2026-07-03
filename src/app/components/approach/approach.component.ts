@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import {TherapyPrinciple} from '../../models/therapy-principle.model';
 
@@ -8,6 +8,7 @@ import {TherapyPrinciple} from '../../models/therapy-principle.model';
     NgOptimizedImage
 ],
   templateUrl: './approach.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './approach.component.css'
 })
 export class ApproachComponent {

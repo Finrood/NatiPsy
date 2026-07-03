@@ -1,5 +1,5 @@
 import { isPlatformBrowser, NgClass } from '@angular/common';
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Subject } from 'rxjs';
@@ -16,6 +16,7 @@ interface MenuDisplayName {
   imports: [
     NgClass
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

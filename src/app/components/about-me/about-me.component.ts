@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 import { isPlatformBrowser } from '@angular/common';
@@ -9,6 +9,7 @@ import { isPlatformBrowser } from '@angular/common';
     NgOptimizedImage
   ],
   templateUrl: './about-me.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './about-me.component.css'
 })
 export class AboutMeComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AboutMeComponent } from '../about-me/about-me.component';
 import { HeroComponent } from '../hero/hero.component';
 import { ServicesComponent } from '../services/services.component';
@@ -18,6 +18,7 @@ import {BlogListComponent} from '../blog-list/blog-list.component';
     AdvantagesComponent,
     BlogListComponent
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="bg-white min-h-screen relative">
       <main id="main-content" class="relative z-0">
