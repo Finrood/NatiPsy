@@ -1,4 +1,4 @@
-<header class="fixed w-full z-50 transition-all duration-300"
+<header class="fixed w-full z-50 transition-[transform,background-color] duration-300"
         [ngClass]="{
           'bg-red-50/100': !isScrolled && !isMenuOpen,
           'bg-red-50 shadow-lg': isScrolled && !isMenuOpen,
@@ -9,7 +9,7 @@
   <div class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]">
 
     <a href="/"
-      class="flex items-center transition-transform duration-300 hover:scale-110 transform scale-125"
+      class="flex items-center transition-transform duration-300 hover:scale-110 scale-125"
       (click)="refreshPage($event)"
       aria-label="Página Inicial">
       <picture>
@@ -38,7 +38,7 @@
     <nav class="hidden lg:flex space-x-8" aria-label="Navegação Principal">
       @for (item of menuItems; track item) {
         <a
-          [href]="'/' + '#' + item" class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
+          [href]="'/' + '#' + item" class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-[transform,color] duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
           [attr.aria-label]="'Ir para a seção ' + capitalizeFirstLetter(menuDisplayNames[item])">
           {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
         </a>
@@ -80,7 +80,7 @@
         <a
           [href]="'/' + '#' + item"
           (click)="closeMenu()"
-          class="text-3xl font-semibold text-primary-blue hover:text-primary-blue/70 transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
+          class="text-3xl font-semibold text-primary-blue hover:text-primary-blue/70 transition-[transform,color] duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
           [attr.aria-label]="'Ir para a seção ' + capitalizeFirstLetter(menuDisplayNames[item])">
           {{ capitalizeFirstLetter(menuDisplayNames[item]) }}
         </a>
