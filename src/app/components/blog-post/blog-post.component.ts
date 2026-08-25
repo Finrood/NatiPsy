@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, Renderer2, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost } from '../../models/blog-post.model';
+import { BlogPost, blogAbsoluteImageUrl, blogImageUrl } from '../../models/blog-post.model';
 import { CommonModule, isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import { DomSanitizer, SafeHtml, Meta, Title } from '@angular/platform-browser';
 import { SeoService } from '../../services/seo.service';
@@ -29,6 +29,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private structuredDataScript: HTMLScriptElement | null = null;
+
+  protected readonly imageUrl = blogImageUrl;
 
   constructor(
     private route: ActivatedRoute,
@@ -116,9 +118,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   }
 
   updateMetaAndStructuredData(post: BlogPost): void {
-    const imageUrl = post.image
-      ? `https://psicologanataliaferreira.com/assets/content/blog/images/${post.image}`
-      : 'https://psicologanataliaferreira.com/assets/NatiHero.webp';
+    const imageUrl = blogAbsoluteImageUrl(post.image);
 
     this.seoService.updateMetaTags({
       title: `${post.title} | Blog Natália Ferreira`,

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost } from '../../models/blog-post.model';
+import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
@@ -40,6 +40,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'desc';
 
   private destroy$ = new Subject<void>();
+
+  protected readonly imageUrl = blogImageUrl;
 
   constructor(
     private blogService: BlogService,
