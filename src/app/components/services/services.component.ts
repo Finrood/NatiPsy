@@ -1,5 +1,6 @@
 import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import {WHATSAPP_LINK} from '../../config/contact';
 
 interface Service {
   title: string;
@@ -18,8 +19,7 @@ interface Service {
   styleUrl: './services.component.css'
 })
 export class ServicesComponent {
-  phoneNumber: string = '+554884323764';
-  message: string = '';
+  readonly whatsappLink = WHATSAPP_LINK;
 
   services: Service[] = [
     {
@@ -53,11 +53,4 @@ export class ServicesComponent {
       iconPath: '/assets/icons/transicao-carreira.svg'
     }
   ];
-
-  constructor() {
-  }
-
-  get whatsappLink(): string {
-    return `https://wa.me/${this.phoneNumber}?text=${encodeURIComponent(this.message)}`;
-  }
 }
