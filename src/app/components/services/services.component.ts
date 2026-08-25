@@ -1,4 +1,4 @@
-import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import {WHATSAPP_LINK} from '../../config/contact';
 
