@@ -7,8 +7,8 @@
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
       @for (service of services; track service) {
         <li
-          class="bg-white p-6 sm:p-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
-          <article>
+          class="flex flex-col bg-white p-6 sm:p-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
+          <article class="flex flex-col flex-grow">
             <header class="flex items-center mb-6">
               <img ngSrc="{{ service.iconPath }}" alt="{{ service.title }} icon" class="bg-primary-pink p-3 rounded-full"  aria-hidden="true" width="64" height="64">
               <h3 class="text-xl font-bold text-primary-blue ml-4">{{ service.title }}</h3>
@@ -16,7 +16,7 @@
             <p class="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
               {{ service.description }}
             </p>
-            <footer class="mt-6">
+            <footer class="mt-auto pt-6">
               <a [href]="whatsappLink"
                 target="_blank"
                 rel="noopener noreferrer"
