@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import {EMAIL_LINK, INSTAGRAM_LINK, WHATSAPP_LINK} from '../../config/contact';
 
 @Component({
   selector: 'app-footer',
@@ -9,7 +10,7 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 })
 export class FooterComponent {
   currentYear: number = new Date().getFullYear();
-  instagramLink: string = 'https://www.instagram.com/curacriativa/';
-  whatsappLink: string = 'https://wa.me/+554884323764';
-  emailLink: string = 'mailto:psinataliaferreira@gmail.com';
+  instagramLink = INSTAGRAM_LINK;
+  whatsappLink = WHATSAPP_LINK;
+  emailLink = EMAIL_LINK;
 }

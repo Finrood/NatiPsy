@@ -2,6 +2,7 @@ import {Component, Input, OnInit, Inject, PLATFORM_ID, ChangeDetectionStrategy} 
 import {NgOptimizedImage} from '@angular/common';
 import {Meta} from '@angular/platform-browser';
 import {isPlatformBrowser} from '@angular/common';
+import {INSTAGRAM_LINK, WHATSAPP_LINK, WHATSAPP_NUMBER} from '../../config/contact';
 
 @Component({
   selector: 'app-hero',
@@ -13,8 +14,7 @@ import {isPlatformBrowser} from '@angular/common';
   styleUrl: './hero.component.css'
 })
 export class HeroComponent implements OnInit {
-  private phoneNumber: string = '+554884323764';
-  private message: string = '';
+  readonly whatsappLink = WHATSAPP_LINK;
 
   constructor(
     private meta: Meta,
@@ -46,10 +46,10 @@ export class HeroComponent implements OnInit {
           "longitude": "-48.5495"
         },
         "url": "https://psicologanataliaferreira.com",
-        "telephone": "+554884323764",
+        "telephone": WHATSAPP_NUMBER,
         "priceRange": "$$",
         "sameAs": [
-          "https://www.instagram.com/curacriativa/",
+          INSTAGRAM_LINK
         ]
       }
     ];
@@ -60,9 +60,5 @@ export class HeroComponent implements OnInit {
       script.text = JSON.stringify(data);
       document.head.appendChild(script);
     });
-  }
-
-  get whatsappLink(): string {
-    return `https://wa.me/${this.phoneNumber}?text=${encodeURIComponent(this.message)}`;
   }
 }

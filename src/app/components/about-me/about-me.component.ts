@@ -2,6 +2,7 @@ import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectionStrategy } from 
 import {NgOptimizedImage} from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 import { isPlatformBrowser } from '@angular/common';
+import {WHATSAPP_LINK, WHATSAPP_NUMBER} from '../../config/contact';
 
 @Component({
   selector: 'app-about-me',
@@ -13,7 +14,7 @@ import { isPlatformBrowser } from '@angular/common';
   styleUrl: './about-me.component.css'
 })
 export class AboutMeComponent implements OnInit {
-  whatsappLink: string = 'https://wa.me/+554884323764';
+  readonly whatsappLink = WHATSAPP_LINK;
 
   constructor(
     private meta: Meta, 
@@ -44,7 +45,7 @@ export class AboutMeComponent implements OnInit {
       "description": "Psicóloga Clínica e Orientadora de Carreira especializada em Terapia Relacional Sistêmica",
       "image": "/assets/NatiAboutMe.webp",
       "url": "https://psicologanataliaferreira.com",
-      "telephone": "+554884323764",
+      "telephone": WHATSAPP_NUMBER,
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Florianópolis",
