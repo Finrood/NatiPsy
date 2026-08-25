@@ -10,6 +10,7 @@ const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
 
+// Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
   if (!content) return 0;
   const wordsPerMinute = 200;
@@ -29,6 +30,10 @@ function escapeXml(value) {
   }[char]));
 }
 
+function pageUrl(path) {
+  return `${SITE_URL}${path}`;
+}
+
 function generateRoutesFile(posts) {
   const lines = ['/', '/blog', ...posts.map((post) => `/blog/${post.slug}`)];
   fs.writeFileSync(routesPath, lines.join('\n') + '\n');
@@ -45,18 +50,18 @@ function generateSitemap(posts) {
 
   const urls = [
     `  <url>
-    <loc>${SITE_URL}/</loc>
+    <loc>${escapeXml(pageUrl('/'))}</loc>
     <lastmod>${lastSiteUpdate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>${SITE_URL}/assets/NatiHero.webp</image:loc>
+      <image:loc>${escapeXml(pageUrl('/assets/NatiHero.webp'))}</image:loc>
       <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
       <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
     </image:image>
   </url>`,
     `  <url>
-    <loc>${SITE_URL}/blog/</loc>
+    <loc>${escapeXml(pageUrl('/blog/'))}</loc>
     <lastmod>${lastSiteUpdate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -66,7 +71,7 @@ function generateSitemap(posts) {
   for (const post of posts) {
     const postImageUrl = imageUrl(post);
     urls.push(`  <url>
-    <loc>${SITE_URL}/blog/${post.slug}/</loc>
+    <loc>${escapeXml(pageUrl(`/blog/${post.slug}/`))}</loc>
     <lastmod>${post.date.slice(0, 10)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>${postImageUrl ? `
