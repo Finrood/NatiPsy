@@ -51,7 +51,7 @@
         <!-- Featured Image -->
         @if (post.image) {
           <div class="w-full h-64 md:h-80 overflow-hidden">
-            <img [src]="'/assets/content/blog/images/' + post.image"
+            <img [src]="imageUrl(post.image)"
               [alt]="post.title" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
           </div>
         }
@@ -74,7 +74,7 @@
                 <div class="flex items-center">
                   @if (post.author.avatar) {
                     <img
-                      [ngSrc]="'/assets/content/blog/images/' + post.author.avatar"
+                      [ngSrc]="imageUrl(post.author.avatar)"
                       alt="Foto de {{ post.author.name }}"
                       class="h-6 w-6 rounded-full mr-2 object-cover"
                       width="24" height="24">
@@ -121,7 +121,7 @@
             <div class="flex items-start gap-4">
               @if (post.author.avatar) {
                 <img
-                  [ngSrc]="'/assets/content/blog/images/' + post.author.avatar"
+                  [ngSrc]="imageUrl(post.author.avatar)"
                   alt="Foto de {{ post.author.name }}"
                   class="h-16 w-16 rounded-full object-cover shadow-sm flex-shrink-0"
                   width="64" height="64">
@@ -144,7 +144,7 @@
                     <div class="h-32 bg-gray-200">
                       @if (related.image) {
                         <img
-                          [ngSrc]="'/assets/content/blog/images/' + related.image"
+                          [ngSrc]="imageUrl(related.image)"
                           [alt]="related.title"
                           class="w-full h-full object-cover"
                           loading="lazy" width="300" height="150">
