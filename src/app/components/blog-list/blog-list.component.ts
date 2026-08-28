@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
@@ -7,6 +7,7 @@ import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
+import { SITE_URL } from '../../config/contact';
 
 @Component({
   selector: 'app-blog-list',
@@ -18,10 +19,15 @@ import { FormsModule } from '@angular/forms';
     NgOptimizedImage,
   ],
   templateUrl: './blog-list.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ['./blog-list.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogListComponent implements OnInit, OnDestroy {
+  private readonly blogService = inject(BlogService);
+  private readonly seoService = inject(SeoService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   allPosts: BlogPost[] = [];
   displayedPosts: BlogPost[] = [];
   allCategories: string[] = [];
@@ -39,24 +45,17 @@ export class BlogListComponent implements OnInit, OnDestroy {
   sortBy: keyof Pick<BlogPost, 'date' | 'title'> = 'date';
   sortDirection: 'asc' | 'desc' = 'desc';
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   protected readonly imageUrl = blogImageUrl;
 
-  constructor(
-    private blogService: BlogService,
-    private seoService: SeoService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
-
   ngOnInit(): void {
-    if (this.router.url === '/blog') {
+    if (this.router.url.includes('/blog')) {
       this.seoService.updateMetaTags({
         title: 'Blog | Psicóloga Natalia Ferreira',
         description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
         keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-        url: 'https://psicologanataliaferreira.com/blog/'
+        url: `${SITE_URL}/blog/`
       });
     }
 
@@ -81,9 +80,14 @@ export class BlogListComponent implements OnInit, OnDestroy {
   loadInitialData(): void {
     this.loading = true;
     this.error = null;
+    this.cdr.markForCheck();
+
     this.blogService.getPostsList(this.selectedCategory, this.sortBy, this.sortDirection)
       .pipe(
-        finalize(() => this.loading = false),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
         takeUntil(this.destroy$)
       )
       .subscribe({
@@ -92,8 +96,9 @@ export class BlogListComponent implements OnInit, OnDestroy {
           this.totalItems = this.allPosts.length;
           this.updateDisplayedPosts();
           if (this.allPosts.length === 0 && !this.loading) {
-            this.error = "Nenhum post encontrado com os filtros selecionados.";
+            this.error = 'Nenhum post encontrado com os filtros selecionados.';
           }
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error fetching blog posts:', err);
@@ -101,6 +106,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
           this.allPosts = [];
           this.displayedPosts = [];
           this.totalItems = 0;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -111,10 +117,10 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (categories) => {
           this.allCategories = categories;
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error fetching categories:', err);
-          // Handle category loading error if needed, maybe show a message
         }
       });
   }
@@ -123,6 +129,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     this.displayedPosts = this.allPosts.slice(startIndex, endIndex);
+    this.cdr.markForCheck();
   }
 
   // --- Event Handlers ---
@@ -131,9 +138,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.updateQueryParams();
-    // No need to refetch all data, just update displayed slice
     this.updateDisplayedPosts();
-    // Scroll to top of list smoothly
     const element = document.getElementById('blog-list-start');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -141,32 +146,32 @@ export class BlogListComponent implements OnInit, OnDestroy {
   }
 
   onFilterChange(): void {
-    this.currentPage = 1; // Reset to first page on filter change
+    this.currentPage = 1;
     this.updateQueryParams();
-    this.loadInitialData(); // Refetch data with new filter
+    this.loadInitialData();
   }
 
   onSortChange(): void {
-    this.currentPage = 1; // Reset to first page on sort change
+    this.currentPage = 1;
     this.updateQueryParams();
-    this.loadInitialData(); // Refetch data with new sort order
+    this.loadInitialData();
   }
 
   updateQueryParams(): void {
-    const queryParams: any = {
+    const queryParams: Record<string, string | number | null> = {
       page: this.currentPage > 1 ? this.currentPage : null,
       category: this.selectedCategory || null,
       sortBy: this.sortBy !== 'date' ? this.sortBy : null,
       sortDir: this.sortDirection !== 'desc' ? this.sortDirection : null
     };
-    // Remove null values
+
     Object.keys(queryParams).forEach(key => queryParams[key] == null && delete queryParams[key]);
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: queryParams,
-      queryParamsHandling: 'merge', // Keep other query params if needed
-      replaceUrl: true // Avoid polluting browser history excessively
+      queryParamsHandling: 'merge',
+      replaceUrl: true
     });
   }
 
@@ -177,7 +182,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
   }
 
   get pages(): number[] {
-    const pagesArray = [];
+    const pagesArray: number[] = [];
     for (let i = 1; i <= this.totalPages; i++) {
       pagesArray.push(i);
     }

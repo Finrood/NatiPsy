@@ -7,8 +7,28 @@
   --color-white: oklch(100% 0 0);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+[id] {
+  scroll-margin-top: 80px;
+}
+
 html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
   font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  scroll-behavior: smooth;
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 

@@ -1,27 +1,24 @@
-import {Component, ChangeDetectionStrategy} from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import {WHATSAPP_LINK} from '../../config/contact';
+import { WHATSAPP_LINK } from '../../config/contact';
 
 interface Service {
-  title: string;
-  description: string;
-  iconPath: string;
+  readonly title: string;
+  readonly description: string;
+  readonly iconPath: string;
 }
 
 @Component({
   selector: 'app-services',
-  imports: [
-    NgOptimizedImage
-],
+  imports: [NgOptimizedImage],
   standalone: true,
   templateUrl: './services.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './services.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServicesComponent {
   readonly whatsappLink = WHATSAPP_LINK;
 
-  services: Service[] = [
+  readonly services: readonly Service[] = [
     {
       title: 'Desenvolvimento de Rotinas de Qualidade',
       description: 'Você experiencia a vida através de uma desordem em atenção ou humor? Imagine como rotinas mais estruturadas podem favorecer o equilíbrio e a sua qualidade de vida.',

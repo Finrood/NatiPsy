@@ -1,12 +1,13 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, Renderer2, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, RouterLink, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, inject } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogAbsoluteImageUrl, blogImageUrl } from '../../models/blog-post.model';
-import { CommonModule, isPlatformBrowser, NgOptimizedImage } from '@angular/common';
-import { DomSanitizer, SafeHtml, Meta, Title } from '@angular/platform-browser';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SeoService } from '../../services/seo.service';
-import {of, Subject} from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
+import { SITE_URL } from '../../config/contact';
 
 @Component({
   selector: 'app-blog-post',
@@ -17,32 +18,25 @@ import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
     NgOptimizedImage
   ],
   templateUrl: './blog-post.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   styleUrls: ['./blog-post.component.css'],
 })
 export class BlogPostComponent implements OnInit, OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly blogService = inject(BlogService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly seoService = inject(SeoService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   post: BlogPost | null = null;
   relatedPosts: BlogPost[] = [];
   loading = true;
   error: string | null = null;
   safeContent: SafeHtml | null = null;
 
-  private destroy$ = new Subject<void>();
-  private structuredDataScript: HTMLScriptElement | null = null;
-
+  private readonly destroy$ = new Subject<void>();
   protected readonly imageUrl = blogImageUrl;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private blogService: BlogService,
-    private sanitizer: DomSanitizer,
-    private seoService: SeoService,
-    private titleService: Title,
-    private metaService: Meta,
-    private renderer: Renderer2,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
 
   ngOnInit(): void {
     this.route.paramMap
@@ -52,8 +46,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         if (slug) {
           this.loadPost(slug);
         } else {
-          this.handleErrorState("Post slug not found in URL.");
-          this.router.navigate(['/404']);
+          // Render the 404 state in place: navigating away mid-render makes SSR
+          // unstable, and the noindex meta (set by handleErrorState) is mapped
+          // to an HTTP 404 status by the server.
+          this.handleErrorState('Post slug not found in URL.');
         }
       });
   }
@@ -61,8 +57,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (isPlatformBrowser(this.platformId) && this.structuredDataScript) {
-      this.renderer.removeChild(document.head, this.structuredDataScript);
+    if (this.post) {
+      this.seoService.removeStructuredData(`blog-post-${this.post.slug}`);
     }
   }
 
@@ -72,15 +68,16 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.post = null;
     this.safeContent = null;
     this.relatedPosts = [];
+    this.cdr.markForCheck();
 
     this.blogService.getPostBySlug(slug)
       .pipe(
-        finalize(() => this.loading = false),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
         catchError(err => {
           this.handleErrorState(err.message || 'Erro ao carregar o post.');
-          if (err.message.includes('Could not load post')) {
-            this.router.navigate(['/404'], { skipLocationChange: true });
-          }
           return of(null);
         }),
         tap(post => {
@@ -89,10 +86,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             this.safeContent = this.sanitizer.bypassSecurityTrustHtml(post.content as string);
             this.updateMetaAndStructuredData(post);
             this.loadRelatedPosts(slug);
-          } else if (!this.loading) {
+          } else {
+            // Keep the URL; show the not-found state and let the noindex
+            // robots meta drive an HTTP 404 from the server.
             this.handleErrorState('Post não encontrado.');
-            this.router.navigate(['/404'], { skipLocationChange: true });
           }
+          this.cdr.markForCheck();
         }),
         takeUntil(this.destroy$)
       )
@@ -104,17 +103,22 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(posts => {
         this.relatedPosts = posts;
+        this.cdr.markForCheck();
       });
   }
-
 
   handleErrorState(errorMessage: string): void {
     this.error = errorMessage;
     this.post = null;
     this.safeContent = null;
     this.loading = false;
-    this.titleService.setTitle('Erro | Psicóloga Natalia Ferreira');
-    this.metaService.updateTag({ name: 'robots', content: 'noindex' });
+    this.seoService.updateMetaTags({
+      title: 'Erro | Psicóloga Natalia Ferreira',
+      description: 'Página não encontrada ou erro ao carregar o artigo.',
+      url: `${SITE_URL}/404`,
+      robots: 'noindex'
+    });
+    this.cdr.markForCheck();
   }
 
   updateMetaAndStructuredData(post: BlogPost): void {
@@ -125,60 +129,40 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: post.description,
       keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
-      url: `https://psicologanataliaferreira.com/blog/${post.slug}/`
+      url: `${SITE_URL}/blog/${post.slug}/`,
+      type: 'article',
+      publishedTime: post.date ? post.date.toISOString() : undefined,
+      author: post.author?.name || 'Natalia Ferreira',
+      tags: post.categories
     });
 
-    this.metaService.updateTag({ property: 'og:type', content: 'article' });
-    if (post.date) {
-      this.metaService.updateTag({ property: 'article:published_time', content: post.date.toISOString() });
-    }
-    if (post.author?.name) {
-      this.metaService.updateTag({ property: 'article:author', content: post.author.name });
-    }
-    post.categories.forEach(category => {
-      this.metaService.addTag({ property: 'article:tag', content: category });
+    this.seoService.setStructuredData(`blog-post-${post.slug}`, {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      name: post.title,
+      description: post.description,
+      image: imageUrl,
+      datePublished: post.date.toISOString(),
+      author: {
+        '@type': 'Person',
+        name: post.author?.name || 'Natalia Ferreira',
+        url: SITE_URL
+      },
+      publisher: {
+        '@type': 'Person',
+        name: 'Natalia Ferreira Psicóloga',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${SITE_URL}/assets/logo.png`
+        }
+      },
+      url: `${SITE_URL}/blog/${post.slug}`,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `${SITE_URL}/blog/${post.slug}`
+      },
+      keywords: post.categories.join(', ')
     });
-
-
-    if (isPlatformBrowser(this.platformId)) {
-      if (this.structuredDataScript) {
-        this.renderer.removeChild(document.head, this.structuredDataScript);
-        this.structuredDataScript = null;
-      }
-
-      const schema = {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        "headline": post.title,
-        "name": post.title,
-        "description": post.description,
-        "image": imageUrl,
-        "datePublished": post.date.toISOString(),
-        "author": {
-          "@type": "Person",
-          "name": post.author?.name || "Natalia Ferreira",
-          "url": post.author?.name ? undefined : "https://psicologanataliaferreira.com" // Optional author URL
-        },
-        "publisher": {
-          "@type": "Person",
-          "name": "Natalia Ferreira Psicóloga",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://psicologanataliaferreira.com/assets/logo.png" // Your site logo
-          }
-        },
-        "url": `https://psicologanataliaferreira.com/blog/${post.slug}`,
-        "mainEntityOfPage": {
-          "@type": "WebPage",
-          "@id": `https://psicologanataliaferreira.com/blog/${post.slug}`
-        },
-        "keywords": post.categories.join(', ')
-      };
-
-      this.structuredDataScript = this.renderer.createElement('script');
-      this.structuredDataScript!.type = 'application/ld+json';
-      this.structuredDataScript!.text = JSON.stringify(schema);
-      this.renderer.appendChild(document.head, this.structuredDataScript);
-    }
   }
 }

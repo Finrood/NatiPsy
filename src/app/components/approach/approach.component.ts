@@ -1,18 +1,15 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import {TherapyPrinciple} from '../../models/therapy-principle.model';
+import { TherapyPrinciple } from '../../models/therapy-principle.model';
 
 @Component({
   selector: 'app-approach',
-  imports: [
-    NgOptimizedImage
-],
+  imports: [NgOptimizedImage],
   templateUrl: './approach.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './approach.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApproachComponent {
-  principles: TherapyPrinciple[] = [
+  readonly principles: readonly TherapyPrinciple[] = [
     {
       title: 'Escuta Atenta e Empática',
       description: 'Dedico-me a ouvir profundamente cada cliente, buscando compreender não apenas suas palavras, mas também os significados por trás delas.',
@@ -37,9 +34,8 @@ export class ApproachComponent {
       title: 'Adaptabilidade',
       description: 'Cada sessão é adaptada às suas necessidades específicas daquele momento, permitindo flexibilidade no processo terapêutico.',
     }
-  ]
+  ];
 
-  trackByFn(index: number, principle: any) {
-    return principle.title;
-  }
+  readonly firstPrinciples = this.principles.slice(0, 3);
+  readonly secondPrinciples = this.principles.slice(3);
 }

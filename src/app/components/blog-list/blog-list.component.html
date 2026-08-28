@@ -72,8 +72,8 @@
 
     <!-- Loading State -->
     @if (loading) {
-      <div class="text-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4"></div>
+      <div class="text-center py-12" role="status" aria-live="polite" aria-busy="true">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4" aria-hidden="true"></div>
         <p class="text-xl text-gray-600">Carregando posts...</p>
       </div>
     }
@@ -110,17 +110,18 @@
     <!-- Posts Grid -->
     @if (!loading && !error && displayedPosts.length > 0) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        @for (post of displayedPosts; track post) {
-          <article class="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.03] flex flex-col">
+        @for (post of displayedPosts; track post.slug) {
+          <article class="group bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 motion-safe:hover:scale-[1.03] flex flex-col">
             <a [routerLink]="['/blog', post.slug]" class="block h-48 bg-gray-200 overflow-hidden">
               @if (post.image) {
                 <img
                   [ngSrc]="imageUrl(post.image)"
                   [alt]="post.title"
-                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  class="w-full h-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
                   loading="lazy"
-                  width="400" height="200">
-                } <!-- Provide explicit width/height for NgOptimizedImage -->
+                  width="400" height="200"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw">
+                }
                 <!-- Placeholder for posts without images -->
                 @if (!post.image) {
                   <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/20 to-primary-blue/10">
@@ -147,8 +148,8 @@
                   }
                 </div>
                 <a [routerLink]="['/blog', post.slug]"
-                  class="mt-5 inline-block text-primary-blue font-semibold hover:text-primary-pink-dark transition-colors group self-start">
-                  Leia mais <span class="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+                  class="mt-5 inline-block text-primary-blue font-semibold hover:text-primary-pink-dark transition-colors group/link self-start">
+                  Leia mais <span class="inline-block transition-transform group-hover/link:translate-x-1 ml-1">→</span>
                 </a>
               </div>
             </article>

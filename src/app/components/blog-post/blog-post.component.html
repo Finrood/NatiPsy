@@ -8,13 +8,13 @@
           <a routerLink="/" class="hover:text-primary-blue transition-colors">Início</a>
         </li>
         <li class="flex items-center">
-          <span class="mx-2">/</span>
+          <span class="mx-2" aria-hidden="true">/</span>
           <a routerLink="/blog" class="hover:text-primary-blue transition-colors">Blog</a>
         </li>
         <li class="flex items-center text-primary-blue font-medium" aria-current="page">
-          <span class="mx-2">/</span>
+          <span class="mx-2" aria-hidden="true">/</span>
           @if (post) {
-            <span>{{ post.title | slice:0:50 }}{{ post && post.title.length > 50 ? '...' : ''}}</span>
+            <span>{{ post.title | slice:0:50 }}{{ post.title.length > 50 ? '...' : '' }}</span>
           }
           @if (loading && !post) {
             <span>Carregando...</span>
@@ -25,8 +25,8 @@
 
     <!-- Loading State -->
     @if (loading) {
-      <div class="text-center py-16 bg-white rounded-lg shadow-md">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto"></div>
+      <div class="text-center py-16 bg-white rounded-lg shadow-md" role="status" aria-live="polite" aria-busy="true">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto" aria-hidden="true"></div>
         <p class="text-xl text-gray-600 mt-4">Carregando post...</p>
       </div>
     }
@@ -50,9 +50,14 @@
       <article class="bg-white rounded-lg shadow-xl overflow-hidden">
         <!-- Featured Image -->
         @if (post.image) {
-          <div class="w-full h-64 md:h-80 overflow-hidden">
-            <img [src]="imageUrl(post.image)"
-              [alt]="post.title" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+          <div class="w-full h-64 md:h-80 overflow-hidden bg-gray-100">
+            <img [ngSrc]="imageUrl(post.image)"
+              [alt]="post.title"
+              class="w-full h-full object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
+              width="768"
+              height="384"
+              priority
+              sizes="100vw">
           </div>
         }
         <!-- Article Body -->
@@ -84,7 +89,7 @@
               }
               @if (!post.author) {
                 <div class="flex items-center">
-                  <span class="font-medium">Natalia Ferreira dos Santos</span>
+                  <span class="font-medium">Natalia Ferreira</span>
                 </div>
               }
               <div class="flex items-center">
@@ -104,15 +109,15 @@
             </div>
           </header>
           <!-- Post Content - Using Tailwind Typography -->
-        <div class="prose prose-lg max-w-none
-                    break-words
-                    prose-headings:text-primary-blue prose-headings:font-semibold
-                    prose-a:text-primary-pink-dark prose-a:no-underline hover:prose-a:underline
-                    prose-strong:text-gray-800 prose-strong:font-medium
-                    prose-blockquote:border-l-primary-blue prose-blockquote:bg-primary-pink/10 prose-blockquote:text-gray-700 prose-blockquote:not-italic
-                    prose-li:marker:text-primary-blue
-                    prose-img:rounded-lg prose-img:shadow-md"
-            [innerHTML]="safeContent">
+          <div class="prose prose-lg max-w-none
+                      break-words
+                      prose-headings:text-primary-blue prose-headings:font-semibold
+                      prose-a:text-primary-pink-dark prose-a:no-underline hover:prose-a:underline
+                      prose-strong:text-gray-800 prose-strong:font-medium
+                      prose-blockquote:border-l-primary-blue prose-blockquote:bg-primary-pink/10 prose-blockquote:text-gray-700 prose-blockquote:not-italic
+                      prose-li:marker:text-primary-blue
+                      prose-img:rounded-lg prose-img:shadow-md"
+              [innerHTML]="safeContent">
           </div>
         </div>
         <!-- Author Bio Section (Optional) -->
@@ -138,7 +143,7 @@
           <aside class="px-6 md:px-10 py-8 border-t border-gray-200 bg-primary-blue/5">
             <h3 class="text-xl font-semibold text-primary-blue mb-6">Posts Relacionados</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              @for (related of relatedPosts; track related) {
+              @for (related of relatedPosts; track related.slug) {
                 <div class="group bg-white rounded-md shadow-sm overflow-hidden transition-shadow hover:shadow-md">
                   <a [routerLink]="['/blog', related.slug]" class="block">
                     <div class="h-32 bg-gray-200">
@@ -147,7 +152,7 @@
                           [ngSrc]="imageUrl(related.image)"
                           [alt]="related.title"
                           class="w-full h-full object-cover"
-                          loading="lazy" width="300" height="150">
+                          loading="lazy" width="300" height="150" sizes="(max-width: 640px) 100vw, 33vw">
                       }
                       @if (!related.image) {
                         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/10 to-primary-blue/5">
