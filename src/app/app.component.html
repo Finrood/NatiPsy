@@ -1,7 +1,12 @@
+<a href="#main-content"
+   class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-blue focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-pink">
+  Pular para o conteúdo principal
+</a>
+
 <div class="flex flex-col min-h-screen">
   <app-top-menu></app-top-menu>
 
-  <main class="flex-grow pt-20">
+  <main id="main-content" class="flex-grow pt-20">
     <router-outlet></router-outlet>
   </main>
 
@@ -11,8 +16,9 @@
 <a [href]="whatsappLink"
    target="_blank"
    rel="noopener noreferrer"
-   aria-label="entre em contato pelo WhatsApp"
-   class="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 z-50">
+   aria-label="Entre em contato pelo WhatsApp"
+   title="Fale conosco pelo WhatsApp"
+   class="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 z-50">
   <span class="sr-only">WhatsApp</span>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="h-10 w-10" aria-hidden="true" focusable="false">
     <path fill="#fff" d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19c0,0,0,0,0,0h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z"></path>

@@ -1,6 +1,6 @@
-<section id="minha-abordagem" class="my-approach-section py-16 sm:py-24 bg-white">
+<section class="my-approach-section py-16 sm:py-24 bg-white" aria-labelledby="abordagem-heading">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="text-4xl sm:text-5xl font-bold text-primary-blue mb-12 text-center">
+    <h2 id="abordagem-heading" class="text-4xl sm:text-5xl font-bold text-primary-blue mb-12 text-center">
       Minha Abordagem
     </h2>
 
@@ -18,9 +18,9 @@
       <div class="flex flex-col lg:flex-row gap-8 mb-12">
         <div class="lg:w-1/2 flex flex-col justify-center">
           <ul class="space-y-4" role="list">
-            @for (principle of principles.slice(0, 3); track trackByFn($index, principle)) {
+            @for (principle of firstPrinciples; track principle.title) {
               <li
-                class="rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+                class="bg-white rounded-lg p-4 sm:p-6 shadow-lg transform motion-safe:hover:scale-105 transition-transform duration-300">
                 <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
                   {{ principle.title }}
                 </h3>
@@ -33,9 +33,9 @@
         </div>
         <div class="lg:w-1/2 flex items-center">
           <div class="w-full aspect-[600/400] rounded-lg overflow-hidden shadow-lg bg-gray-100">
-            <img ngSrc="assets/abordagem1.webp" alt="Therapy approach image 1"
+            <img ngSrc="assets/abordagem1.webp" alt="Ilustração de acolhimento e escuta empática na terapia clínica"
               class="w-full h-full object-cover"
-              loading="lazy" fetchpriority="low" width="600" height="400">
+              loading="lazy" fetchpriority="low" width="600" height="400" sizes="(max-width: 1024px) 100vw, 50vw">
           </div>
         </div>
       </div>
@@ -44,16 +44,16 @@
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
           <div class="w-full aspect-[600/400] rounded-lg overflow-hidden shadow-lg bg-gray-100">
-            <img ngSrc="assets/abordagem2.webp" alt="Therapy approach image 2"
+            <img ngSrc="assets/abordagem2.webp" alt="Ilustração de reflexão e desenvolvimento de autonomia na terapia sistêmica"
               class="w-full h-full object-cover"
-              loading="lazy" fetchpriority="low" width="600" height="400">
+              loading="lazy" fetchpriority="low" width="600" height="400" sizes="(max-width: 1024px) 100vw, 50vw">
           </div>
         </div>
         <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
           <ul class="space-y-4" role="list">
-            @for (principle of principles.slice(3); track trackByFn($index, principle)) {
+            @for (principle of secondPrinciples; track principle.title) {
               <li
-                class="rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+                class="bg-white rounded-lg p-4 sm:p-6 shadow-lg transform motion-safe:hover:scale-105 transition-transform duration-300">
                 <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
                   {{ principle.title }}
                 </h3>

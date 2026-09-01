@@ -104,6 +104,23 @@ export class BlogService {
 
 
   getPostBySlug(slug: string): Observable<BlogPost | null> {
+    // Check the post index first: unknown slugs return `null` immediately,
+    // avoiding a pointless markdown request (and nested SSR fetches for
+    // routes that don't exist).
+    return this.fetchPostsIndex().pipe(
+      switchMap(index =>
+        index.some(post => post.slug === slug)
+          ? this.fetchMarkdownPost(slug)
+          : of(null)
+      ),
+      catchError(err => {
+        console.error(`Failed to load blog post ${slug}:`, err.message || err);
+        return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
+      })
+    );
+  }
+
+  private fetchMarkdownPost(slug: string): Observable<BlogPost | null> {
     const markdownUrl = `/assets/content/blog/${slug}.md`;
     return this.http.get(markdownUrl, { responseType: 'text' })
       .pipe(

@@ -2,8 +2,8 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import {provideRouter, withInMemoryScrolling} from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay, withNoIncrementalHydration } from '@angular/platform-browser';
-import {provideHttpClient, withFetch} from '@angular/common/http';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
@@ -16,7 +16,10 @@ export const appConfig: ApplicationConfig = {
         scrollPositionRestoration: 'enabled',
       })
     ),
-    provideClientHydration(withEventReplay(), withNoIncrementalHydration()),
+    // Event replay enables hydration; HttpTransferCache for GET requests made
+    // during SSR comes with it by default, so data fetched on the server is
+    // serialized to the client and never requested twice.
+    provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch()),
     provideAnimations()
   ]

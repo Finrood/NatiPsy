@@ -1,22 +1,24 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { Meta, Title } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { SeoService } from '../../services/seo.service';
+import { SITE_URL } from '../../config/contact';
 
 @Component({
   selector: 'app-not-found',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './not-found.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ['./not-found.component.css']
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotFoundComponent {
-  // In NotFoundComponent:
-  constructor(private router: Router, private meta: Meta, private title: Title) {
-    this.title.setTitle('Página Não Encontrada | Natalia Ferreira');
-    this.meta.updateTag({ name: 'robots', content: 'noindex, follow' });
-  }
+export class NotFoundComponent implements OnInit {
+  private readonly seoService = inject(SeoService);
 
-  goHome(): void {
-    this.router.navigate(['/']);
+  ngOnInit(): void {
+    this.seoService.updateMetaTags({
+      title: 'Página Não Encontrada | Natalia Ferreira',
+      description: 'A página que você está procurando não foi encontrada.',
+      url: `${SITE_URL}/404`,
+      robots: 'noindex, follow'
+    });
   }
 }
