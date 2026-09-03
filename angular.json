@@ -17,15 +17,9 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js",
-              "src/polyfills.ts"
+              "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
-            "allowedCommonJsDependencies": [
-              "gray-matter",
-              "buffer",
-              "marked"
-            ],
             "assets": [
               {
                 "glob": "**/*",
@@ -59,12 +53,7 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all",
-              "allowedCommonJsDependencies": [
-                "gray-matter",
-                "buffer",
-                "marked"
-              ]
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
