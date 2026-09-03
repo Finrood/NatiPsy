@@ -40,7 +40,9 @@
     <nav class="hidden lg:flex space-x-8" aria-label="Navegação Principal">
       @for (item of menuItems; track item) {
         <a
-          [href]="'/' + '#' + item" class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-[transform,color] duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
+          [routerLink]="['/']"
+          [fragment]="item"
+          class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-[transform,color] duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
           [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]">
           {{ menuDisplayNames[item] }}
         </a>
@@ -82,7 +84,8 @@
     <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
       @for (item of menuItems; track item) {
         <a
-          [href]="'/' + '#' + item"
+          [routerLink]="['/']"
+          [fragment]="item"
           (click)="closeMenu()"
           class="text-2xl sm:text-3xl font-semibold text-white hover:text-pink-100 transition-[transform,color] duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-pink-dark rounded-sm"
           [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]">
