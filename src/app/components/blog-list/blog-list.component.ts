@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
@@ -27,6 +27,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   allPosts: BlogPost[] = [];
   displayedPosts: BlogPost[] = [];
@@ -139,22 +140,22 @@ export class BlogListComponent implements OnInit, OnDestroy {
     this.currentPage = page;
     this.updateQueryParams();
     this.updateDisplayedPosts();
-    const element = document.getElementById('blog-list-start');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (isPlatformBrowser(this.platformId)) {
+      const element = document.getElementById('blog-list-start');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   }
 
   onFilterChange(): void {
     this.currentPage = 1;
     this.updateQueryParams();
-    this.loadInitialData();
   }
 
   onSortChange(): void {
     this.currentPage = 1;
     this.updateQueryParams();
-    this.loadInitialData();
   }
 
   updateQueryParams(): void {
