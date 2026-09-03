@@ -74,7 +74,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       .pipe(
         finalize(() => {
           this.loading = false;
-          this.cdr.markForCheck();
+          // NOTE: markForCheck() alone is not enough here: after an async
+          // fetch there is no guaranteed change-detection cycle left in this
+          // app, so force the view update explicitly. This is still safe on
+          // the direct-URL path: transferred data arrives synchronously
+          // before first render, making this a harmless no-op there.
+          this.cdr.detectChanges();
         }),
         catchError(err => {
           this.handleErrorState(err.message || 'Erro ao carregar o post.');
@@ -85,25 +90,27 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             this.post = post;
             this.safeContent = this.sanitizer.bypassSecurityTrustHtml(post.content as string);
             this.updateMetaAndStructuredData(post);
-            this.loadRelatedPosts(slug);
+            // Pass categories so related posts resolve from the (transferred)
+            // index without refetching the current post.
+            this.loadRelatedPosts(slug, post.categories);
           } else {
             // Keep the URL; show the not-found state and let the noindex
             // robots meta drive an HTTP 404 from the server.
             this.handleErrorState('Post não encontrado.');
           }
-          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         }),
         takeUntil(this.destroy$)
       )
       .subscribe();
   }
 
-  loadRelatedPosts(slug: string): void {
-    this.blogService.getRelatedPosts(slug, 3)
+  loadRelatedPosts(slug: string, categories?: string[]): void {
+    this.blogService.getRelatedPosts(slug, categories, 3)
       .pipe(takeUntil(this.destroy$))
       .subscribe(posts => {
         this.relatedPosts = posts;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       });
   }
 
@@ -118,7 +125,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       url: `${SITE_URL}/404`,
       robots: 'noindex'
     });
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   updateMetaAndStructuredData(post: BlogPost): void {

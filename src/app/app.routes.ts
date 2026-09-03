@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { BlogPostComponent } from './components/blog-post/blog-post.component';
 
 export const routes: Routes = [
   {
@@ -19,10 +20,11 @@ export const routes: Routes = [
       },
       {
         path: ':slug',
-        loadComponent: () =>
-          import('./components/blog-post/blog-post.component').then(
-            (m) => m.BlogPostComponent
-          ),
+        // Eager on purpose: lazy loadComponent evaluation during navigation
+        // races activation in dev (ng serve) and freezes the view on its
+        // first client-side visit; the component is small and always needed
+        // for prerendered/SEO routes anyway.
+        component: BlogPostComponent,
       },
     ],
   },
