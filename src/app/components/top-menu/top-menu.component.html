@@ -1,4 +1,4 @@
-<header class="fixed w-full z-50 transition-[transform,background-color] duration-300"
+<header class="fixed w-full z-50 transition-[transform,background-color] duration-300 focus-within:translate-y-0"
         [ngClass]="{
           'bg-red-50/100': !isScrolled && !isMenuOpen,
           'bg-red-50 shadow-lg': isScrolled && !isMenuOpen,
@@ -80,6 +80,7 @@
     role="dialog"
     aria-modal="true"
     aria-label="Menu de navegação"
+    (keydown)="onMenuKeyDown($event)"
     (click)="onBackdropClick($event)">
     <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
       @for (item of menuItems; track item) {
