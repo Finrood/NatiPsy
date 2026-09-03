@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, PLATFORM_ID, SecurityContext, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogAbsoluteImageUrl, blogImageUrl } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
 import { of, Subject } from 'rxjs';
 import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
@@ -28,12 +29,14 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly seoService = inject(SeoService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   post: BlogPost | null = null;
   relatedPosts: BlogPost[] = [];
   loading = true;
   error: string | null = null;
-  safeContent: SafeHtml | null = null;
+  safeContent: SafeHtml | string | null = null;
 
   private readonly destroy$ = new Subject<void>();
   protected readonly imageUrl = blogImageUrl;
@@ -88,7 +91,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         tap(post => {
           if (post) {
             this.post = post;
-            this.safeContent = this.sanitizer.bypassSecurityTrustHtml(post.content as string);
+            this.safeContent = this.toSafeHtml(post.content as string);
             this.updateMetaAndStructuredData(post);
             // Pass categories so related posts resolve from the (transferred)
             // index without refetching the current post.
@@ -112,6 +115,21 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         this.relatedPosts = posts;
         this.cdr.detectChanges();
       });
+  }
+
+  /**
+   * Sanitize rendered Markdown HTML before binding it to the view.
+   * `marked` passes raw HTML straight through, so its output must be
+   * cleaned before bypassing Angular's built-in sanitizer. DOMPurify needs
+   * a DOM and therefore only runs in the browser; on the server (SSR /
+   * prerender) Angular's default HTML sanitizer is applied instead, which
+   * requires no bypass.
+   */
+  toSafeHtml(html: string): SafeHtml | string {
+    if (this.isBrowser) {
+      return this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(html));
+    }
+    return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
   }
 
   handleErrorState(errorMessage: string): void {
