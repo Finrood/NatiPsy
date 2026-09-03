@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit {
       title: 'Psicóloga Natalia Ferreira | Terapia Online - CRP 12/19892',
       description: 'Psicóloga Clínica especializada em Terapia Relacional Sistêmica. Atendimento online para jovens, adultos e casais. Experiência em terapia sistêmica, ansiedade, depressão e relacionamentos.',
       keywords: 'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
-      url: SITE_URL
+      url: `${SITE_URL}/`
     });
   }
 }

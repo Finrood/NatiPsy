@@ -56,7 +56,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
         title: 'Blog | Psicóloga Natalia Ferreira',
         description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
         keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-        url: `${SITE_URL}/blog/`
+        url: `${SITE_URL}/blog`
       });
     }
 
