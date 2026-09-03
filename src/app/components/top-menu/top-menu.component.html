@@ -1,7 +1,7 @@
 <header class="fixed w-full z-50 transition-[transform,background-color] duration-300 focus-within:translate-y-0"
         [ngClass]="{
-          'bg-red-50/100': !isScrolled && !isMenuOpen,
-          'bg-red-50 shadow-lg': isScrolled && !isMenuOpen,
+          'bg-white/95 backdrop-blur-md': !isScrolled && !isMenuOpen,
+          'bg-white/95 backdrop-blur-md shadow-lg': isScrolled && !isMenuOpen,
           'bg-primary-pink-dark/90': isMenuOpen,
           'transform -translate-y-full': isHidden && !isMenuOpen
         }"
