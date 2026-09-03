@@ -1,6 +1,6 @@
 export const SITE_URL = 'https://psicologanataliaferreira.com';
 
-export const WHATSAPP_NUMBER = '+554884323764';
+export const WHATSAPP_NUMBER = '+5548984323764';
 
 export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
 
