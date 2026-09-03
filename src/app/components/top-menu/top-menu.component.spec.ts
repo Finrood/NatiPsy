@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { TopMenuComponent } from './top-menu.component';
 
@@ -10,7 +11,7 @@ describe('TopMenuComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TopMenuComponent],
-      providers: [provideRouter([])]
+      providers: [provideRouter([]), provideNoopAnimations()]
     })
     .compileComponents();
 
