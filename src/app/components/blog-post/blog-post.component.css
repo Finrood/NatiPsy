@@ -6,9 +6,14 @@ app-blog-post .prose h4 {
   color: var(--color-primary-blue);
 }
 
-app-blog-post .prose p {
+app-blog-post .prose p,
+app-blog-post .prose li {
   line-height: 1.8;
   color: #374151;
+}
+
+app-blog-post .prose a {
+  word-break: break-word;
 }
 
 app-blog-post .prose blockquote {
