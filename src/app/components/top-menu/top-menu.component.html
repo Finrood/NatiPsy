@@ -1,9 +1,9 @@
 <header class="fixed w-full z-50 transition-[transform,background-color] duration-300 focus-within:translate-y-0"
         [ngClass]="{
-          'bg-white/95 backdrop-blur-md': !isScrolled && !isMenuOpen,
-          'bg-white/95 backdrop-blur-md shadow-lg': isScrolled && !isMenuOpen,
-          'bg-primary-pink-dark/90': isMenuOpen,
-          'transform -translate-y-full': isHidden && !isMenuOpen
+          'bg-white/95 backdrop-blur-md': !isScrolled() && !isMenuOpen(),
+          'bg-white/95 backdrop-blur-md shadow-lg': isScrolled() && !isMenuOpen(),
+          'bg-primary-pink-dark/90': isMenuOpen(),
+          'transform -translate-y-full': isHidden() && !isMenuOpen()
         }"
   role="banner">
   <div class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]">
@@ -52,17 +52,17 @@
     <!-- Mobile Menu Toggle Button -->
     <button type="button" class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-md p-1"
       (click)="toggleMenu()"
-      [attr.aria-expanded]="isMenuOpen.toString()"
+      [attr.aria-expanded]="isMenuOpen().toString()"
       aria-controls="mobile-menu"
-      [attr.aria-label]="isMenuOpen ? 'Fechar menu principal' : 'Abrir menu principal'">
-      <span class="sr-only">{{ isMenuOpen ? 'Fechar menu principal' : 'Abrir menu principal' }}</span>
+      [attr.aria-label]="isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'">
+      <span class="sr-only">{{ isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal' }}</span>
       <!-- Conditionally show open/close icon -->
-      @if (!isMenuOpen) {
+      @if (!isMenuOpen()) {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
         </svg>
       }
-      @if (isMenuOpen) {
+      @if (isMenuOpen()) {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
@@ -72,7 +72,7 @@
 
 </header>
 
-@if (isMenuOpen) {
+@if (isMenuOpen()) {
   <div
     [@fadeInOut]
     class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
