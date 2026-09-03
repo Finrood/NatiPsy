@@ -8,7 +8,8 @@ import {
   NgZone,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  HostListener
+  HostListener,
+  signal
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -39,9 +40,11 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   /** Element to restore keyboard focus to when the dialog closes. */
   private lastFocusedElement: HTMLElement | null = null;
 
-  isMenuOpen = false;
-  isScrolled = false;
-  isHidden = false;
+  /** Reactive UI state: signals notify OnPush views directly, replacing
+   * manual `markForCheck` bookkeeping for these flags. */
+  readonly isMenuOpen = signal(false);
+  readonly isScrolled = signal(false);
+  readonly isHidden = signal(false);
   lastScrollPosition = 0;
 
   readonly menuItems = ['inicio', 'meus-servicos', 'abordagem', 'vantagens', 'sobre-mim', 'blog'] as const;
@@ -69,12 +72,12 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   }
 
   toggleMenu(): void {
-    const opening = !this.isMenuOpen;
-    this.isMenuOpen = opening;
+    const opening = !this.isMenuOpen();
+    this.isMenuOpen.set(opening);
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = opening ? 'hidden' : '';
-      if (opening && this.isHidden) {
-        this.isHidden = false;
+      if (opening && this.isHidden()) {
+        this.isHidden.set(false);
       }
     }
     this.cdr.markForCheck();
@@ -86,10 +89,10 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   }
 
   closeMenu(): void {
-    if (!this.isMenuOpen) {
+    if (!this.isMenuOpen()) {
       return;
     }
-    this.isMenuOpen = false;
+    this.isMenuOpen.set(false);
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = '';
     }
@@ -112,7 +115,7 @@ export class TopMenuComponent implements OnInit, OnDestroy {
    * Traps Tab focus within the mobile menu dialog per WAI-ARIA modal dialog specifications.
    */
   onMenuKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Tab' || !this.isMenuOpen || !isPlatformBrowser(this.platformId)) {
+    if (event.key !== 'Tab' || !this.isMenuOpen() || !isPlatformBrowser(this.platformId)) {
       return;
     }
     const focusable = Array.from(
@@ -184,10 +187,10 @@ export class TopMenuComponent implements OnInit, OnDestroy {
     const scrolled = currentScrollPosition > 50;
     const hidden = currentScrollPosition > 100 && currentScrollPosition > this.lastScrollPosition;
 
-    if (scrolled !== this.isScrolled || hidden !== this.isHidden) {
+    if (scrolled !== this.isScrolled() || hidden !== this.isHidden()) {
       this.ngZone.run(() => {
-        this.isScrolled = scrolled;
-        this.isHidden = hidden && !this.isMenuOpen;
+        this.isScrolled.set(scrolled);
+        this.isHidden.set(hidden && !this.isMenuOpen());
         this.cdr.markForCheck();
       });
     }
