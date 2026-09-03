@@ -136,7 +136,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: post.description,
       keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
-      url: `${SITE_URL}/blog/${post.slug}/`,
+      url: `${SITE_URL}/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
       author: post.author?.name || 'Natalia Ferreira',

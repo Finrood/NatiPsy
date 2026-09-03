@@ -30,7 +30,14 @@ export class SeoService {
   updateMetaTags(config: SeoConfig): void {
     // Canonical URLs must be stable per page: drop tracking params & fragments.
     const currentUrl = `${SITE_URL}${this.router.url.split(/[?#]/)[0]}`;
-    const targetUrl = config.url || currentUrl;
+    // Site convention: the naked root keeps its trailing slash, every
+    // sub-route uses no trailing slash (matches sitemap.xml, routes.txt
+    // and Angular router URLs). Normalize centrally so a stray slash in
+    // any caller can never split SEO equity across duplicate canonicals.
+    const rawUrl = config.url || currentUrl;
+    const targetUrl = rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/')
+      ? rawUrl.slice(0, -1)
+      : rawUrl;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
 
     this.title.setTitle(config.title);

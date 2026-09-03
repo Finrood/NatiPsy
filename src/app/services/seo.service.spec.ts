@@ -52,9 +52,14 @@ describe('SeoService', () => {
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href'))
       .toBe(`${SITE_URL}/blog/carreira-mulheres-negras-fadiga-racial`);
 
-    // Explicitly provided URLs are honored as-is.
+    // Explicitly provided URLs are normalized to the site convention:
+    // sub-routes lose the trailing slash, the naked root keeps it.
     service.updateMetaTags({ title: 'Blog', description: 'd', url: `${SITE_URL}/blog/` });
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_URL}/blog/`);
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_URL}/blog`);
+    expect(metaService.getTag('property="og:url"')?.content).toBe(`${SITE_URL}/blog`);
+
+    service.updateMetaTags({ title: 'Home', description: 'd', url: `${SITE_URL}/` });
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_URL}/`);
   });
 
   it('should manage article:tag Open Graph entries without leaking stale ones', () => {

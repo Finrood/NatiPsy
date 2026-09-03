@@ -61,7 +61,7 @@ function generateSitemap(posts) {
     </image:image>
   </url>`,
     `  <url>
-    <loc>${escapeXml(pageUrl('/blog/'))}</loc>
+    <loc>${escapeXml(pageUrl('/blog'))}</loc>
     <lastmod>${lastSiteUpdate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -71,7 +71,7 @@ function generateSitemap(posts) {
   for (const post of posts) {
     const postImageUrl = imageUrl(post);
     urls.push(`  <url>
-    <loc>${escapeXml(pageUrl(`/blog/${post.slug}/`))}</loc>
+    <loc>${escapeXml(pageUrl(`/blog/${post.slug}`))}</loc>
     <lastmod>${post.date.slice(0, 10)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>${postImageUrl ? `
