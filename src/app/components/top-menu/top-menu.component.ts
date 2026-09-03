@@ -109,6 +109,33 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Traps Tab focus within the mobile menu dialog per WAI-ARIA modal dialog specifications.
+   */
+  onMenuKeyDown(event: KeyboardEvent): void {
+    if (event.key !== 'Tab' || !this.isMenuOpen || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    const focusable = Array.from(
+      document.querySelectorAll<HTMLElement>('#mobile-menu a[href], #mobile-menu button')
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey) {
+      if (document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  /**
    * Dialog focus management: move focus inside the opened dialog (first nav
    * link) and return it to whatever element invoked the dialog afterwards,
    * per WAI-ARIA modal-dialog practices.
