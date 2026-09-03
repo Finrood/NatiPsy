@@ -10,14 +10,14 @@ import {
   ChangeDetectorRef,
   HostListener
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-top-menu',
   templateUrl: './top-menu.component.html',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('fadeInOut', [
