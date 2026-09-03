@@ -34,8 +34,10 @@
     <!-- Preconnect to important third-party domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Async font loading avoids render-blocking; weights trimmed to those in use -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+    <!-- Async font loading avoids render-blocking; weights trimmed to those in use.
+         No style preload here: the build inlines the critical @font-face
+         rules, so preloading the CSS only triggered
+         "preloaded but not used" console warnings. -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
     <noscript>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
