@@ -3,9 +3,7 @@ import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { BlogPost, BlogPostAuthor } from '../models/blog-post.model';
-import { marked } from 'marked';
-import matter from 'gray-matter';
+import { BlogPost } from '../models/blog-post.model';
 
 const POSTS_INDEX_KEY = makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index');
 const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
@@ -22,14 +20,6 @@ export class BlogService {
   private readonly isServer = isPlatformServer(this.platformId);
 
   constructor(private http: HttpClient) {}
-
-  private calculateReadingTime(content: string): number {
-    if (!content) return 0;
-    const wordsPerMinute = 200;
-    const textOnly = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    const words = textOnly.split(' ').length;
-    return Math.ceil(words / wordsPerMinute);
-  }
 
   private handleError(error: HttpErrorResponse, context: string) {
     let errorMessage = 'An unknown error occurred!';
@@ -157,7 +147,7 @@ export class BlogService {
     return this.fetchPostsIndex().pipe(
       switchMap(index =>
         index.some(post => post.slug === slug)
-          ? this.fetchMarkdownPost(slug)
+          ? this.fetchPostJson(slug)
           : of(null)
       ),
       tap(post => {
@@ -172,58 +162,21 @@ export class BlogService {
     );
   }
 
-  private fetchMarkdownPost(slug: string): Observable<BlogPost | null> {
-    const markdownUrl = `/assets/content/blog/${slug}.md`;
-    return this.http.get(markdownUrl, { responseType: 'text' })
+  /**
+   * Post bodies are pre-rendered to HTML at build time
+   * (see `src/scripts/generate-blog-index.js`), so the client fetches a
+   * small JSON document instead of parsing Markdown in the browser. This
+   * keeps `marked`, `gray-matter` and the Node `buffer` polyfill out of
+   * the client bundle entirely.
+   */
+  private fetchPostJson(slug: string): Observable<BlogPost | null> {
+    const postUrl = `/assets/content/blog/posts/${slug}.json`;
+    return this.http.get<BlogPost>(postUrl)
       .pipe(
-        map((fileContent) => {
-          try {
-            const { data, content } = matter(fileContent);
-
-            if (!data['title'] || !data['date']) {
-              console.warn(`Markdown file ${slug}.md might be missing required front matter (title, date).`);
-            }
-
-            const parsedContent = marked.parse(content) as string;
-            const readingTime = this.calculateReadingTime(content);
-
-            let categories: string[] = [];
-            if (Array.isArray(data['categories'])) {
-              categories = data['categories'];
-            } else if (typeof data['categories'] === 'string' && data['categories'].trim() !== '') {
-              categories = data['categories'].split(',').map(c => c.trim()).filter(c => c);
-            }
-
-            let author: BlogPostAuthor | undefined = undefined;
-            if (data['author']) {
-              if (typeof data['author'] === 'string') {
-                author = { name: data['author'] };
-              } else if (typeof data['author'] === 'object' && data['author'].name) {
-                author = {
-                  name: data['author'].name,
-                  bio: data['author'].bio || undefined,
-                  avatar: data['author'].avatar || undefined
-                };
-              }
-            }
-
-            const post: BlogPost = {
-              slug,
-              title: data['title'] || 'Untitled Post',
-              date: data['date'] ? new Date(data['date']) : new Date(),
-              description: data['description'] || '',
-              image: data['image'] || null,
-              categories: categories,
-              content: parsedContent,
-              readTime: readingTime,
-              author: author
-            };
-            return post;
-          } catch (error) {
-            console.error(`Error parsing markdown file ${slug}.md:`, error);
-            throw new Error(`Failed to parse markdown content for ${slug}.`);
-          }
-        }),
+        map((post) => ({
+          ...post,
+          date: new Date(post.date),
+        })),
         catchError(error => {
           if (error instanceof HttpErrorResponse && error.status === 404) {
             console.warn(`Blog post not found: ${slug}`);

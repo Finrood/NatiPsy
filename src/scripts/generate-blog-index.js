@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const matter = require('gray-matter');
+const { marked } = require('marked');
 
 const contentDir = path.join(__dirname, '../../public/assets/content/blog');
 const outputIndexPath = path.join(contentDir, 'index.json');
+const postsDir = path.join(contentDir, 'posts');
 const imagesDir = path.join(contentDir, 'images');
 const routesPath = path.join(__dirname, '../../src/routes.txt');
 const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
@@ -97,6 +99,7 @@ function generateIndex() {
   const posts = [];
   try {
     const files = fs.readdirSync(contentDir);
+    fs.mkdirSync(postsDir, { recursive: true });
 
     for (const file of files) {
       if (path.extname(file) === '.md') {
@@ -165,6 +168,12 @@ function generateIndex() {
           };
           posts.push(postData);
 
+          // Pre-render Markdown to HTML at build time so the browser never
+          // ships a Markdown engine: per-post JSON with ready-to-bind HTML.
+          const htmlContent = marked.parse(content);
+          const postJson = { ...postData, content: htmlContent };
+          fs.writeFileSync(path.join(postsDir, `${slug}.json`), JSON.stringify(postJson, null, 2));
+
         } catch (parseError) {
           console.error(`\n[Blog Index Generator] Error parsing front matter for ${file}:`, parseError.message);
         }
@@ -176,6 +185,14 @@ function generateIndex() {
 
     fs.writeFileSync(outputIndexPath, JSON.stringify(posts, null, 2)); // Pretty print JSON
     console.log(`\n[Blog Index Generator] Successfully generated ${outputIndexPath} with ${posts.length} posts.`);
+
+    // Prune JSON files for posts that no longer exist.
+    for (const file of fs.readdirSync(postsDir)) {
+      if (path.extname(file) === '.json' && !posts.some((post) => `${post.slug}.json` === file)) {
+        fs.unlinkSync(path.join(postsDir, file));
+        console.log(`[Blog Index Generator] Removed stale ${path.join(postsDir, file)}`);
+      }
+    }
 
     generateRoutesFile(posts);
     generateSitemap(posts);
