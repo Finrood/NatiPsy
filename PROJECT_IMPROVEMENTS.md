@@ -1,199 +1,637 @@
-# Centralized Technical Audit & Improvement Report — NatiPsy
+# NatiPsy — Authoritative Technical Audit and Improvement Backlog
 
-This document consolidates all identified improvement opportunities across the project, categorized into **Bugs & Functional Issues**, **Performance & PageSpeed Analysis (Desktop & Mobile)**, **Accessibility (a11y)**, **Design & UI/UX**, and **Architecture & Angular Code Quality**. Each item details the underlying problem, its impact, technical rationale, and recommended solution.
+This is the single authoritative file for project findings. Do not create a second audit, TODO, or improvement ledger. New findings, implementation PR links, status changes, and closure evidence belong here.
 
----
+## Audit control
 
-## 1. Bugs & Functional Issues
+| Field | Value |
+| --- | --- |
+| Audit date | 2026-09-12 |
+| Audited branch | `master` |
+| Audited commit | `23d203a` |
+| Remote state | `master` equals `origin/master`; `git pull --ff-only` reported “Already up to date” |
+| Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
+| Current open findings | **43** (`AUD-001` through `AUD-043`) |
+| Historical findings | **23**: 20 resolved, 3 carried into the current backlog |
+| New findings in this audit | **40** |
+| Total unique findings documented | **63** (23 historical + 40 new) |
 
-### 1.1 `robots.txt` blocking the `/assets` directory (Critical SEO Impact)
-- **File:** [`public/robots.txt`](file:///home/finrod/Documents/Programming/Web/NatiPsy/public/robots.txt#L4)
-- **Problem:** The directive `Disallow: /assets` explicitly forbids search engine crawlers (Googlebot, Bingbot) from accessing any file inside `/assets`.
-- **Why improve:** Key visual assets (`NatiHero.webp`), psychologist portrait photos, logos, and blog images all live inside `/assets/`. Official Google Search Central guidelines explicitly warn that blocking CSS, JS, or image resources prevents Googlebot from rendering and indexing mobile pages properly, invalidates image indexing on Google Images, and strips rich image snippets from search engine result pages (SERPs). Furthermore, `sitemap.xml` submits image URLs located in `/assets/` that `robots.txt` actively rejects.
-- **How to fix:** Remove `Disallow: /assets` from `public/robots.txt`.
+“Open” means the correction is not present on `master`. A PR being open does not make a finding resolved. Change a finding to `RESOLVED` only after its PR is merged into `master` and its acceptance checks pass there.
 
-### 1.2 WhatsApp phone number format risk
-- **File:** [`src/app/config/contact.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/config/contact.ts#L3)
-- **Problem:** The constant defines `WHATSAPP_NUMBER = '+554884323764'`, which totals only 8 digits after the area code (DDD 48: `8432-3764`).
-- **Why improve:** In Brazil, mobile phone numbers across all area codes have 9 digits (prefixing '9' before the number, e.g., `98432-3764` with E.164 international format `+5548984323764`). An 8-digit number can be treated by WhatsApp as a landline or incomplete number, failing to open the direct conversation with the therapist.
-- **How to fix:** Verify and update the number to the standard 9-digit mobile phone format (`+5548984323764`).
+## Verified baseline
 
-### 1.3 Top navigation breaks SPA routing and triggers full-page reloads
-- **Files:** [`src/app/components/top-menu/top-menu.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.html#L42-L46) and [`src/app/components/top-menu/top-menu.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.ts)
-- **Problem:** Menu links use plain `<a>` tags with `[href]="'/' + '#' + item"` instead of Angular Router directives (`[routerLink]="['/']" [fragment]="item"`).
-- **Why improve:** When a user is reading a blog post (`/blog/:slug`) or browsing the blog archive (`/blog`) and clicks any top menu item ("About Me", "Services"), the browser initiates a hard refresh (unloads the app, wipes client state, and re-downloads all assets), destroying the instant SPA experience.
-- **How to fix:** Use `[routerLink]="['/']" [fragment]="item"` in combination with the already-configured router options `anchorScrolling: 'enabled'` and `scrollPositionRestoration: 'enabled'` in `app.config.ts`.
+- Production build: passed with Node `v26.8.2`; 3 routes prerendered. Initial browser payload is **492.26 kB raw / 131.59 kB estimated transfer**. `main` is 212.02 kB raw. The documentation-only audit expansion changed the styles artifact again, reinforcing AUD-034.
+- Unit tests: **24 passed in 13 files** with Node `v26.8.2`. The shell’s Node `v22.22.2` cannot start Angular 22 because Angular requires at least `22.22.3`, proving the toolchain is not pinned adequately.
+- Dependency audit: **7 advisories** in the full tree (**4 high, 3 moderate, 0 critical**). The production-only tree has one moderate `qs` advisory through Express. The current final Docker image serves static files and does not contain Node dependencies, but the repository also advertises an SSR server.
+- Docker/Compose: `docker compose config` and `docker build --check .` pass. A real build transferred **334.26 MB** of context. The repository directory is **384 MB**, chiefly `node_modules`, `.git`, and `.angular`; no `.dockerignore` exists, so Docker receives an effectively empty ignore file. Two complete build attempts then failed inside `npm ci` because the audit environment’s Docker DNS returned `EAI_AGAIN` for `registry.npmjs.org`; this is recorded as an environment limitation, not misreported as a repository failure. The exact Nginx base/config was still tested with the already-built browser output.
+- Browser checks: exercised the home page, mobile navigation, blog filters, archive, article, and client-side route transitions at 390×844. Chrome reported `NgOptimizedImage` aspect-ratio and LCP-priority warnings. A second gap pass confirmed that article navigation leaves focus on `<body>`, the article H1 begins around y=696 px, ten article-topic chips occupy 208 px, and nine content headings have neither IDs nor a table of contents.
+- Prerender/hydration payload: the final generated article HTML is **113,858 bytes**. Its `ng-state` block is **26,613 bytes**, including two copies of the same approximately 10.8 kB post object—one from Angular's automatic HTTP transfer cache and one from the application's custom `TransferState` key. A distinctive body sentence appears three times in the document: once as rendered article HTML and twice in serialized state.
+- Live HTTP checks, repeated after the interrupted audit: `/`, `/blog`, `/sitemap.xml`, and an unknown route return **Cloudflare 523**. `/robots.txt` returns a Cloudflare-generated policy, not `public/robots.txt`.
+- Repository coverage: all tracked application, template, style, content, configuration, container, script, and test files were inspected. Generated bundles and asset dimensions were checked separately.
 
-### 1.4 Duplicate fetch trigger on blog filtering and sorting
-- **File:** [`src/app/components/blog-list/blog-list.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/blog-list/blog-list.component.ts#L148-L158)
-- **Problem:** Inside `onFilterChange()` and `onSortChange()`, the method calls `this.updateQueryParams()` (which triggers `this.route.queryParams` subscription, executing `loadInitialData()`), and then immediately calls `this.loadInitialData()` directly on the exact same tick.
-- **Why improve:** Every user interaction with the category filter or sort dropdown triggers two back-to-back data processing cycles and view updates, causing redundant CPU work and potential view flashes.
-- **How to fix:** Keep `route.queryParams` as the single source of truth and eliminate the manual call to `this.loadInitialData()` inside `onFilterChange()` and `onSortChange()`.
+## Priority and execution rules
 
-### 1.5 Direct DOM access (`document.getElementById`) without platform guard
-- **File:** [`src/app/components/blog-list/blog-list.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/blog-list/blog-list.component.ts#L142-L145)
-- **Problem:** Direct imperative invocation of `document.getElementById('blog-list-start')` without an `isPlatformBrowser` guard.
-- **Why improve:** Direct DOM access can throw runtime exceptions or warnings during Server-Side Rendering (SSR) or Static Site Generation (SSG).
-- **How to fix:** Guard with `if (isPlatformBrowser(this.platformId))` or inject `DOCUMENT` and use Angular's `Renderer2` / `ViewChild`.
+- `P0`: production availability or crawl-control incident. Diagnose immediately.
+- `P1`: high-impact correctness, security, data, SEO, or delivery risk.
+- `P2`: material performance, maintainability, accessibility, or UX issue.
+- `P3`: useful polish or strategic improvement with lower urgency.
+- Implement one finding per branch and PR using the specified branch name.
+- Start every finding branch from a clean, current `origin/master`, never from another unmerged finding branch.
+- Do not merge PRs. Do not silently expand a PR into adjacent findings.
+- Do not fabricate clinical, credential, address, review, or business information. Where owner input is required, implement only the safe infrastructure and put the unanswered decision in the PR checklist.
 
-### 1.6 Insecure HTML sanitizer bypass in Markdown viewer
-- **File:** [`src/app/components/blog-post/blog-post.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/blog-post/blog-post.component.ts#L91)
-- **Problem:** The component uses `this.sanitizer.bypassSecurityTrustHtml(post.content as string)`. The `marked` library does not sanitize raw HTML by default.
-- **Why improve:** Disabling Angular's built-in XSS sanitizer without a dedicated HTML sanitizer (such as `DOMPurify`) introduces an XSS attack vector. If articles are ever sourced from a CMS, external markdown files, or contributor inputs, arbitrary scripts could execute.
-- **How to fix:** Sanitize the output using `DOMPurify` before binding, or pre-sanitize the HTML during the build pipeline.
+## Current actionable findings
 
-### 1.7 Canonical URL and trailing slash discrepancies
-- **Files:** [`public/sitemap.xml`](file:///home/finrod/Documents/Programming/Web/NatiPsy/public/sitemap.xml#L16), [`src/app/services/seo.service.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/services/seo.service.ts#L32), [`src/app/components/home/home.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/home/home.component.ts#L44)
-- **Problem:** The homepage URL alternates between `https://psicologanataliaferreira.com/` (with trailing slash) in sitemap and index.html, and `https://psicologanataliaferreira.com` (without trailing slash) in `home.component.ts`. The sitemap includes `/blog/` and `/blog/slug/` with trailing slashes, while internal Angular routes and `routes.txt` use no trailing slash.
-- **Why improve:** Inconsistent trailing slashes can split SEO link equity (PageRank) and lead search engines to register duplicate canonical entries.
-- **How to fix:** Standardize all canonical URLs and sitemap routes to a uniform convention (consistently without trailing slashes on sub-routes, and with a slash only on the naked root domain).
+### AUD-001 — Production origin is unreachable through Cloudflare
 
----
+- **Status / priority:** `OPEN / P0`
+- **Branch:** `codex/aud-001-production-origin-523`
+- **Area:** Production, reliability, SEO
+- **Evidence:** On 2026-09-12, repeated requests to the home page, `/blog`, `/sitemap.xml`, the article route, and an unknown route returned Cloudflare HTTP `523` with `error code: 523`. Only Cloudflare’s managed `/robots.txt` was available.
+- **Why this matters:** A 523 means Cloudflare cannot reach the configured origin. Users and search crawlers cannot load the site, so every design, conversion, and ranking improvement is irrelevant until origin connectivity is restored. Prolonged failure can remove pages from search results.
+- **Best fix:** Diagnose production outside the application code: confirm the Cloudflare A/AAAA records point to the current public origin; remove a stale AAAA record if the origin has no working IPv6; confirm the host, Caddy, Docker service, port mapping, firewall, TLS mode, and external `caddy-network`; inspect origin and reverse-proxy logs; confirm Cloudflare IP ranges are allowed. In the repository, add a deploy smoke check that fails unless `/`, `/blog`, `/sitemap.xml`, and one known article return 200 with expected content. Add an external uptime check that alerts on two consecutive failures. Never “fix” this by bypassing TLS or disabling the firewall globally.
+- **Acceptance:** From two external networks, all known URLs return 200; origin logs show the requests; the deploy smoke test fails on a simulated 523/non-200; an alert destination is documented; the PR states which DNS/origin change was made. If production access is unavailable to the implementer, the PR must say `OWNER ACTION REQUIRED` and must not claim the incident is resolved.
 
-## 2. Performance & PageSpeed Analysis (Mobile & Desktop)
+### AUD-002 — Cloudflare’s managed robots file hides the repository sitemap directive
 
-### 2.1 Bloated initial client bundle (543 kB raw JS) from client-side Markdown & Buffer
-- **Files:** [`src/app/app.routes.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/app.routes.ts#L2-L28), [`src/app/services/blog.service.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/services/blog.service.ts#L7-L9), [`package.json`](file:///home/finrod/Documents/Programming/Web/NatiPsy/package.json#L26-L29)
-- **Problem:** `BlogPostComponent` is eagerly imported in `app.routes.ts`. This component imports `BlogService`, which pulls in `marked`, `gray-matter`, and the Node.js `buffer` polyfill directly into the initial entry bundle.
-- **PageSpeed Diagnostics:**
-  - Initial `main.js` weighs **543.27 kB** raw (~147.55 kB gzipped).
-  - Triggers a build warning: `[EVAL] Use of direct eval function is strongly discouraged` originating from YAML parsers inside `gray-matter`.
-  - Every single visitor to the homepage (over 90% of traffic) is forced to download, parse, and evaluate a full Markdown engine, YAML parser, and Node.js polyfills.
-  - On **Mobile (Lighthouse / throttled CPU simulation)**, this adds ~400ms–700ms of Total Blocking Time (TBT) and severely degrades Interaction to Next Paint (INP).
-- **How to fix:**
-  1. The build script `src/scripts/generate-blog-index.js` already runs prior to `ng build`. Pre-compile the markdown into static HTML (or save per-post JSON files with `{ ...meta, htmlContent }`) at build time.
-  2. Remove `marked`, `gray-matter`, and `buffer` completely from the browser bundle.
-  3. Change `BlogPostComponent` to a lazy-loaded route (`loadComponent: () => import(...)`).
-  - **Estimated gain:** ~180 kB reduction in initial JavaScript and complete elimination of the `eval` security/bundling warning.
+- **Status / priority:** `OPEN / P0`
+- **Branch:** `codex/aud-002-live-robots-sitemap`
+- **Area:** Deployment, crawl control, SEO
+- **Evidence:** `public/robots.txt` allows crawling and declares `Sitemap: https://psicologanataliaferreira.com/sitemap.xml`. The live `/robots.txt` is a much larger Cloudflare-generated content-signals file and contains no `Sitemap:` line.
+- **Why this matters:** Production behavior differs from source control, and crawlers lose a direct sitemap discovery signal. It also means a future repository robots change may never reach users.
+- **Best fix:** In Cloudflare, disable the managed robots override or configure it to preserve/append the project’s required directives. Add a post-deploy assertion that fetches the public file and verifies exactly one `User-agent: *`, `Allow: /`, `Disallow: /404`, and the canonical `Sitemap:` line. Keep AI-crawler policy as an explicit owner decision; do not accidentally change it while restoring the sitemap.
+- **Acceptance:** The live file includes the canonical sitemap URL, the deployed policy matches the owner-approved crawler policy, and an automated check detects future edge/source drift. External dashboard work must be recorded in the PR.
 
-### 2.2 Unnecessary inclusion of `@angular/animations` in initial bundle
-- **Files:** [`src/app/app.config.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/app.config.ts#L7-L24), [`src/app/components/top-menu/top-menu.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.ts#L22-L32)
-- **Problem:** `provideAnimations()` includes the entire `@angular/animations` engine and runtime dependencies in the initial synchronous chunk solely for a simple 300ms fade transition on the mobile menu overlay.
-- **Why improve:** Adds unneeded parsing overhead and bundle weight.
-- **How to fix:** Replace it with pure Tailwind CSS transitions (`transition-opacity duration-300`) or, if keeping Angular animations, switch to `provideAnimationsAsync()`.
+### AUD-003 — The deployed Nginx contract creates soft 404s and contradicts the SSR contract
 
-### 2.3 Duplicate and unused legacy assets totaling 1.25 MB in `public/assets`
-- **Directory:** [`public/assets/`](file:///home/finrod/Documents/Programming/Web/NatiPsy/public/assets/)
-- **Problem:** The assets folder contains heavy, unreferenced legacy files:
-  - `NatiHero.png` (629 kB) — while the app uses `NatiHero.webp` (20 kB).
-  - `NatiAboutMe.png` (319 kB) — while the app uses `NatiAboutMe.webp` (15 kB).
-  - `abordagem1.jpg` (152 kB) — while the app uses `abordagem1.webp` (54 kB).
-  - `abordagem2.jpg` (163 kB) — while the app uses `abordagem2.webp` (56 kB).
-- **Why improve:** Over 1.25 MB of dead weight is copied into `dist/nati-psy/browser`, bloating the Docker image, slowing down deployments, and wasting server disk/bandwidth.
-- **How to fix:** Delete the obsolete `.png` and `.jpg` files that already have modern `.webp` counterparts.
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-003-deployment-contract-404`
+- **Area:** Docker, Nginx, SSR, SEO
+- **Files:** `Dockerfile:18-28`, `nginx.conf:25-36`, `src/server.ts:102-130`, `package.json:11`
+- **Evidence:** Angular builds both browser and server outputs, and `serve:ssr:NatiPsy` advertises Express SSR with 404 status handling. The final image copies only `dist/nati-psy/browser` into Nginx. Runtime testing showed an unknown path returns the homepage shell with HTTP 200. It also showed `/blog` and the canonical article URL return 301 to trailing-slash directories, even though internal links, sitemap, and canonical tags intentionally use no trailing slash. The Express status logic is not deployed.
+- **Why this matters:** Unknown URLs become soft 404s, which wastes crawl capacity and sends contradictory indexing signals. Canonical URLs incur an avoidable redirect to a conflicting form; behind an HTTP reverse proxy, Nginx can construct an absolute `http://` directory redirect unless forwarded-origin behavior is deliberately configured. Two unaligned production paths also increase maintenance and incident risk.
+- **Best fix:** Make one explicit deployment decision. Recommended for this small, fully prerenderable site: use a static contract, generate a real `/404/index.html`, and configure Nginx to serve `$uri/index.html` internally for known extensionless routes without exposing a trailing-slash redirect. Unknown routes must use a branded 404 via `error_page`; never use a universal `/index.html` 200 fallback. If runtime SSR is genuinely required, deploy the Node server instead and remove the static-only fallback. Configure trusted proxy/origin handling or relative redirects for any redirects that remain. Remove the unused production SSR claim or label it development-only. Add status/content/location tests for root, both slash forms, archive, article, assets, malformed paths, and unknown paths.
+- **Acceptance:** The Docker image has one documented serving model; canonical no-slash deep links return 200 without a hop; trailing-slash variants perform one intentional permanent redirect to the canonical no-slash URL; no redirect downgrades HTTPS or loses the public host/port; unknown paths return a branded page with HTTP 404 and `noindex`; assets return their correct status; README and scripts describe the same production model.
 
-### 2.4 Overly aggressive caching policy for unhashed assets in Nginx
-- **File:** [`nginx.conf`](file:///home/finrod/Documents/Programming/Web/NatiPsy/nginx.conf#L41-L51)
-- **Problem:** The cache block applies `Cache-Control: public, max-age=31536000, immutable` across all extensions matching `.(ico|png|webp|svg)`.
-- **Why improve:** Bundled JS and CSS files contain unique build hashes (`main-HREU2ORI.js`), but static images and icons (`logo.png`, `NatiHero.webp`, `favicon.ico`) **do not contain hashes**. If the psychologist updates her hero photo, logo, or icon, returning visitors will continue to see the old cached assets for up to one full year unless they manually clear their browser cache.
-- **How to fix:** Split the Nginx location blocks:
-  - Hashed build artifacts (`*-[A-Za-z0-9_-]{8}\.(js|css)`): 1 year + `immutable`.
-  - Unhashed images, icons, and static media: `max-age=604800` (7 days) with ETag revalidation.
+### AUD-004 — The header is transparent on the initial SSR/hydrated render
 
-### 2.5 Conflicting font preloads in `index.html`
-- **File:** [`src/index.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/index.html#L38-L42)
-- **Problem:** `index.html` contains `<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?...">`, yet the Angular CLI build engine (via Beasties) already inlines the `@font-face` definitions directly into the document `<head>`.
-- **Why improve:** The browser preloads an external CSS file that is never actually applied as a stylesheet, triggering Chrome console warnings: *"The resource https://fonts.googleapis.com/... was preloaded using link preload but not used within a few seconds"*.
-- **How to fix:** Rely on Angular's automated font inlining and remove the redundant preload link, or preload the critical `.woff2` font file directly with `<link rel="preload" as="font" type="font/woff2" crossorigin>`.
+- **Status / priority:** `OPEN / P1` (reopens historical 4.4)
+- **Branch:** `codex/aud-004-header-initial-background`
+- **Area:** Design, hydration, accessibility
+- **Files:** `src/app/components/top-menu/top-menu.component.html:1-7`
+- **Evidence:** At initial load the header’s computed background was transparent and none of the `[ngClass]` background classes were present. After the first scroll event, `bg-white/95 backdrop-blur-md` appeared. On mobile, the navy logo and menu icon can sit over dark page/browser content before any interaction.
+- **Why this matters:** The navigation is visually unreliable at the most important first paint, and contrast depends on content behind a fixed header. It also indicates an SSR/hydration regression that unit smoke tests do not catch.
+- **Best fix:** Put the safe initial background classes in the static `class` list, then conditionally add only state deltas such as shadow/open color/translation. Alternatively use one deterministic computed class that produces identical SSR and first-client output. Do not defer the default state to a scroll event.
+- **Acceptance:** Before scrolling or clicking, computed background is nontransparent at 320, 390, 768, and 1440 px; logo, toggle, and navigation pass contrast; there is no hydration warning; a prerender/hydration regression test asserts the initial class or computed style.
 
----
+### AUD-005 — Blog query parameters cannot be cleared and invalid values are not normalized
 
-## 3. Accessibility (a11y — WCAG 2.1 AA)
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-005-blog-query-normalization`
+- **Area:** Functional correctness, URL state, SEO
+- **Files:** `src/app/components/blog-list/blog-list.component.ts:63-70,129-176`
+- **Evidence:** Selecting `Carreira` produces `/blog?category=Carreira`; selecting “Todas” leaves that parameter in the URL. `updateQueryParams()` deletes null-valued keys and then navigates with `queryParamsHandling: 'merge'`, so old values survive. Arbitrary `page`, `sortBy`, and `sortDir` strings are accepted; `page=999` renders an empty archive even when posts exist.
+- **Why this matters:** UI state and shareable URLs disagree, users can land on false empty states, and crawlers can discover many meaningless parameter combinations.
+- **Best fix:** Define parsers for the allowed sort fields/directions and positive integer pages. Let Angular receive `null` for keys that must be removed, or replace the complete query object without `merge`. Once total pages are known, clamp out-of-range pages and replace the URL with the canonical normalized form. Default state must serialize to `/blog` with no query string.
+- **Acceptance:** Tests cover set/clear category, set/clear nondefault sort, invalid enum values, `0`, negative, nonnumeric, and excessive pages; UI and URL always agree; default state is `/blog`; normalization uses `replaceUrl` and does not add a history entry.
 
-### 3.1 Insufficient color contrast on footer hover states (Fails WCAG 1.4.3 & 1.4.11)
-- **File:** [`src/app/components/footer/footer.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/footer/footer.component.html#L10-L30)
-- **Problem:** The footer has a dark background `bg-primary-blue` (dark navy, `#1c2833`). On hover/focus, the white links and social icons switch to `hover:text-primary-pink-dark` (dark rose/plum, `#8C2D4F`).
-- **Why improve:** The contrast ratio between dark plum and dark navy is approximately **2.1:1**, which fails the WCAG AA minimum threshold (4.5:1 for text, 3.0:1 for graphical UI components). When a user focuses or hovers over a link, the icon darkens and virtually disappears into the navy background.
-- **How to fix:** Change the hover color to a high-contrast tint on navy, such as `hover:text-primary-pink` (light blush) or bright white with an underline/focus ring.
+### AUD-006 — Blog-list state orchestration permits stale work and still relies on manual change detection
 
-### 3.2 Missing focus trap in mobile navigation modal
-- **Files:** [`src/app/components/top-menu/top-menu.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.ts#L116-L125) and [`top-menu.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.html#L78-L80)
-- **Problem:** The mobile menu declares `role="dialog"` and `aria-modal="true"`, but pressing the `Tab` key allows keyboard focus to escape the dialog and navigate through hidden elements in the background page.
-- **Why improve:** Keyboard users and screen reader users become disoriented when focus wanders into background content. Per WAI-ARIA Modal Dialog practices, focus must loop strictly within the dialog while active.
-- **How to fix:** Intercept `Tab` / `Shift+Tab` cycles on the first and last focusable items within the menu, or apply the HTML `inert` attribute to background page containers while the modal is open.
+- **Status / priority:** `OPEN / P1` (carries historical 5.1)
+- **Branch:** `codex/aud-006-blog-reactive-state`
+- **Area:** Angular architecture, reliability
+- **Files:** `src/app/components/blog-list/blog-list.component.ts:24-133`
+- **Evidence:** Every query-parameter emission starts `loadInitialData()`, including page-only changes that only need slicing. Nested subscriptions are not cancelled when a newer parameter state arrives. Rapid changes can let older work overwrite newer state. The component uses mutable public fields plus repeated `markForCheck()` calls, while only the top menu was migrated under the historical signals finding.
+- **Why this matters:** The current design is harder to reason about, does redundant processing, and is vulnerable when HTTP latency or the number of posts grows.
+- **Best fix:** Build a single typed route-state stream or signal model. Use `switchMap` for cancellable data work; compute categories, filtered/sorted posts, pagination, loading, and empty states from the source index; do not reload the index for page-only changes. Use `toSignal`/`computed` or an async view model so manual `detectChanges`/`markForCheck` is unnecessary. Preserve TransferState behavior and URL normalization from AUD-005 without requiring that PR to be merged.
+- **Acceptance:** A marble/fakeAsync test proves an older delayed result cannot overwrite a newer selection; page changes do not issue/reprocess a new index request; component teardown cancels work; templates render from a single consistent state; existing filter/sort/pagination behavior remains intact.
 
-### 3.3 Auto-hiding header breaks keyboard navigation (Focus Loss)
-- **File:** [`src/app/components/top-menu/top-menu.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.html#L6)
-- **Problem:** When scrolling down, the header receives the class `-translate-y-full` (translating it completely offscreen).
-- **Why improve:** If a keyboard user tabs backward through the page, focus enters header elements while they are positioned off-screen, with zero visible focus indicator.
-- **How to fix:** Add `:focus-within` support so that if any element inside the header receives focus, the header immediately transitions back into view (`translate-y-0`).
+### AUD-007 — Date-only blog dates shift to the previous day and render in English
 
-### 3.4 Skip link target missing `tabindex="-1"`
-- **File:** [`src/app/app.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/app.component.html#L1-L9)
-- **Problem:** The skip link targets `<main id="main-content">`, but the `<main>` element lacks `tabindex="-1"`.
-- **Why improve:** In several browsers and screen readers, activating a skip link to a non-focusable container shifts the visual scroll position but leaves DOM keyboard focus on the skip link itself, forcing subsequent `Tab` presses to restart from the top.
-- **How to fix:** Add `tabindex="-1"` and `class="outline-none"` to `<main id="main-content" tabindex="-1">`.
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-007-blog-date-locale`
+- **Area:** Content correctness, localization, hydration
+- **Files:** `src/app/services/blog.service.ts:36-44,63-70,172-179`, `src/app/components/blog-list/blog-list.component.html:134-137`, `src/app/components/blog-post/blog-post.component.html:95-100`
+- **Evidence:** Frontmatter says `2025-04-21`, while a browser in `America/Sao_Paulo` displayed `20 Apr 2025` and `20 April 2025`. Parsing midnight UTC as a JavaScript `Date` shifts the calendar day in negative offsets. Angular’s default locale also produces English month names on a Portuguese page.
+- **Why this matters:** The publication date is factually wrong for Brazilian visitors, visually inconsistent with the content language, and may differ between server and browser time zones.
+- **Best fix:** Model publication dates as date-only values (`YYYY-MM-DD`) rather than local instants. Either keep the string through the model and formatter or explicitly format in UTC. Register/provide `pt-BR`, use a consistent UTC/date-only formatter, and render semantic `<time datetime="2025-04-21">`. Use the same value for visible text, sitemap, Open Graph, and JSON-LD.
+- **Acceptance:** The same date appears as 21 April in UTC, São Paulo, and at least one positive-offset timezone; Portuguese month text is used; SSR and hydrated text match; unit tests freeze time zones or test the pure formatter.
 
----
+### AUD-008 — Raw Markdown sources are copied into the public production bundle
 
-## 4. Design, Layout & UI/UX
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-008-private-content-sources`
+- **Area:** Content pipeline, privacy, release safety
+- **Files:** `angular.json:23-27`, `src/scripts/generate-blog-index.js:6-9`, `public/assets/content/blog/*.md`
+- **Evidence:** The asset glob copies all of `public`; the production output contains `assets/content/blog/carreira-mulheres-negras-fadiga-racial.md`. The generator may skip an invalid post, but its source file would still be deployed and directly readable.
+- **Why this matters:** Draft, unpublished, invalid, or editor-only text can leak even when it is absent from the visible blog index. This is a publishing-control and confidentiality failure.
+- **Best fix:** Move authored Markdown outside `public`, for example to repository-level `content/blog`. Generate only the public index and per-post sanitized output into a generated assets directory. Add an explicit `draft`/`published` rule, and ensure drafts produce neither JSON, route, sitemap entry, nor copied source. Add a build assertion that `dist` contains no `.md`, draft, source map containing content, or stale generated post.
+- **Acceptance:** Production `dist` has no Markdown; published posts work; drafts and invalid posts are absent from every public artifact; deleting or unpublishing a post removes stale JSON/routes/sitemap entries; tests use temporary fixtures.
 
-### 4.1 Poor typographic hierarchy in the Hero section
-- **File:** [`src/app/components/hero/hero.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/hero/hero.component.html#L26-L34)
-- **Problem:** Three consecutive paragraphs use `text-2xl` (24px) in the presentation column:
-  ```html
-  <p class="text-2xl mb-8 ...">Com um olhar sistêmico...</p>
-  <p class="text-2xl mb-8 ...">Invista em seu autocuidado...</p>
-  <p class="text-2xl font-semibold mb-8 ...">Agende sua consulta...</p>
-  ```
-- **Why improve:** Stacking three 24px paragraphs with multiple bold highlights creates visual clutter and reading fatigue, particularly on mobile viewports. It flattens the hierarchy between the introductory statement, value proposition, and call-to-action.
-- **How to fix:** Format the lead paragraph at `text-lg sm:text-xl`, the secondary paragraph at `text-base sm:text-lg text-gray-700`, and reserve `text-lg sm:text-xl font-semibold text-primary-blue` for the closing CTA lead.
+### AUD-009 — The blog generator validates weakly, fails open, and accepts unsafe paths
 
-### 4.2 Broken gradient background in Hero visual decoration
-- **File:** [`src/app/components/hero/hero.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/hero/hero.component.html#L4)
-- **Problem:** `bg-gradient-to-l from-primary-pink to-primary-pink`.
-- **Why improve:** Setting both the start and end gradient stops to the exact same color eliminates any gradient transition, rendering as a flat solid color.
-- **How to fix:** Create a subtle transition (e.g., `from-primary-pink to-rose-100/50` or `from-primary-pink to-transparent`).
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-009-blog-generator-validation`
+- **Area:** Build scripts, data integrity, security
+- **Files:** `src/scripts/generate-blog-index.js:98-203`
+- **Evidence:** Missing required fields and parse failures are logged and skipped while the build continues. Field types and useful constraints are not comprehensively checked. Slugs are derived without URL-safety validation. `path.join(imagesDir, image)` is not a containment check, author avatars are not verified, and equal dates have no deterministic secondary ordering. `start` and `watch` run the generator only once, so editing/adding Markdown while the development watcher is running leaves the visible generated JSON stale.
+- **Why this matters:** A malformed post can silently disappear after deployment; a traversal-like image value can escape the intended directory; output order can change across systems; metadata errors propagate into UI and SEO.
+- **Best fix:** Extract the generator into testable functions and validate all frontmatter with an explicit schema: URL-safe unique slug, nonempty title/description, strict date-only date, categories array, valid author shape, supported image extension, and optional SEO fields. Resolve referenced files and reject any `path.relative(base, candidate)` that starts with `..` or is absolute. Collect all errors and exit nonzero; never partially publish. Sort by date then slug. Validate generated routes and XML, and write outputs atomically after validation succeeds. Add a lightweight content watch process (or Angular builder integration) so development updates regenerate on Markdown changes without recursive rebuild loops.
+- **Acceptance:** Fixture tests cover malformed YAML, missing/wrong types, invalid date, duplicate/unsafe slug, `../` path, missing images/avatar, drafts, and equal dates; a single invalid publishable post post fails the build with file-specific messages; no partial generated files are left behind; editing a Markdown fixture during the documented development command updates its generated JSON once.
 
-### 4.3 Interactive hover effect on a static heading (`<h2>`)
-- **File:** [`src/app/components/advantages/advantages.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/advantages/advantages.component.html#L3)
-- **Problem:** The section heading `<h2>` contains `hover:scale-105 transition-transform`.
-- **Why improve:** Static section headings are not interactive. Adding hover zoom effects to plain text headings confuses users by mimicking clickable buttons.
-- **How to fix:** Remove `hover:scale-105` from the `<h2>`.
+### AUD-010 — Dependency audit reports seven known vulnerabilities
 
-### 4.4 Header background color diverges from design system
-- **File:** [`src/app/components/top-menu/top-menu.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.html#L3-L4)
-- **Problem:** The header uses Tailwind's default `bg-red-50/100` and `bg-red-50 shadow-lg`.
-- **Why improve:** The palette in `styles.css` defines specific OKLCH tones for blush pink and navy blue. Default `red-50` introduces an unrelated reddish tint that breaks aesthetic harmony with the rest of the site.
-- **How to fix:** Use `bg-white/95 backdrop-blur-md` or `bg-primary-pink/90 backdrop-blur-md`.
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-010-dependency-advisories`
+- **Area:** Supply chain, security
+- **Files:** `package.json`, `package-lock.json`
+- **Evidence:** `npm audit` reports 4 high and 3 moderate advisories through `brace-expansion`, `browserslist`, `js-yaml`, `socket.io-parser`, `baseline-browser-mapping`, `body-parser`, and `qs`. `npm audit --omit=dev` still reports the moderate `qs` path through Express. All currently report a fix path.
+- **Why this matters:** Development dependencies execute in CI/build environments, and Express becomes production-relevant if the advertised SSR server is deployed. Unused legacy test packages unnecessarily preserve several paths.
+- **Best fix:** Update compatible direct/transitive packages and lockfile, remove obsolete Karma/Jasmine paths as described in AUD-027, and resolve the Express chain according to the deployment decision. Do not use `npm audit fix --force` or accept major changes blindly. Review changelogs, regenerate the lock deterministically, run tests/build, and document any accepted advisory with exact exposure and expiry.
+- **Acceptance:** `npm audit` has no high advisories and no unapproved production advisories; unit tests and production build pass; lockfile changes contain no unexplained package churn; CI enforces the agreed severity policy.
 
-### 4.5 Floating WhatsApp button obstructs mobile UI elements
-- **File:** [`src/app/app.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/app.component.html#L21)
-- **Problem:** The floating WhatsApp button is anchored at `bottom-8 right-8` with a large footprint (~72px diameter).
-- **Why improve:** On narrow viewports (e.g., 360px Android devices or iPhone SE), the button frequently covers pagination controls, "Read more" buttons, or footer links. It also lacks support for `env(safe-area-inset-bottom)`.
-- **How to fix:** On mobile screens (`<sm`), reduce padding and positioning to `bottom-4 right-4 p-3` with `calc(1rem + env(safe-area-inset-bottom))`.
+### AUD-011 — Missing `.dockerignore` sends a 384 MB context and can overwrite container dependencies
 
----
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-011-dockerignore-context`
+- **Area:** Docker, build performance, reproducibility, secret hygiene
+- **Files:** `Dockerfile:7-13`; missing `.dockerignore`
+- **Evidence:** Repository disk usage is 384 MB (`node_modules` about 334 MB, `.git` 27 MB, `.angular` 19 MB). Docker reports a two-byte effective ignore input. After `RUN npm ci`, `COPY . .` can copy host `node_modules` over Linux/container-installed dependencies.
+- **Why this matters:** Builds upload hundreds of unnecessary megabytes, invalidate cache frequently, risk native-module/architecture contamination, and may expose Git history, editor files, logs, coverage, or local secrets to the build context.
+- **Best fix:** Add a narrowly scoped `.dockerignore` covering `.git`, `node_modules`, `dist`, `.angular`, `coverage`, logs, OS/IDE files, audit screenshots, local environment files, and secret/key patterns while explicitly retaining required manifests, source, public assets, and config. Keep `COPY package*.json` before source copying. Validate with BuildKit context output and a clean build.
+- **Acceptance:** Context drops to the actual source size (target below 10 MB unless assets justify more); clean Docker build succeeds; changing source does not rerun `npm ci`; host `node_modules` cannot enter an image layer; required files are not accidentally excluded.
 
-## 5. Architecture, Maintainability & Angular Modernization
+### AUD-012 — SEO metadata leaks across routes and publishes false social-image attributes
 
-### 5.1 Adopt Angular Signals for reactive state
-- **Files:** [`src/app/components/blog-list/blog-list.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/blog-list/blog-list.component.ts), [`top-menu.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/top-menu/top-menu.component.ts)
-- **Opportunity:** The application runs modern Angular with Zone.js and relies heavily on manual `cdr.detectChanges()` and `cdr.markForCheck()`.
-- **Why improve:** Converting reactive properties (`isMenuOpen`, `isScrolled`, `currentPage`, `selectedCategory`) to `signal()` and `computed()` removes boilerplate, streamlines change detection, eliminates race conditions, and paves the way toward future zoneless operation (`provideExperimentalZonelessChangeDetection`).
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-012-seo-meta-lifecycle`
+- **Area:** SEO, social sharing, SPA correctness
+- **Files:** `src/app/services/seo.service.ts:7-87`, `src/index.html:13-29`
+- **Evidence:** `keywords`, `article:published_time`, and `article:author` are set when present but not removed when absent on the next SPA route. Static `og:image:width=1200`, `og:image:height=630`, `twitter:url`, and the homepage `twitter:image:alt` remain on article routes. The actual hero is 853×1280 and the article image is 1024×1536, so the declared 1200×630 dimensions are false.
+- **Why this matters:** Crawlers and social platforms receive mixed metadata from the previously visited page and incorrect image geometry/alt text, causing bad previews and ambiguous classification.
+- **Best fix:** Make `SeoConfig` own the full metadata state, including optional image width, height, MIME type, and alt. For every managed tag, either set the supplied value or remove the prior tag. Keep route-independent tags static only when truly universal. Prefer a dedicated owner-approved 1200×630 social image; otherwise emit real dimensions. Test direct SSR and client route transitions in both directions.
+- **Acceptance:** Home→article→blog→home leaves no stale article tags; each page has one canonical and one correct value per managed tag; image URL, dimensions, type, and alt match the actual asset; SSR HTML matches post-navigation state.
 
-### 5.2 Build-time Markdown compilation (Clean Static Site Generation)
-- **File:** [`src/scripts/generate-blog-index.js`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/scripts/generate-blog-index.js)
-- **Opportunity:** The build script currently only extracts frontmatter for `index.json`, leaving raw Markdown to be parsed at client runtime via `marked.parse()`.
-- **Why improve:** Parsing Markdown into HTML during the pre-build step and outputting per-post JSON files (`public/assets/content/blog/posts/[slug].json`) with `{ ...meta, htmlContent }` yields major benefits:
-  1. The client simply fetches the pre-rendered JSON and renders the HTML directly.
-  2. Heavy dependencies (`marked`, `gray-matter`, `buffer`, `js-yaml`) are removed from client-side bundles.
-  3. Mobile PageSpeed scores for blog pages reach top-tier performance immediately.
+### AUD-013 — Article route reuse can leave stale content, related posts, and JSON-LD
 
----
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-013-blog-jsonld-lifecycle`
+- **Area:** Structured data, SPA correctness
+- **Files:** `src/app/components/blog-post/blog-post.component.ts:44-74,149-191`, `src/app/services/seo.service.ts:101-119`
+- **Evidence:** Angular reuses `BlogPostComponent` when only `:slug` changes. Each parameter emission starts a separate post subscription that is cancelled only when the component is destroyed, so a slow response for article A can overwrite faster article B and its related posts. `loadPost()` also clears `this.post` before removing the previous slug-specific schema script. The new script receives a different ID, and `ngOnDestroy()` eventually removes only the last script.
+- **Why this matters:** Rapid or slow-network navigation can show the wrong article for the URL, and the DOM can claim that multiple articles are the primary page. Search engines and share/debug tools may parse stale content/schema.
+- **Best fix:** Drive the route with one `paramMap.pipe(distinctUntilChanged(), switchMap(...))` pipeline and cancel both post and related-post work when the slug changes. Represent loading/not-found/error/success atomically. Use one stable `json-ld-blog-post` slot and replace it, or remove the previous ID before resetting state. Escape `<` in serialized JSON as `\u003c` so future content cannot terminate the script element. Also add `BreadcrumbList` for the visible breadcrumb, using the same canonical URLs.
+- **Acceptance:** With A delayed and B fast, A→B renders only B and B’s related posts; direct-load A has one BlogPosting; A→B has only B schema; B→blog has no BlogPosting; JSON parses and contains canonical URLs; malicious fixture text containing `</script>` cannot create a new DOM element; tests cover reused parameter navigation.
 
-## 6. Recommended Action Plan (Priority Matrix)
+### AUD-014 — Person and professional-service structured data contain semantically invalid claims
 
-| Priority | Action | Effort | Impact |
-| :--- | :--- | :--- | :--- |
-| **P0 - Critical** | Remove `Disallow: /assets` from [`public/robots.txt`](file:///home/finrod/Documents/Programming/Web/NatiPsy/public/robots.txt) | 5 min | High (SEO & Google Indexing) |
-| **P0 - Critical** | Validate and fix WhatsApp phone number in [`contact.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/config/contact.ts) (9th digit) | 5 min | High (Lead Conversion) |
-| **P1 - High** | Fix color contrast on footer hover in [`footer.component.html`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/footer/footer.component.html) | 10 min | High (WCAG 2.1 AA Compliance) |
-| **P1 - High** | Use `[routerLink]` with `[fragment]` in top menu to prevent full-page reload | 20 min | High (SPA User Experience) |
-| **P1 - High** | Eliminate duplicate request trigger in [`blog-list.component.ts`](file:///home/finrod/Documents/Programming/Web/NatiPsy/src/app/components/blog-list/blog-list.component.ts) | 15 min | Medium (CPU & Render Efficiency) |
-| **P1 - High** | Delete 1.25 MB of obsolete/duplicate images in `public/assets/` | 5 min | High (Bundle Size, Docker & Deploy) |
-| **P2 - Medium** | Pre-compile Markdown at build time & remove `marked`/`buffer` from client | 45 min | High (Mobile PageSpeed: -180 kB JS) |
-| **P2 - Medium** | Fix typographic hierarchy (24px text) in Hero section | 15 min | High (UI/UX Mobile & Desktop) |
-| **P2 - Medium** | Implement Focus Trap and `:focus-within` in mobile menu/header | 30 min | Medium (Keyboard Accessibility) |
-| **P2 - Medium** | Refine caching policy for unhashed assets in [`nginx.conf`](file:///home/finrod/Documents/Programming/Web/NatiPsy/nginx.conf) | 15 min | Medium (Cache Invalidation Safety) |
-| **P3 - Low** | Modernize components to Angular Signals and pure CSS transitions | 1 hour | Medium (Codebase Architecture) |
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-014-structured-data-entities`
+- **Area:** SEO, schema, trust
+- **Files:** `src/app/components/hero/hero.component.ts:16-37`, `src/app/components/about-me/about-me.component.ts:16-33`
+- **Evidence:** `ProfessionalService.address.addressLocality` is the text “Atendimento Online,” which is not a locality, while `geo` asserts Florianópolis coordinates. `Person.hasCredential` is a plain string although Schema.org expects a `EducationalOccupationalCredential` object. Homepage entities are separate unlinked scripts.
+- **Why this matters:** Incorrect structured data reduces machine confidence and may be treated as misleading. For a health-related service, unverified location or credential statements carry extra trust risk.
+- **Best fix:** Build one linked `@graph` using stable `@id` values for `WebSite`, `WebPage`, `Person`, and the service. Model online coverage with `areaServed`, `availableChannel`, or service properties. Include physical address/geo only if the owner confirms a genuine customer-facing location. Model CRP as a credential object with credential category and issuing/recognizing organization only after owner verification. Validate syntax with Schema.org and Google tools, while recognizing that valid markup does not guarantee a rich result.
+- **Acceptance:** No field contains a value of the wrong semantic type; graph entities reference each other; every business fact has owner confirmation in the PR; tests parse the JSON-LD; external validators report no actionable errors. Do not invent an address, rating, review, price, or credential issuer.
+
+### AUD-015 — No CI protects build, tests, generated files, security, or deployment behavior
+
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-015-ci-quality-gates`
+- **Area:** Delivery, reliability
+- **Files:** missing `.github/workflows/*`
+- **Evidence:** There is no repository CI. A PR can merge with broken generation, tests, build, vulnerable dependencies, or changed generated artifacts.
+- **Why this matters:** The current project relies on contributors remembering environment-specific commands. Several audit findings would have been caught automatically.
+- **Best fix:** Add a least-privilege GitHub Actions workflow pinned to supported Node and npm. Run `npm ci`, generator, a generated-file cleanliness check, lint/format check once available, unit tests with coverage, production build, dependency policy, and Docker build/check. Add a separate post-deploy smoke job only when deployment credentials/environment are safely available. Pin action major versions and grant read-only permissions by default; never expose secrets to fork PRs.
+- **Acceptance:** A normal PR runs deterministic checks; intentionally stale generated JSON and a failing test both fail CI; dependency caching keys from the lockfile; workflow permissions are explicit; README lists the same commands developers can run locally.
+
+### AUD-016 — Tests are mostly smoke tests and README advertises an e2e target that does not exist
+
+- **Status / priority:** `OPEN / P1`
+- **Branch:** `codex/aud-016-test-strategy-e2e`
+- **Area:** Testing, documentation, accessibility
+- **Files:** `src/**/*.spec.ts`, `angular.json:90-97`, `README.md:39-55`
+- **Evidence:** All 24 unit tests pass, but most only construct components. Critical filter, cache, SEO lifecycle, generator, routing-status, hydration, and error paths are not covered. `README.md` says the project is Angular CLI 19 although dependencies are Angular 22, says tests use Karma, recommends a nonexistent `ng e2e`, and tells users to run raw `ng build`, which bypasses the required blog generator. `.vscode/launch.json` still opens Karma’s removed browser debug URL on port 9876.
+- **Why this matters:** Passing tests provide limited regression confidence, and onboarding instructions fail immediately.
+- **Best fix:** Add focused tests for the behaviors named in this audit and sensible coverage thresholds for services/scripts, not superficial line coverage. Add Playwright e2e covering home anchors, mobile menu/focus, blog filter clear, sort/pagination URL state, article direct load and client navigation, unknown-route status in the chosen server, and absence of console image/hydration warnings. Add automated axe checks for primary pages. Update README to exact Node, install, test, e2e, build, and Docker commands.
+- **Acceptance:** `npm test`, a real `npm run e2e`, and the documented production-status test run from a clean clone; at least one test fails before each targeted regression fix and passes after; HTTP mocks are verified; no README command references a missing target.
+
+### AUD-017 — Sorting mutates the shared post cache and changes later related-post results
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-017-blog-cache-immutability`
+- **Area:** Logic, reliability
+- **Files:** `src/app/services/blog.service.ts:81-118,191-217`
+- **Evidence:** Without a category filter, `filteredPosts = posts`; `.sort()` mutates that same cached array. A user sorting by title can therefore change the order later used by `getRelatedPosts().slice(0, maxPosts)`.
+- **Why this matters:** Service results depend on prior UI actions, making related articles and default order nondeterministic across navigation.
+- **Best fix:** Treat cache entries as immutable: clone before every sort/filter result, or use `toSorted` with supported transpilation. Rank related posts explicitly by shared-category count, then publication date, then slug as a deterministic tie-breaker. Do not expose the mutable cache reference to callers.
+- **Acceptance:** Tests prove title sorting does not alter the next default-date result or the underlying cache; related ranking is deterministic and excludes the current slug; subscriber-side mutation cannot corrupt later calls.
+
+### AUD-018 — Concurrent first-use calls can fetch the blog index twice
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-018-blog-index-request-cache`
+- **Area:** Performance, SSR reliability
+- **Files:** `src/app/services/blog.service.ts:47-79,120-129`, `src/app/components/blog-list/blog-list.component.ts:63-74`
+- **Evidence:** BlogList starts `getPostsList()` and `getAllCategories()` separately before `postsCache` is populated. `fetchPostsIndex()` caches only after the response and has no shared in-flight Observable, so both subscribers can issue `/index.json` requests.
+- **Why this matters:** It duplicates network/server work on first render and can create inconsistent error timing.
+- **Best fix:** Maintain a private shared index Observable with `shareReplay({bufferSize: 1, refCount: false})`, seeded from TransferState when present. Clear/recreate it only after an error if retries are intended. Alternatively derive posts and categories from one load in the component. Preserve server TransferState serialization without leaking state across SSR requests.
+- **Acceptance:** Two concurrent service calls produce one HTTP request; both receive the same data; client hydration produces zero request when TransferState is present; a failed load follows a documented retry behavior; tests verify all four cases.
+
+### AUD-019 — BlogPost and DOMPurify remain in the initial homepage bundle
+
+- **Status / priority:** `OPEN / P2` (remaining work from historical 2.1)
+- **Branch:** `codex/aud-019-lazy-blog-post-route`
+- **Area:** Performance, routing
+- **Files:** `src/app/app.routes.ts:1-28`, `src/app/components/blog-post/blog-post.component.ts:6-8`
+- **Evidence:** `BlogPostComponent` is eagerly imported because a prior lazy-navigation race was worked around. Bundle stats attribute about 16.1 kB of app code and 37.4 kB of DOMPurify to initial `main`; homepage visitors do not need either. Build-time Markdown parsing already removed the larger historical parser cost.
+- **Why this matters:** Roughly 53.5 kB raw plus parsing remains on every entry page, and the workaround hides an unresolved routing/hydration defect.
+- **Best fix:** Reproduce the original first-navigation freeze with an e2e test, fix its actual cause (likely component state/change detection or navigation data flow), then restore `loadComponent` for `:slug`. Keep DOMPurify in the article chunk, or sanitize generated HTML at build time with an allowlist and retain a defense-in-depth rendering policy.
+- **Acceptance:** Direct article load and first client navigation both render reliably; BlogPost and DOMPurify appear only in a lazy chunk; homepage bundle and behavior regress neither; tests cover slow network and hydration navigation.
+
+### AUD-020 — The homepage embeds the entire blog archive instead of a focused preview
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-020-blog-preview-archive-separation`
+- **Area:** UX, information architecture, performance, semantics
+- **Files:** `src/app/components/home/home.component.ts:14-32`, `src/app/components/blog-list/*`
+- **Evidence:** Home imports the full archive, including filters, sort, pagination, query-parameter logic, and FormsModule. The mobile page measured about 11,968 px tall. The dedicated `/blog` page still uses an `h2`, so it has no `h1`. Bundle stats show Angular Forms contributes about 43.3 kB in the archive chunk for two native selects.
+- **Why this matters:** Homepage visitors pay for archive controls and face an excessively long conversion path; blog URLs and home state are unnecessarily coupled; `/blog` has a weak heading hierarchy.
+- **Best fix:** Extract a reusable presentational post-card and create a lightweight `BlogPreviewComponent` for home showing the latest 3 posts plus one “Ver todos” link. Keep filters, sorting, pagination, query state, and a real `h1` only in `BlogArchiveComponent`. Replace two-way FormsModule bindings with explicit native value/change handling or small signals if Forms is otherwise unnecessary. Once home contains only a preview, make the navigation item labeled “Blog” route to `/blog`, not back to the home fragment.
+- **Acceptance:** Home has no archive controls/query-param side effects and shows at most 3 posts; `/blog` has exactly one descriptive `h1`; the top-menu Blog item and preview CTA reach `/blog`; cards share one implementation; FormsModule leaves the home path and preferably the archive chunk; mobile page length and JS decrease without losing article discovery.
+
+### AUD-021 — Blog images violate declared aspect ratios and archive LCP priority guidance
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-021-responsive-blog-images`
+- **Area:** Performance, layout stability, UX
+- **Files:** `src/app/components/blog-list/blog-list.component.html:112-123`, `src/app/components/blog-post/blog-post.component.html:52-60,149-155`
+- **Evidence:** The source image is 1024×1536, while cards declare 400×200 and the article declares 768×384, triggering Angular `NG02952`. On `/blog`, Angular also reports `NG02955` because the first archive image is LCP but is lazy-loaded.
+- **Why this matters:** Incorrect intrinsic geometry produces warnings and can cause suboptimal source selection or layout instability. Lazy-loading the actual LCP delays the largest visible element.
+- **Best fix:** Use a `position: relative` fixed-aspect crop container with `ngSrc` `fill`, `object-cover`, and accurate `sizes`, or generate matching landscape derivatives at build time. Mark only the first above-fold archive image as priority when the archive owns the page; keep below-fold/home-preview/related images lazy. Avoid marking multiple images high priority.
+- **Acceptance:** No `NG02952` or `NG02955` appears on home, archive, or article; rendered crops match design at 320–1440 px; LCP resource is discovered early; CLS and transferred image bytes do not regress.
+
+### AUD-022 — Article title and description are too long for search/social presentation
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-022-blog-seo-fields`
+- **Area:** SEO, content modeling
+- **Files:** `public/assets/content/blog/carreira-mulheres-negras-fadiga-racial.md:1-20`, `src/app/models/blog-post.model.ts`, `src/app/components/blog-post/blog-post.component.ts:149-190`
+- **Evidence:** The article title is 127 characters and becomes roughly 151 with the site suffix; its description is 195 characters. The same strings are forced into the on-page heading, document title, Open Graph, Twitter, sitemap image text, and JSON-LD.
+- **Why this matters:** Search engines and social clients truncate or rewrite overly long presentation text. One field cannot serve both an expressive editorial heading and concise discovery metadata well.
+- **Best fix:** Add optional `seoTitle`, `seoDescription`, and `socialTitle`/`socialDescription` frontmatter with fallbacks. Keep the full editorial `h1`. The generator should validate nonempty fields and warn on clearly excessive lengths without pretending character count guarantees a pixel width. Use the SEO variants consistently in title/meta/OG/Twitter; keep JSON-LD headline faithful and within supported guidance. Have the owner approve wording.
+- **Acceptance:** The current article has owner-approved concise discovery text; generated JSON includes fields; direct SSR emits the intended values; fallbacks work for old content; tests prevent accidental empty or duplicated suffixes.
+
+### AUD-023 — Google Fonts makes builds and first visits depend on a third party
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-023-self-host-fonts`
+- **Area:** Privacy, performance, reliability, CSP
+- **Files:** `src/index.html:34-44`, `src/styles.css:20-22`, `nginx.conf:30,53,69`
+- **Evidence:** The first production build failed when Angular could not reach `fonts.googleapis.com`; the build succeeded only with network access. Runtime markup also loads Google CSS with an inline `onload` handler and contacts Google domains.
+- **Why this matters:** Builds are not offline/reproducible, font display depends on a third party, and a mental-health visitor’s browser contacts Google. The inline handler also forces a weaker CSP.
+- **Best fix:** Download properly licensed Montserrat WOFF2 files for only the used character set/weights, preferably a variable font, store them under a versioned local font directory, define `@font-face` with `font-display: swap`, and preload only the critical local file if measurement justifies it. Remove Google preconnects, stylesheet/noscript links, and corresponding CSP origins.
+- **Acceptance:** A network-disabled production build passes; browser requests no Google font domain; text remains legible during font load; font files are cached correctly and include Portuguese glyphs; licensing/source is documented.
+
+### AUD-024 — Content Security Policy and security-header coverage are broader and less consistent than needed
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-024-nginx-security-headers`
+- **Area:** Security, Nginx
+- **Files:** `nginx.conf:25-76`, `src/index.html:41`
+- **Evidence:** CSP permits `script-src 'unsafe-inline'`, `style-src 'unsafe-inline'`, and any HTTPS destination for `img-src` and `connect-src`. Source markup has an inline font `onload`; generated prerendered HTML also contains Angular event-replay bootstrap scripts, serialized state, critical inline CSS, and another asynchronous stylesheet `onload`. Headers are repeated in three locations and omitted from the exact `/50x.html` location because Nginx `add_header` inheritance stops when a location defines its own set.
+- **Why this matters:** Broad directives reduce CSP’s protection against injection and exfiltration; copied header blocks drift; error responses should receive the same protections.
+- **Best fix:** After AUD-023, remove the source inline handler and tighten CSP to required origins. Inventory the optimized/prerendered output, not just `src/index.html`: configure Angular-compatible nonces or deterministic CSP hashes for required inline event-replay/style-loader blocks, or explicitly document any narrow directive that cannot yet be removed. Do not disable hydration or critical-CSS optimization just to silence CSP without measuring the tradeoff. Add `frame-ancestors`, `object-src 'none'`, `base-uri 'self'`, `form-action`, and an owner-approved `Permissions-Policy`. Centralize repeated headers with an included config or apply them at server level without shadowing. Disable version disclosure and verify HSTS is appropriate for all subdomains before retaining `preload`.
+- **Acceptance:** Security headers appear on 200, 404, 50x, HTML, and asset responses as intended; CSP produces no violations during core flows; no wildcard `https:` connect permission remains without documented need; automated tests parse headers.
+
+### AUD-025 — The optional Express SSR server has a prefix-unsafe path guard and incomplete proxy hardening
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-025-ssr-server-hardening`
+- **Area:** Backend, security, reliability
+- **Files:** `src/server.ts:52-79,107-140`
+- **Evidence:** The traversal check uses `routeDir.startsWith(browserDistFolder)`, which is not a path-boundary test (`/browser-evil` shares the prefix `/browser`). Absolute render URLs are built from `req.protocol` and `headers.host`; proxy trust/canonical-host behavior and error middleware are not explicit.
+- **Why this matters:** The server is callable through a documented script and may later become production without security review. Prefix checks and untrusted proxy metadata are common sources of path or canonical-origin errors.
+- **Best fix:** First honor AUD-003’s deployment decision. If SSR remains supported, use `path.relative(browserDistFolder, routeDir)` and reject absolute or `..`-prefixed results; allow only normalized GET/HEAD routes; derive the public origin from a validated configuration or strict allowed host/proxy policy; add Helmet-equivalent headers, compression, request/error logging without sensitive data, explicit 404/error middleware, graceful shutdown, and a health endpoint. If SSR is removed, delete server-only code/dependencies/scripts instead of maintaining a dormant backend.
+- **Acceptance:** Traversal and encoded-path tests cannot leave the browser root; hostile Host/forwarded headers cannot change canonicals; errors return controlled status/body; SIGTERM drains cleanly; documentation matches deployment.
+
+### AUD-026 — Container images and runtime lack reproducibility and health/hardening controls
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-026-container-repro-hardening`
+- **Area:** Docker, operations, security
+- **Files:** `Dockerfile`, `docker-compose.yml`
+- **Evidence:** Mutable `node:22-alpine` and obsolete/mutable `nginx:1.27-alpine` tags are used without digest pins. The build Node tag can resolve below Angular’s patch minimum. Runtime inspection showed the container command starts as UID 0, with no configured healthcheck, read-only filesystem, capability drop, `User`, or `no-new-privileges`. The external network prerequisite is undocumented.
+- **Why this matters:** Identical commits can build on different base contents; cached tags can break Angular compatibility; orchestrators cannot distinguish “running” from “healthy”; unnecessary privileges increase impact after compromise.
+- **Best fix:** After choosing the serving model, pin a maintained Node LTS version compatible with Angular and a maintained Nginx/unprivileged image by version plus digest; automate digest updates. Run as nonroot on an unprivileged port, provide writable tmp/cache paths via `tmpfs`, use a read-only root filesystem, drop capabilities, set `no-new-privileges`, and add a lightweight healthcheck for a static known path. Document creation/ownership of `caddy-network` and reverse-proxy expectations.
+- **Acceptance:** Two clean builds use recorded base digests; container starts as nonroot with read-only root; health transitions to healthy and fails when Nginx stops; Caddy can reach the documented port/network; application and caching tests pass.
+
+### AUD-027 — Node/npm/Angular versions and dependency roles are not reproducible or minimal
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-027-toolchain-dependency-hygiene`
+- **Area:** Tooling, maintainability, supply chain
+- **Files:** `package.json`, `package-lock.json`; missing `.nvmrc`/`.node-version`
+- **Evidence:** There is no `engines` or `packageManager`; the default Node 22.22.2 failed before tests while Node 26 passed. The Node 26 production build also emits repeated `DEP0205 module.register()` deprecation warnings from the current toolchain. Angular runtime packages are `22.1.5` while CLI/build/SSR are `22.1.7` and ranges use carets. Vitest is configured, yet Karma, Jasmine, launchers, coverage adapters, and instrumentation remain. `@angular/platform-browser-dynamic` appears unused. Tailwind/PostCSS build tools are runtime dependencies. A 64.38 kB lazy Angular-animation chunk exists solely for the mobile-menu fade, which CSS can provide.
+- **Why this matters:** Contributor/CI behavior changes by machine, lock refreshes can drift patch versions, install/audit surface is larger, and unused test stacks cause vulnerabilities.
+- **Best fix:** Select and document one supported Node line, pin it in `engines`, `.nvmrc` or `.node-version`, Docker, and CI; pin the npm version with `packageManager`. Align compatible Angular packages to one patch and use the project’s chosen range policy. Prove unused packages with imports/config before removal; remove the Karma/Jasmine stack and unused dynamic platform/instrumentation; move build-only tools to `devDependencies`. Replace the one menu animation with an accessible CSS transition, then remove `@angular/animations` and `provideAnimationsAsync` if no remaining import needs them. Add Renovate or Dependabot with grouped Angular updates.
+- **Acceptance:** Clean install/test/build succeeds on the documented toolchain; unsupported Node fails with a clear message; removed packages are absent from lock/audit; Angular package versions are intentionally aligned; the animation chunk is gone without changing menu/focus/reduced-motion behavior; runtime dependency list contains only code required by the selected production model.
+
+### AUD-028 — There is no lint or formatting gate
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-028-lint-format`
+- **Area:** Code quality, simplicity
+- **Files:** missing ESLint/Prettier configuration; project TypeScript/templates/styles
+- **Evidence:** No lint/format scripts or configuration exist. Current code already has inconsistent quote/spacing style and at least one unused import (`provideZoneChangeDetection` in `src/main.server.ts`). A machine-specific JetBrains module file, `NatiPsy.iml`, is tracked even though editor project state is not part of the application.
+- **Why this matters:** Low-level defects and style churn consume review attention; Angular template accessibility and TypeScript mistakes are not checked consistently.
+- **Best fix:** Add current Angular ESLint flat configuration for TypeScript and templates, with unused imports, unsafe patterns, and accessibility-oriented template rules chosen to match the project. Add Prettier with Angular/HTML/CSS/Markdown support and stable scripts: `lint`, `lint:fix`, `format`, `format:check`. Apply one isolated mechanical baseline in this PR, without behavioral refactors, and integrate checks into CI. Remove the tracked `.iml` artifact and ignore `*.iml` unless the team explicitly standardizes JetBrains metadata.
+- **Acceptance:** `npm run lint` and `npm run format:check` pass; deliberate unused imports and template violations fail; generated JSON/build output is excluded; the PR separates config from any unavoidable bulk formatting commit.
+
+### AUD-029 — Bundle budgets allow major regressions and bundle composition is not tracked
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-029-performance-budgets`
+- **Area:** Performance, CI
+- **Files:** `angular.json:43-55`, build tooling
+- **Evidence:** Current initial output is 492.08 kB raw, but warnings start at 1 MB and errors at 2 MB. The initial bundle could roughly quadruple before CI/build fails. There is no stored/reportable chunk budget or regression comparison.
+- **Why this matters:** Performance regressions can merge gradually even though mobile visitors are sensitive to JavaScript parse/execute cost and slow networks.
+- **Best fix:** Establish measured raw and transferred baselines after AUD-019/AUD-020 where practical. Set an initial warning close enough to catch meaningful growth and an error threshold with modest headroom; retain component-style budgets. Add a stats-based CI report for initial and key lazy chunks and fail on an agreed percentage/byte increase. Track image/font budgets separately where tooling permits.
+- **Acceptance:** Current optimized build passes; a fixture/dependency that adds a meaningful initial payload fails; CI prints human-readable before/current sizes; thresholds and adjustment policy are documented rather than tuned merely to silence failures.
+
+### AUD-030 — Remaining accessibility defects affect contrast, keyboard efficiency, announcements, and motion
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-030-accessibility-interactions`
+- **Area:** Accessibility, UX
+- **Files:** `src/app/components/top-menu/top-menu.component.html:52-70`, `src/app/components/blog-list/blog-list.component.html:81-155`, `src/app/components/blog-post/blog-post.component.html:34-45`, interactive templates and `src/styles.css:24-34`
+- **Evidence:** The open-menu navy toggle on dark rose measured approximately **2.41:1**, below the 3:1 non-text/UI contrast target. Each archive card exposes image, title, and “Leia mais” as three tab stops to the same URL. Error containers are not alerts/live regions; several decorative SVGs are not hidden from assistive technology. Several blog buttons omit `type="button"`, making them accidental submit buttons if the component is ever placed inside a form. Reduced-motion CSS shortens transitions but hover scaling can still jump because not every transform is `motion-safe`.
+- **Why this matters:** Controls can be hard to perceive, keyboard navigation is repetitive, async errors may not be announced, and motion-sensitive users can still receive abrupt movement.
+- **Best fix:** Use white/light toggle and matching focus ring while the rose menu state is active. Give each card one descriptive primary link, or remove redundant links from the tab order without invalid nested interactivity. Use `role="alert"`/appropriate live semantics for async failures, `aria-hidden="true" focusable="false"` on decorative SVGs, explicitly type every non-submit button, and gate all nonessential transform/motion classes with `motion-safe`. Run keyboard, screen-reader-oriented DOM, axe, and contrast checks.
+- **Acceptance:** Toggle/icon/focus indicator pass 3:1 and text 4.5:1 as applicable; one card is efficient to traverse; errors announce once; decorative icons have no accessible name; reduced-motion mode has no nonessential scale/scroll animation; axe has no serious/critical issues on core pages.
+
+### AUD-031 — Mobile homepage hierarchy hides the primary conversion action far below the fold
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-031-mobile-home-conversion`
+- **Area:** Responsive design, UX, conversion
+- **Files:** `src/app/components/hero/hero.component.html`, `src/app/components/services/services.component.html`, home composition
+- **Evidence:** At 390×844, the portrait consumes most of the first viewport, the H1 wraps to about five lines, and the primary appointment CTA begins around y=1358. The full home page is about 11,968 px and service cards repeat similar WhatsApp actions.
+- **Why this matters:** Mobile visitors cannot quickly see both the service promise and next action. Repeated equal-weight CTAs create visual fatigue rather than a clear decision path.
+- **Best fix:** Design the mobile-first hero so identity/value proposition and one primary CTA appear substantially earlier: use a smaller or art-directed mobile crop, tighter type with a concise owner-approved display heading, and reorder the portrait after key copy if testing supports it. Keep one dominant section CTA and make repeated card actions contextual or consolidate them. Preserve the calm visual tone, tap targets, readable line length, and desktop composition. Do not change clinical claims without approval.
+- **Acceptance:** Screenshot review at 320×568, 390×844, 768×1024, and 1440×900; at 390 px the visitor sees the core proposition and primary CTA no later than the early second viewport, with no clipping/overlap; CTA hierarchy is unambiguous; Lighthouse/CLS and accessibility do not regress.
+
+### AUD-032 — Brand assets are inefficient and favicon coverage is malformed/incomplete
+
+- **Status / priority:** `OPEN / P3`
+- **Branch:** `codex/aud-032-assets-favicon-manifest`
+- **Area:** Assets, performance, browser UX, branding
+- **Files:** `public/assets/icons/*`, `public/assets/logo*`, `public/favicon.ico`, `src/index.html:31-32`
+- **Evidence:** Six service SVGs total about 87 kB and duplicate the same geometry in SVGRepo `tracerCarrier` and `iconCarrier` groups. The author portrait is a byte-for-byte duplicate of `NatiAboutMe.webp` under a second path. `logo.webp` and `logo_signature.webp` are larger than their PNG equivalents. The favicon contains one non-square 48×64 image. There is no Apple touch icon, 192/512 app icon, web manifest, or `theme-color`.
+- **Why this matters:** Unoptimized vectors waste transfer/parse bytes; browsers and saved-home-screen experiences may render a distorted or low-quality identity; redundant formats add maintenance without savings.
+- **Best fix:** Run trusted SVG optimization with visual diffs, remove duplicate groups/metadata, and consider a sprite only if it reduces real bytes without complicating accessibility. Reference one canonical portrait instead of storing identical bytes twice, and keep the smallest lossless/raster format per logo after visual comparison. Generate owner-approved square 16/32/48 favicon layers plus 180, 192, and 512 icons; add manifest and theme colors consistent with the design system. Never alter the recognizable logo geometry during automated optimization.
+- **Acceptance:** Pixel/visual comparison shows no material icon/logo change; total asset bytes fall; favicon reports square layers and renders in major browsers; manifest passes browser validation; all referenced files exist and receive appropriate caching.
+
+### AUD-033 — Search classification lacks focused pages, freshness, and an evidence-based trust/content workflow
+
+- **Status / priority:** `OPEN / P3`
+- **Branch:** `codex/aud-033-search-content-architecture`
+- **Area:** SEO strategy, information architecture, content UX
+- **Files:** routes, navigation, sitemap, blog content, footer/about/service content
+- **Evidence:** The site exposes only home, `/blog`, and one article as indexable routes; service information exists only in homepage fragments. The only article and sitemap `lastmod` are from 2025-04-21. Health/service copy includes strong claims such as “Eficácia Comprovada,” equivalence to in-person therapy, and guaranteed confidentiality without nearby sources or qualification. There is no visible editorial/privacy/crisis-boundary page. A 2026-09-12 search check surfaced a cached homepage but did not surface the site’s article for its exact title; this is an observation, not proof of complete index exclusion. The production outage prevents current crawling.
+- **Why this matters:** Search engines have few focused documents with which to classify therapy, career-orientation, audience, and service intent. Health-related content benefits from clear authorship, credentials, citations, editorial/update practices, and accurate service boundaries. Freshness signals must reflect real updates, not artificial date changes.
+- **Best fix:** After AUD-001/AUD-002, verify ownership in Google Search Console, submit/test the sitemap, inspect the three canonical URLs, and record indexing/coverage outcomes. With owner-approved content, create genuinely useful non-duplicate pages for core services (for example online therapy and professional/career guidance), each with unique intent, one H1, concise metadata, internal links, canonical, breadcrumb, and correct schema. Add an editorial policy, author/credential explanation, published/modified dates, citation standards, and appropriate privacy/contact/crisis-boundary information after clinical/legal review. Give each route an authoritative material-review date: the archive may use its newest post, while the homepage/service pages need their own reviewed date. Never write the current build date automatically or update `lastmod` without a material page change. Build a sustainable topic plan; do not create thin city/keyword doorway pages, fake reviews, or keyword stuffing.
+- **Acceptance:** Search Console verification and URL inspection outcomes are recorded; sitemap contains every canonical indexable page and no fragments/drafts; each route’s `lastmod` reflects a real material update; each new page satisfies a distinct user need and links naturally; content/business claims are owner-approved; structured data validates; a quarterly review process updates content only when materially reviewed.
+
+### AUD-034 — Tailwind scans documentation, so editing the audit changes production CSS
+
+- **Status / priority:** `OPEN / P3`
+- **Branch:** `codex/aud-034-tailwind-source-boundary`
+- **Area:** Build determinism, CSS performance
+- **Files:** `src/styles.css:1-2`, Tailwind source detection
+- **Evidence:** Rebuilding after changing only `PROJECT_IMPROVEMENTS.md` changed the optimized styles bundle from 65.47 kB to 64.87 kB and the initial total by the same amount. Tailwind v4 automatically detects class-like tokens outside application source, so examples in repository Markdown influence shipped CSS.
+- **Why this matters:** Documentation-only edits can change production assets, invalidate caches, add unused styles, and make performance diffs noisy. A future prompt or README can accidentally safelist a large set of utilities.
+- **Best fix:** Disable broad automatic detection with Tailwind’s `source(none)` import option and explicitly register only real template/component source paths with `@source`, or use narrowly scoped `@source not` exclusions if explicit inclusion is impractical. Include TypeScript files that contain inline Angular templates and any legitimate external component source. Do not include audit, README, generated output, tests, or content Markdown.
+- **Acceptance:** Build CSS hash and size are byte-identical before/after adding a unique valid Tailwind class token to a documentation fixture; adding that class to an actual application template changes the CSS; all current runtime styles still render; the source boundary is commented and covered by a small build regression check.
+
+### AUD-035 — Nginx misses valid Angular hashes and can emit duplicate cache directives
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-035-nginx-hashed-cache-regex`
+- **Area:** Nginx, caching, performance
+- **Files:** `nginx.conf:38-70`, compare `src/server.ts:21-22`
+- **Evidence:** Nginx recognizes only eight-character alphanumeric hashes with `[A-Za-z0-9]{8}`. Angular/esbuild also emits URL-safe `-` and `_`; the verified build produced `chunk-CkMi-9d3.js`, which received `Cache-Control: no-cache, must-revalidate`, while `main-ZXTILCNF.js` matched the immutable block. The Express implementation already uses `[A-Za-z0-9_-]{8}`. Runtime headers also confirmed that `expires` plus `add_header Cache-Control` emits two Cache-Control fields for matched JavaScript and images.
+- **Why this matters:** Some content-addressed bundles revalidate on every visit while others cache for a year, and duplicate cache headers make proxy/browser behavior harder to reason about.
+- **Best fix:** Use the same tested hash grammar in both servers, escaping the literal filename separator and allowing `-`/`_` inside exactly eight hash characters. Centralize or test the pattern so implementations cannot drift. Choose one mechanism to emit one authoritative `Cache-Control` value; add `Expires` separately only if it is genuinely required. Keep unhashed media and HTML under their shorter policies.
+- **Acceptance:** Automated cases cover alphanumeric, hyphenated, and underscored eight-character bundle hashes plus near misses; a running container returns exactly one `Cache-Control: public, max-age=31536000, immutable` for every valid hashed JS/CSS file; HTML, JSON, XML, and unhashed media retain their intended policies.
+
+### AUD-036 — Blog data is serialized twice in hydration state
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-036-single-hydration-cache`
+- **Area:** Angular hydration, performance, maintainability
+- **Files:** `src/app/app.config.ts:18-23`, `src/app/services/blog.service.ts:8-9,47-79,134-166`, generated prerendered HTML
+- **Evidence:** `provideClientHydration()` enables Angular's HTTP response transfer cache by default, and the comment in `app.config.ts` explicitly relies on it. `BlogService` also stores the same index and post in custom `TransferState` keys. In the verified production build, the article's `ng-state` is 26,613 bytes and contains a 10,925-byte automatic HTTP-cache post plus a 10,805-byte custom `blog-post-*` copy. The body is therefore present once in rendered HTML and twice more in JSON. Home and archive state also contain both an approximately 1,068-byte HTTP index entry and a 1,003-byte custom index entry.
+- **Why this matters:** Every post body and every future index entry is sent twice in the hydration payload. This increases HTML transfer, parsing, memory, and time to interactivity in direct proportion to content growth. Two caching mechanisms also create unclear ownership: a future fix can update one path and leave the other stale. This is separate from AUD-018, which concerns two simultaneous network requests before a cache is populated; this finding concerns duplicate serialization after SSR/prerender.
+- **Best fix:** Use one transfer mechanism. Recommended: remove `POSTS_INDEX_KEY`, `postKey()`, and the manual set/get/remove branches, and rely on Angular's supported default HTTP transfer cache for the two idempotent JSON GETs. Keep the service's in-memory/shared Observable cache for later client navigations. Do not clear already rendered DOM while the transferred response resolves; model the loading state so hydration reuses the server view without a flash. If testing proves a hard requirement for synchronous custom state, the fallback is to set `transferCache: false` on both blog HTTP requests and retain only the custom mechanism—never ship both. Document the selected owner in code and add a build inspection test that parses `#ng-state` rather than matching minified text.
+- **Acceptance:** Direct loads of home, archive, and article perform zero duplicate browser GETs during hydration; the article state contains exactly one post payload and each page contains at most one index payload; the distinctive article-body fixture occurs only in rendered markup plus one serialized data copy; direct and first client-side article navigation show no loading flash or hydration error; a fixture with a larger body proves state growth is approximately one copy, not two.
+
+### AUD-037 — Client-side route changes do not move or announce focus
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-037-route-focus-announcements`
+- **Area:** Accessibility, SPA navigation, UX
+- **Files:** `src/app/app.component.ts`, `src/app/app.component.html`, `src/app/app.routes.ts`, route headings and navigation
+- **Evidence:** In a browser check, activating the unique “Leia mais” archive link changed the URL and title and rendered the article H1, but `document.activeElement` became `<body>` because the activated link was destroyed with the old view. There is no route-change focus manager or page-change live region. The existing focusable `#main-content` only supports the skip link; Angular routing does not automatically focus it after ordinary navigation.
+- **Why this matters:** Sighted users receive an obvious page replacement, while keyboard and screen-reader users can lose their position and receive no reliable indication that navigation completed. They may have to traverse the persistent header again to discover the new H1. Correct route focus also makes errors and deep links easier to understand.
+- **Best fix:** Add one application-level route accessibility coordinator. After a successful user-initiated `NavigationEnd` and the new view's render, update a visually hidden `aria-live="polite"` status with the new page title and programmatically focus the destination H1 (preferred) or `#main-content` with `preventScroll` followed by the intended scroll policy. Do not steal focus on initial document load. Preserve native back/forward scroll restoration and homepage fragment navigation; a `/#section` link should focus or scroll to that section, not be overwritten by generic route logic. Give the current top-level navigation entry `aria-current="page"` when applicable. Avoid adding a large dependency solely for an announcer when a small tested service/live region is sufficient.
+- **Acceptance:** Keyboard activation from archive to article places focus on the article H1/main landmark and announces the new page once; article-to-article navigation announces and focuses the new title rather than a stale one; initial reload does not unexpectedly steal focus; browser back restores the expected scroll/focus behavior; homepage hash links still reach the requested section; unit and e2e tests cover all cases without timing sleeps.
+
+### AUD-038 — Pagination is button-only, non-prerendered, and unbounded
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-038-crawlable-blog-pagination`
+- **Area:** SEO, archive UX, scalability
+- **Files:** `src/app/components/blog-list/blog-list.component.ts:132-176`, `src/app/components/blog-list/blog-list.component.html:166-194`, `src/app/services/seo.service.ts`, `src/routes.txt`, `src/scripts/generate-blog-index.js`
+- **Evidence:** Every pagination control is a `<button>` whose click handler mutates a query parameter; there is no crawlable `href`. Only `/blog` is prerendered, and `BlogListComponent` always declares `${SITE_URL}/blog` as canonical even when `page=2` would show a different set of articles. The `pages` getter returns every page number, so an archive with hundreds of pages would render hundreds of buttons. Google documents that crawlers generally do not click buttons, recommends sequential `<a href>` pagination, and says not to canonicalize every page in a sequence to page one.
+- **Why this matters:** Once the seventh post is published, articles beyond the first archive page depend primarily on the sitemap and JavaScript rendering for discovery; the archive provides no normal link graph to them. Collapsing different result pages onto `/blog` gives contradictory canonical signals, while an ever-growing button row becomes unusable on mobile.
+- **Best fix:** Define an indexable pagination URL contract before more posts exist. Recommended: `/blog` for page 1 and `/blog/page/2`, `/blog/page/3`, etc. for later pages; generate/prerender every valid page from the post count; use normal previous, next, and windowed page-number anchors; self-canonicalize each distinct archive page; and return a real 404 for out-of-range paths. Keep filter and alternate-sort combinations out of the index unless the owner intentionally creates substantial category landing pages: normalize their query URLs under AUD-005 and use an explicit canonical/noindex policy rather than generating unlimited combinations. Page changes must still work with JavaScript disabled and must not render all page numbers at large counts.
+- **Acceptance:** A fixture with at least 14 posts generates page 2 and page 3 routes whose direct HTML contains the correct distinct articles, H1/title, self-canonical, and sequential anchors; page 4 returns 404 for that fixture; every article is reachable from `/blog` through ordinary `href` links; the control shows a bounded window on 390 px and exposes `aria-current="page"`; filtered/sorted URLs follow the documented indexing policy; sitemap and canonical tests cannot contradict the route model.
+
+### AUD-039 — The article layout hides the title and offers no long-form navigation
+
+- **Status / priority:** `OPEN / P3`
+- **Branch:** `codex/aud-039-article-reading-experience`
+- **Area:** Design, content UX, accessibility, deep linking
+- **Files:** `src/app/components/blog-post/blog-post.component.html`, `src/app/components/blog-post/blog-post.component.css`, `src/scripts/generate-blog-index.js`, blog post model/output
+- **Evidence:** At 390×844, the featured image and topic chips precede the article heading, so the H1 begins around y=696 px and is barely reached in the first viewport. The current article is approximately 13,750 px tall and has nine H2/H3 content headings, but every heading has an empty `id`, there are zero in-article fragment links, and there is no table of contents. The breadcrumb shortens the current title for everyone, including assistive technology, rather than only truncating it visually.
+- **Why this matters:** A visitor opening an article cannot quickly confirm its title, understand its structure, jump to a relevant section, bookmark a subsection, or share a precise citation. These costs are largest on mobile and for keyboard, screen-magnification, and returning users. Better document structure helps readers and crawlers understand the page, but it must not be presented as a guaranteed ranking increase.
+- **Best fix:** Put the article H1, short description/byline, and publication metadata before the featured image on small screens (or consistently at all sizes); keep secondary taxonomy from blocking the title. During Markdown generation, assign deterministic, human-readable, unique IDs to H2/H3 headings with Portuguese-safe slugging and collision suffixes, and emit a typed heading outline alongside the sanitized HTML. Render a semantic `<nav aria-label="Neste artigo">` for articles above a documented heading/length threshold, with nested levels, visible focus styles, and `scroll-margin-top` for the fixed header. Direct fragment loads and clicks must land on and expose the target heading. Keep the complete breadcrumb name in the accessibility tree while applying visual ellipsis with CSS.
+- **Acceptance:** At 390×844 the complete H1 starts within the first viewport without overlap; the current long article renders an accurate keyboard-accessible table of contents; every TOC URL works on direct load and client navigation; duplicate/accented headings receive stable unique IDs across builds; short articles do not receive empty UI; heading hierarchy has no skipped levels introduced by the template; screenshots at 320, 390, 768, and 1440 px confirm readable line length and no sticky-header obstruction.
+
+### AUD-040 — Categories and tags are conflated into an unbounded taxonomy
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-040-blog-taxonomy-model`
+- **Area:** Content architecture, UX, search classification, data modeling
+- **Files:** blog frontmatter, `src/app/models/blog-post.model.ts`, `src/scripts/generate-blog-index.js`, blog list/post templates and filtering
+- **Evidence:** The only article declares ten values in `categories`; all ten become top-level filter options and all ten are printed as equal-weight chips on both cards and the article. At 390 px, the card's chips occupy approximately 184 px and the article's chips occupy 208 px. They are noninteractive spans even though the archive presents the same terms as navigation filters. Broad concepts, audiences, problems, and a specific phenomenon are all modeled identically.
+- **Why this matters:** An uncontrolled taxonomy fragments future content, makes filtering noisy, obscures the article's primary subject, lengthens every card, and gives neither users nor search systems a clear topic hierarchy. Fixing presentation alone would allow inconsistent metadata to accumulate again; the content schema needs an explicit contract.
+- **Best fix:** With owner/editor approval, define a small controlled primary-category registry with stable slug, Portuguese label, description, and aliases. Require one and allow at most two or three primary categories per post. Model more specific descriptors separately as normalized `tags`; reject duplicates, unknown categories, empty values, and case/whitespace variants in the generator. Filters operate on primary categories. Cards show only the primary categories in at most two rows; article tags appear after the title/summary in a lower-priority region. Make navigable taxonomy items real links to the chosen filtered or category URL policy from AUD-038. Do not create indexable category landing pages until each has enough unique owner-approved content to avoid thin pages.
+- **Acceptance:** Schema/fixture tests enforce category limits and normalization; the existing post is migrated using owner-approved classifications rather than silently dropping terms; filter options remain stable when tag vocabulary grows; card topic UI is bounded at 320/390 px; linked categories have valid crawl/index behavior; JSON-LD `article:tag` and visible metadata come from the same normalized source; documentation explains how an editor adds a category versus a tag.
+
+### AUD-041 — Blog failures expose English technical text and provide no retry path
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-041-blog-error-recovery`
+- **Area:** Reliability, localization, UX, error handling
+- **Files:** `src/app/services/blog.service.ts:21-34,80-129,154-190`, blog list/post components and templates
+- **Evidence:** `fetchPostsIndex()` maps an HTTP failure to a new generic `Error`, then `getPostsList()` catches and passes that non-HTTP error through `handleError()` again even though it assumes `HttpErrorResponse`; its diagnostic fields become undefined and the final UI message is English. `BlogListComponent` displays `err.message` directly on a Portuguese page. Category-load failure is only logged, so the filter can silently disappear. Neither the archive nor article transient-error state offers an in-place retry.
+- **Why this matters:** A temporary network/cache failure leaves users at a dead end, mixes languages, and leaks implementation-oriented text without telling them what action is safe. Double wrapping destroys the original status/cause, makes 404 versus transient failure harder to distinguish, and produces noisy duplicate logs.
+- **Best fix:** Translate transport failures once at the service boundary into a small typed error model such as `not-found`, `offline`, `server`, and `invalid-content`, preserving the original cause for diagnostics but never rendering it verbatim. Components map those codes to concise owner-approved Portuguese copy and appropriate actions. Add “Tentar novamente” that re-runs the current request while preserving route/filter state, disables while loading, and announces the result; retain a separate clear 404 state. Combine archive data/category failure into one explicit view model or show partial-data status deliberately. Log once through an environment-aware logger and avoid full response/body logging in production.
+- **Acceptance:** Tests cover offline/status 0, 404, 500, invalid JSON, index failure, and category failure; every visible message is Portuguese and contains no stack, URL, status dump, or `undefined`; retry succeeds without a reload and cannot launch duplicate concurrent requests; 404 stays nonretryable and maps to HTTP 404/noindex under the chosen deployment; async announcements integrate with AUD-030 without speaking duplicate messages.
+
+### AUD-042 — Canonical site identity is duplicated across runtime and generated files
+
+- **Status / priority:** `OPEN / P2`
+- **Branch:** `codex/aud-042-central-site-config`
+- **Area:** Reuse, configuration integrity, SEO, maintainability
+- **Files:** `src/app/config/contact.ts`, `src/scripts/generate-blog-index.js`, `src/index.html`, `src/server.ts`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, structured-data components
+- **Evidence:** The canonical origin is separately hardcoded in the browser config, generator, index metadata, SSR host allowlist, robots, sitemap, and `llms.txt`. The professional name and credential appear in templates and several independently built JSON-LD objects; spelling also varies between `Natalia` and `Natália`. Generated files correctly repeat values by design, but there is no single validated source from which all of them are produced.
+- **Why this matters:** A domain, contact, brand spelling, credential, locale, or default-image change can leave canonical tags, sitemap, robots, social cards, host validation, and visible copy disagreeing. That is both a reliability problem and an SEO/entity-classification problem. Repetition also makes safe maintenance needlessly difficult.
+- **Best fix:** Add one nonsecret, schema-validated site configuration consumed by both the Node generator and Angular build—for example JSON plus a generated typed TypeScript module. It should define the canonical origin without a trailing slash, locale/time zone, owner-approved display/legal/author names, credential text, contact/social URLs, default social image, and allowed production hosts. Generate robots, sitemap, feed/`llms.txt` link data, and static default metadata from it; import the typed values in runtime SEO/structured-data code. Keep page-specific marketing copy and post-author frontmatter where they belong. Do not “correct” accents, credentials, phone numbers, or claims without owner approval, and never put secrets in this public configuration.
+- **Acceptance:** Changing the canonical-origin fixture and regenerating updates every canonical absolute URL and trusted hostname with no old-domain occurrence; invalid origins, phone/contact URLs, locale, or missing required identity fail the build; runtime and generated artifacts use one spelling selected by the owner; a CI check runs generation and fails on a dirty diff; tests prove source config contains no secret-shaped fields and client bundles expose only intentionally public data.
+
+### AUD-043 — The blog has no subscribable content feed
+
+- **Status / priority:** `OPEN / P3`
+- **Branch:** `codex/aud-043-rss-feed`
+- **Area:** Feature, content distribution, retention
+- **Files:** `src/scripts/generate-blog-index.js`, `src/index.html`, generated public assets, `nginx.conf`
+- **Evidence:** The project generates an HTML archive, per-post JSON, routes, and sitemap, but no RSS or Atom feed exists and the document head has no feed autodiscovery link.
+- **Why this matters:** Readers, feed applications, newsletter automations, and some content-discovery tools have no standards-based way to subscribe to new articles. A feed is a distribution and retention improvement, not a guaranteed Google ranking factor; its value is independent of unsupported SEO promises.
+- **Best fix:** Extend the tested content generator to create one deterministic RSS 2.0 or Atom feed from the same validated, published-post collection. Include site title/description, canonical absolute item URL, stable permalink GUID/ID, author where appropriate, publication date, and an escaped plain-text summary; exclude drafts and invalid posts. Use the newest real publication/update date instead of the build clock, cap item count with a documented constant, and generate atom/self metadata required by the selected format. Add `<link rel="alternate" type="application/rss+xml" ...>` (or Atom equivalent) to prerendered heads. Configure and test the correct content type and a short revalidating cache policy in both supported servers.
+- **Acceptance:** A feed validator accepts the generated file; XML-special characters and Unicode fixtures round-trip safely; posts are newest-first with stable IDs and no draft; two unchanged builds are byte-identical; the autodiscovery URL returns 200 with the correct MIME/cache headers; a new published fixture appears once and an unpublished fixture never appears.
+
+## Historical findings and revalidation
+
+The original audit contained 23 findings. They remain here as history so counts are auditable; their old recommendations must not be executed again without checking the current open successor.
+
+| Historical ID | Short description | Revalidated status on `23d203a` | Current successor |
+| --- | --- | --- | --- |
+| 1.1 | `robots.txt` blocked assets | RESOLVED in source | Live edge drift is AUD-002 |
+| 1.2 | WhatsApp number lacked ninth digit | RESOLVED | — |
+| 1.3 | Menu forced hard reloads | RESOLVED | — |
+| 1.4 | Filter/sort directly triggered duplicate load | RESOLVED | New URL/state issues are AUD-005/AUD-006 |
+| 1.5 | Unguarded browser DOM access | RESOLVED | — |
+| 1.6 | Unsafe Markdown sanitizer bypass | RESOLVED | — |
+| 1.7 | Canonical trailing-slash mismatch | RESOLVED | — |
+| 2.1 | Markdown/parser and eager article bloated initial JS | PARTIAL | AUD-019 |
+| 2.2 | Animations engine loaded synchronously | RESOLVED | — |
+| 2.3 | 1.25 MB legacy raster assets | RESOLVED | — |
+| 2.4 | One-year immutable caching for unhashed media | RESOLVED | — |
+| 2.5 | Redundant Google font preload | RESOLVED | Third-party font dependency is AUD-023 |
+| 3.1 | Footer hover contrast | RESOLVED | — |
+| 3.2 | Mobile-menu focus trap | RESOLVED | Remaining interactions are AUD-030 |
+| 3.3 | Hidden header retained offscreen focus | RESOLVED | — |
+| 3.4 | Skip target was not focusable | RESOLVED | — |
+| 4.1 | Flat hero type hierarchy | RESOLVED | Mobile composition is AUD-031 |
+| 4.2 | Broken hero gradient | RESOLVED | — |
+| 4.3 | Static heading looked interactive | RESOLVED | — |
+| 4.4 | Header background outside design system | REOPENED after runtime check | AUD-004 |
+| 4.5 | Floating WhatsApp obscured mobile controls | RESOLVED | — |
+| 5.1 | Migrate mutable UI state to signals | PARTIAL (top menu only) | AUD-006 |
+| 5.2 | Compile Markdown at build time | RESOLVED | Pipeline hardening is AUD-008/AUD-009 |
+
+Historical total: **23 = 20 resolved + 3 carried/reopened**. Current work should use `AUD-*` IDs only.
+
+## External references used for SEO/schema decisions
+
+- [Google title-link best practices](https://developers.google.com/search/docs/appearance/title-link)
+- [Google meta-description/snippet guidance](https://developers.google.com/search/docs/appearance/snippet)
+- [Google sitemap guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)
+- [Google image SEO guidance](https://developers.google.com/search/docs/appearance/google-images)
+- [Google structured-data introduction](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)
+- [Google local-business structured data](https://developers.google.com/search/docs/appearance/structured-data/local-business)
+- [Schema.org `hasCredential`](https://schema.org/hasCredential)
+- [Schema.org `EducationalOccupationalCredential`](https://schema.org/EducationalOccupationalCredential)
+
+Additional version/build references:
+
+- [Angular version compatibility](https://angular.dev/reference/versions)
+- [Angular `provideClientHydration` and default HTTP transfer cache](https://angular.dev/api/platform-browser/provideClientHydration)
+- [Google pagination and incremental-loading guidance](https://developers.google.com/search/docs/specialty/ecommerce/pagination-and-incremental-page-loading)
+- [Google crawlable-link guidance](https://developers.google.com/search/docs/crawling-indexing/links-crawlable)
+- [Nginx official downloads](https://nginx.org/en/download.html)
+- [Docker build context and `.dockerignore`](https://docs.docker.com/build/building/context/#dockerignore-files)
+- [Tailwind CSS source detection and `@source`](https://tailwindcss.com/docs/detecting-classes-in-source-files)
+
+## Luna xhigh implementation prompt
+
+Copy the prompt below into a fresh ChatGPT/Codex Luna xhigh task with the repository available and GitHub CLI authenticated.
+
+```text
+You are an autonomous senior engineer working in the NatiPsy repository. Your job is to process every current OPEN finding in PROJECT_IMPROVEMENTS.md, one finding at a time, creating one independent branch and one ready-for-review GitHub PR per finding. The human will review all PRs later. Do not merge any PR.
+
+Authoritative source and scope
+1. PROJECT_IMPROVEMENTS.md is the only authoritative finding ledger. Read it completely before acting.
+2. Process only current `AUD-*` entries whose status is OPEN, in priority order P0, P1, P2, P3 and then numeric ID order. Ignore historical rows except for context.
+3. At the audited baseline there are exactly 43 OPEN findings: AUD-001 through AUD-043. Before starting, recount them. If the file has changed, trust the file, report the new count, and process the current OPEN set.
+4. One finding equals one branch, one focused implementation, one commit series, and one PR. Use the exact branch name written in that finding.
+
+Safety and Git discipline
+1. Before starting, confirm that the authoritative audit update containing AUD-001 through AUD-043 is already committed on `origin/master`. If it exists only as an uncommitted/local file, stop and ask the owner to publish that baseline first; otherwise every PR would duplicate or omit the ledger.
+2. Start by running `git status --short --branch`, `git fetch --prune`, switch to `master`, and run `git pull --ff-only`.
+3. If the worktree contains user changes, do not discard, reset, stash, or overwrite them. Stop that repository operation and clearly report the conflicting paths.
+4. Before EACH finding: switch to `master`, fast-forward from `origin/master`, verify clean state, then create the finding branch from `origin/master`. Never branch from a previous finding branch and never make one PR depend silently on another unmerged PR.
+5. Never force-push, rewrite shared history, delete branches, merge PRs, expose secrets, weaken security merely to make tests pass, or make production/DNS/Cloudflare mutations without explicit credentials and authorization.
+6. Keep unrelated formatting, dependency updates, and refactors out of the PR. If a finding has a dependency on an unmerged finding, implement a self-contained compatible solution against master or clearly mark the dependency in the PR; do not create a hidden stacked branch.
+7. Until AUD-027 is merged, the repository has no version pin. Use a Node version officially supported by Angular 22 (`^22.22.3`, `^24.15.0`, or `^26.0.0`); prefer the current Node 24 LTS line. Record `node --version` and `npm --version` in every PR’s test evidence.
+8. Make the run idempotent and resumable. Before beginning each AUD ID, inspect matching local/remote branches and `gh pr list --state all --head <exact-branch>`. If a valid ready PR already exists, verify its base/head and recorded checks, add it to the execution ledger, and move on without opening a duplicate. If only a branch exists, inspect and continue it safely; never overwrite unknown work or force-push.
+9. After every successful push and PR creation, immediately checkpoint the AUD ID, branch, commit SHA, PR URL/state, checks, blockers, and owner actions in the temporary execution ledger. Remote PR state is the fallback source of truth if a local checkpoint is lost.
+
+Per-finding workflow
+1. Read the entire finding: evidence, why, best fix, acceptance criteria, files, and cautions.
+2. Inspect the current code and git history around affected lines. Reproduce the issue before editing when it is reproducible. Record the pre-fix evidence.
+3. Write a short implementation checklist mapped directly to every acceptance criterion. Do not ask the human routine questions; make conservative, evidence-based choices within the finding’s scope.
+4. Implement the smallest complete fix. Reuse existing helpers and patterns. Keep TypeScript strict, Angular SSR/hydration safe, semantic HTML, WCAG AA, Portuguese UI language, and the documented static/SSR deployment decision.
+5. Add meaningful regression tests that fail for the old behavior and pass for the new one. Verify HTTP mocks and negative/error cases. Do not add empty component-construction tests as evidence of completion.
+6. Run the narrow tests first, then all applicable checks. At minimum use the project-pinned Node/npm, `npm ci` when dependency state requires it, `npm test -- --watch=false`, `npm run build -- --configuration=production`, lint/format once those scripts exist, and finding-specific checks. Run Docker/e2e/a11y/security checks when the finding affects them.
+7. For visual/UX changes, capture before/after screenshots at 320×568, 390×844, 768×1024, and 1440×900. Check keyboard navigation, reduced motion, contrast, overflow, console warnings, and hydration. Attach or describe evidence in the PR without committing disposable screenshots unless the repository intentionally tracks them.
+8. For SEO, verify direct prerendered HTML as well as client route transitions. Ensure canonical/meta/JSON-LD/robots/status behavior is observable in the output, not merely in TypeScript source.
+9. For dependency changes, review changelogs and lockfile diff. Never use `npm audit fix --force`. For generated content, prove deterministic generation and commit required generated artifacts.
+10. For owner-dependent clinical, legal, credential, address, content, or Cloudflare decisions, do not invent values and do not claim external work happened. Implement safe code/tests/docs that are possible, place `OWNER ACTION REQUIRED` with an exact checklist in the PR, and mark any unmet acceptance item honestly.
+11. Review `git diff` for scope, secrets, generated junk, and accidental reformatting. Commit with a message such as `fix(audit): AUD-005 normalize blog query state`.
+12. Push the branch and open a READY (not draft) PR. Do not merge it.
+13. Verify the created PR with `gh pr view`: base must be `master`, head must be the finding's exact branch, state must be open, and the body must contain the required evidence/checklists. Record its canonical URL before continuing automatically to the next finding.
+
+Required PR format
+- Title: `[AUD-NNN] Concise finding title`
+- Body sections:
+  - Finding: link/reference to the exact PROJECT_IMPROVEMENTS.md heading
+  - Problem reproduced: concrete pre-fix evidence
+  - Solution: what changed and why this is the safest design
+  - Scope boundaries: what adjacent work was intentionally excluded
+  - Acceptance criteria: copy every criterion as a checked/unchecked list with evidence
+  - Tests run: exact commands and results
+  - Visual/SEO/HTTP evidence: when applicable
+  - Risks and rollback
+  - Dependencies/conflicts with other AUD PRs
+  - OWNER ACTION REQUIRED: only when truly necessary
+
+Failure and continuation policy
+1. A failed test is not a reason to skip validation. Diagnose it. If it is pre-existing, prove that by running it on master and document both results.
+2. If GitHub, registry, browser, Docker, or an external service is temporarily unavailable, retry with bounded backoff, preserve the finished local branch/commit, record the exact blocker, and continue with findings that do not depend on it. Return later to push/open missing PRs.
+3. If a finding cannot be honestly completed without external owner action, still create the best scoped repo change only if it has independent value; otherwise create no fake fix. Record it as BLOCKED in the final ledger with the precise external action required.
+4. Continue automatically after each PR. Do not wait for review and do not stop after a subset.
+5. If the session, context, or usage allowance is interrupted, resume by rereading the authoritative file, the temporary ledger, remote branches, and GitHub PRs. Reconcile by AUD ID and exact branch name, then continue at the first unattempted finding. Do not redo completed work and do not ask the human to review intermediate PRs.
+
+Tracking without causing 43 audit-file conflicts
+1. Do not change an audit item from OPEN to RESOLVED inside its implementation branch. Unmerged code is not resolved on master.
+2. Maintain a temporary execution ledger outside the repository with: AUD ID, branch, commit, PR URL, check results, owner action, and blocker.
+3. After all implementation PRs are opened or honestly blocked, return to current `origin/master` and create one additional branch `codex/audit-pr-tracker`.
+4. On that tracker branch only, update PROJECT_IMPROVEMENTS.md metadata and each finding with `Implementation PR: <URL>` and status `PR OPEN` or `BLOCKED`; keep acceptance details and historical counts intact. Open a final ready PR titled `[AUDIT] Track implementation PRs for AUD-001–AUD-043`. Do not mark any finding RESOLVED and do not merge this PR.
+
+Final report
+When every finding has been attempted and the tracker PR is open, return one table sorted by AUD ID with branch, PR URL, commit, tests, status (PR OPEN/BLOCKED), owner action, and dependency/conflict notes. State totals that reconcile exactly: findings attempted, PRs opened, blocked without PR, failed checks, and tracker PR. Do not say “all done” unless every OPEN ID appears exactly once in the table and every claimed passing check actually ran.
+```
