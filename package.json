@@ -8,6 +8,8 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
+    "test:smoke": "node --test scripts/deploy-smoke-check.test.mjs",
+    "smoke:production": "node scripts/deploy-smoke-check.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
