@@ -107,7 +107,7 @@ export class SeoService {
       script.type = 'application/ld+json';
       this.document.head.appendChild(script);
     }
-    script.text = JSON.stringify(schema);
+    script.text = JSON.stringify(schema).replace(/</g, '\\u003c');
   }
 
   removeStructuredData(id: string): void {
@@ -117,4 +117,4 @@ export class SeoService {
       script.remove();
     }
   }
-} 
+}

@@ -6,8 +6,8 @@ import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/comm
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
-import { of, Subject } from 'rxjs';
-import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
+import { forkJoin, Observable, of, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { SITE_URL } from '../../config/contact';
 
 @Component({
@@ -43,17 +43,34 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.paramMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const slug = params.get('slug');
-        if (slug) {
-          this.loadPost(slug);
+      .pipe(
+        map(params => params.get('slug')),
+        distinctUntilChanged(),
+        tap(() => {
+          this.loading = true;
+          this.error = null;
+          this.seoService.removeStructuredData('blog-post');
+          this.post = null;
+          this.safeContent = null;
+          this.relatedPosts = [];
+          this.cdr.markForCheck();
+        }),
+        switchMap(slug => slug ? this.loadPostState(slug) : of({ post: null, relatedPosts: [], error: 'Post slug not found in URL.' })),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(state => {
+        this.loading = false;
+        this.post = state.post;
+        this.relatedPosts = state.relatedPosts;
+        this.error = state.error;
+        this.safeContent = state.post ? this.toSafeHtml(state.post.content as string) : null;
+
+        if (state.post) {
+          this.updateMetaAndStructuredData(state.post);
         } else {
-          // Render the 404 state in place: navigating away mid-render makes SSR
-          // unstable, and the noindex meta (set by handleErrorState) is mapped
-          // to an HTTP 404 status by the server.
-          this.handleErrorState('Post slug not found in URL.');
+          this.handleErrorState(state.error || 'Post não encontrado.');
         }
+        this.cdr.markForCheck();
       });
   }
 
@@ -61,60 +78,26 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     if (this.post) {
-      this.seoService.removeStructuredData(`blog-post-${this.post.slug}`);
+      this.seoService.removeStructuredData('blog-post');
     }
+    this.seoService.removeStructuredData('blog-post');
   }
 
-  loadPost(slug: string): void {
-    this.loading = true;
-    this.error = null;
-    this.post = null;
-    this.safeContent = null;
-    this.relatedPosts = [];
-    this.cdr.markForCheck();
-
-    this.blogService.getPostBySlug(slug)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          // NOTE: markForCheck() alone is not enough here: after an async
-          // fetch there is no guaranteed change-detection cycle left in this
-          // app, so force the view update explicitly. This is still safe on
-          // the direct-URL path: transferred data arrives synchronously
-          // before first render, making this a harmless no-op there.
-          this.cdr.detectChanges();
-        }),
-        catchError(err => {
-          this.handleErrorState(err.message || 'Erro ao carregar o post.');
-          return of(null);
-        }),
-        tap(post => {
-          if (post) {
-            this.post = post;
-            this.safeContent = this.toSafeHtml(post.content as string);
-            this.updateMetaAndStructuredData(post);
-            // Pass categories so related posts resolve from the (transferred)
-            // index without refetching the current post.
-            this.loadRelatedPosts(slug, post.categories);
-          } else {
-            // Keep the URL; show the not-found state and let the noindex
-            // robots meta drive an HTTP 404 from the server.
-            this.handleErrorState('Post não encontrado.');
-          }
-          this.cdr.detectChanges();
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe();
-  }
-
-  loadRelatedPosts(slug: string, categories?: string[]): void {
-    this.blogService.getRelatedPosts(slug, categories, 3)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(posts => {
-        this.relatedPosts = posts;
-        this.cdr.detectChanges();
-      });
+  private loadPostState(slug: string): Observable<{ post: BlogPost | null; relatedPosts: BlogPost[]; error: string | null }> {
+    return this.blogService.getPostBySlug(slug).pipe(
+      switchMap(post => post
+        ? forkJoin({
+            post: of(post),
+            relatedPosts: this.blogService.getRelatedPosts(slug, post.categories, 3),
+          })
+        : of({ post: null, relatedPosts: [], error: 'Post não encontrado.' })),
+      map(state => 'error' in state ? state : { ...state, error: null }),
+      catchError(error => of({
+        post: null,
+        relatedPosts: [],
+        error: error instanceof Error ? error.message : 'Erro ao carregar o post.',
+      }))
+    );
   }
 
   /**
@@ -161,7 +144,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       tags: post.categories
     });
 
-    this.seoService.setStructuredData(`blog-post-${post.slug}`, {
+    const blogPosting = {
       '@context': 'https://schema.org',
       '@type': 'BlogPosting',
       headline: post.title,
@@ -188,6 +171,20 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         '@id': `${SITE_URL}/blog/${post.slug}`
       },
       keywords: post.categories.join(', ')
+    };
+    this.seoService.setStructuredData('blog-post', {
+      '@context': 'https://schema.org',
+      '@graph': [
+        blogPosting,
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+            { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+          ],
+        },
+      ],
     });
   }
 }
