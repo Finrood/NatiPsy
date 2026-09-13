@@ -46,6 +46,37 @@ function imageUrl(post) {
   return post.image ? `${SITE_URL}/assets/content/blog/images/${post.image}` : null;
 }
 
+function slugifyHeading(text, usedIds) {
+  const base = text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'secao';
+  const count = usedIds.get(base) || 0;
+  usedIds.set(base, count + 1);
+  return count === 0 ? base : `${base}-${count + 1}`;
+}
+
+function renderPostMarkdown(content) {
+  const usedIds = new Map();
+  const headings = [];
+  const renderer = new marked.Renderer();
+  renderer.heading = function ({ tokens, depth }) {
+    const text = this.parser.parseInline(tokens, this.parser.textRenderer);
+    const id = slugifyHeading(text, usedIds);
+    if (depth === 2 || depth === 3) {
+      headings.push({ id, text, level: depth });
+    }
+    return `<h${depth} id="${id}">${this.parser.parseInline(tokens)}</h${depth}>`;
+  };
+
+  return {
+    html: marked.parse(content, { renderer }),
+    headings,
+  };
+}
+
 function generateSitemap(posts) {
   // posts are sorted by date descending; the newest post date is the site's last modification
   const lastSiteUpdate = posts.length ? posts[0].date.slice(0, 10) : new Date().toISOString().slice(0, 10);
@@ -170,8 +201,8 @@ function generateIndex() {
 
           // Pre-render Markdown to HTML at build time so the browser never
           // ships a Markdown engine: per-post JSON with ready-to-bind HTML.
-          const htmlContent = marked.parse(content);
-          const postJson = { ...postData, content: htmlContent };
+          const renderedPost = renderPostMarkdown(content);
+          const postJson = { ...postData, content: renderedPost.html, headings: renderedPost.headings };
           fs.writeFileSync(path.join(postsDir, `${slug}.json`), JSON.stringify(postJson, null, 2));
 
         } catch (parseError) {
