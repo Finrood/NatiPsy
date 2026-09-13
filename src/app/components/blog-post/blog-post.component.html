@@ -50,12 +50,11 @@
       <article class="bg-white rounded-lg shadow-xl overflow-hidden">
         <!-- Featured Image -->
         @if (post.image) {
-          <div class="w-full h-64 md:h-80 overflow-hidden bg-gray-100">
+          <div class="relative w-full aspect-[2/1] overflow-hidden bg-gray-100">
             <img [ngSrc]="imageUrl(post.image)"
               [alt]="post.title"
-              class="w-full h-full object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
-              width="768"
-              height="384"
+              fill
+              class="object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
               priority
               sizes="100vw">
           </div>
@@ -146,13 +145,14 @@
               @for (related of relatedPosts; track related.slug) {
                 <div class="group bg-white rounded-md shadow-sm overflow-hidden transition-shadow hover:shadow-md">
                   <a [routerLink]="['/blog', related.slug]" class="block">
-                    <div class="h-32 bg-gray-200">
+                    <div class="relative aspect-[2/1] bg-gray-200">
                       @if (related.image) {
                         <img
                           [ngSrc]="imageUrl(related.image)"
                           [alt]="related.title"
-                          class="w-full h-full object-cover"
-                          loading="lazy" width="300" height="150" sizes="(max-width: 640px) 100vw, 33vw">
+                          fill
+                          class="object-cover"
+                          loading="lazy" sizes="(max-width: 640px) 100vw, 33vw">
                       }
                       @if (!related.image) {
                         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/10 to-primary-blue/5">
