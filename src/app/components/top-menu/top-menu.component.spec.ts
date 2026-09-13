@@ -34,6 +34,13 @@ describe('TopMenuComponent', () => {
     expect(component.isMenuOpen()).toBe(false);
   });
 
+  it('renders a nontransparent header background before any scroll event', () => {
+    const header = fixture.nativeElement.querySelector('header') as HTMLElement;
+
+    expect(header.classList.contains('bg-white/95')).toBe(true);
+    expect(header.classList.contains('backdrop-blur-md')).toBe(true);
+  });
+
   it('should wrap tab focus within the open mobile menu', () => {
     component.toggleMenu();
     fixture.detectChanges();
