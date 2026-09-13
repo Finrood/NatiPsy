@@ -1,4 +1,10 @@
-@import "tailwindcss";
+/* Scan only application templates and inline Angular templates. Documentation,
+   generated output, tests, and content Markdown must not affect production CSS. */
+@import "tailwindcss" source(none);
+@source "./app/**/*.html";
+@source "./app/**/*.ts";
+@source not "./app/**/*.spec.ts";
+@source not "./app/**/*.test.ts";
 @plugin "@tailwindcss/typography";
 
 @theme {
@@ -32,4 +38,3 @@ html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
     scroll-behavior: auto !important;
   }
 }
-
