@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "build:blog-index": "node ./src/scripts/validate-blog-content.js && node ./src/scripts/generate-blog-index.js",
+    "test:blog-generator": "node --test src/scripts/validate-blog-content.test.js",
+    "watch:blog": "node ./src/scripts/watch-blog-index.js",
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",

@@ -181,7 +181,7 @@ function generateIndex() {
     }
 
     // Sort posts by date descending before writing
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || a.slug.localeCompare(b.slug));
 
     fs.writeFileSync(outputIndexPath, JSON.stringify(posts, null, 2)); // Pretty print JSON
     console.log(`\n[Blog Index Generator] Successfully generated ${outputIndexPath} with ${posts.length} posts.`);
