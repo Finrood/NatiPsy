@@ -7,6 +7,7 @@
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
+    "test:route-focus": "node ./scripts/route-focus-contract.test.mjs",
     "test": "ng test",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
