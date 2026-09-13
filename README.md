@@ -1,59 +1,61 @@
 # NatiPsy
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
+This project uses Angular 22 with SSR/prerendered routes.
+
+## Requirements
+
+Use Node.js `22.22.3+`, `24.15.0+`, or `26.0.0+` (the Angular-supported lines) and npm 10+.
 
 ## Development server
 
-To start a local development server, run:
-
 ```bash
-ng serve
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Open `http://localhost:4200/` after the server starts. The command regenerates the blog artifacts before starting Angular.
 
 ## Code scaffolding
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
 ```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
+npx ng generate component component-name
+npx ng generate --help
 ```
 
 ## Building
 
-To build the project run:
-
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+This generates the blog artifacts and production output under `dist/`.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Unit tests
 
 ```bash
-ng test
+npm test -- --watch=false
 ```
 
-## Running end-to-end tests
+## End-to-end and accessibility tests
 
-For end-to-end (e2e) testing, run:
+Install Chromium once, then run the Playwright/axe suite:
 
 ```bash
-ng e2e
+npm run e2e:install
+npm run e2e
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The suite covers home/mobile navigation, filter URL state, article direct/client navigation, console/hydration warnings, and serious/critical axe violations.
 
-## Additional Resources
+## Production build and Docker
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```bash
+npm run build
+docker build --check .
+docker compose config
+```
+
+The production image serves the generated static browser output through Nginx. See `nginx.conf` for route and cache behavior.
+
+## Additional resources
+
+See the [Angular CLI documentation](https://angular.dev/tools/cli) for general CLI commands.
