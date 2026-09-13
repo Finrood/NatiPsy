@@ -1,0 +1,11 @@
+{
+  "initial": {
+    "warningBytes": 614400,
+    "errorBytes": 819200
+  },
+  "regression": {
+    "maxIncreasePercent": 10,
+    "baselineFileEnv": "BUNDLE_BASELINE_FILE"
+  },
+  "policy": "Keep initial JavaScript and CSS below the error budget; investigate warning-level growth before merging. Update this file only with a measured performance rationale."
+}
