@@ -8,6 +8,7 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
+    "test:dockerignore": "node --test scripts/dockerignore.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
