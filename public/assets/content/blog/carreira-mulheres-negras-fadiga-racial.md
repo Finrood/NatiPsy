@@ -9,9 +9,8 @@ description: "Uma análise crítica sobre os desafios de carreira para mulheres 
 image: carreira-mulheres-negras-fadiga-racial.webp # Relative to assets/content/blog/images/
 categories:
   - Carreira
+tags:
   - Mulheres Negras
-  - Orientação Profissional
-  - Psicologia
   - Interseccionalidade
   - Racismo
   - Racismo de Gênero

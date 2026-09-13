@@ -14,6 +14,7 @@ export interface BlogPost {
   description: string;
   image: string | null;
   categories: string[];
+  tags: string[];
   content: string | SafeHtml;
   readTime: number | null;
 

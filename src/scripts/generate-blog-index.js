@@ -12,6 +12,14 @@ const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
 
+// Categories are the small, navigable primary taxonomy. More specific
+// descriptors belong in the open-ended `tags` field below.
+const CATEGORY_REGISTRY = new Map([
+  ['carreira', 'Carreira'],
+  ['psicologia', 'Psicologia'],
+  ['orientacao profissional', 'Orientação Profissional'],
+]);
+
 // Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
   if (!content) return 0;
@@ -30,6 +38,48 @@ function escapeXml(value) {
     "'": '&apos;',
     '"': '&quot;'
   }[char]));
+}
+
+function normalizeLabels(value, fieldName) {
+  const values = Array.isArray(value)
+    ? value
+    : typeof value === 'string'
+      ? value.split(',')
+      : [];
+  const labels = values.map(label => String(label).trim()).filter(Boolean);
+  const seen = new Set();
+  return labels.map(label => {
+    const key = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (seen.has(key)) {
+      throw new Error(`Duplicate ${fieldName}: ${label}`);
+    }
+    seen.add(key);
+    return label;
+  });
+}
+
+function normalizeCategories(value) {
+  const labels = normalizeLabels(value, 'category');
+  if (labels.length < 1 || labels.length > 3) {
+    throw new Error('Each post must have between one and three primary categories.');
+  }
+  return labels.map(label => {
+    const key = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const canonical = CATEGORY_REGISTRY.get(key);
+    if (!canonical) {
+      throw new Error(`Unknown primary category: ${label}`);
+    }
+    return canonical;
+  });
+}
+
+function normalizeTags(value, categories) {
+  const tags = normalizeLabels(value, 'tag');
+  const categoryKeys = new Set(categories.map(category => category.toLowerCase()));
+  if (tags.some(tag => categoryKeys.has(tag.toLowerCase()))) {
+    throw new Error('A label cannot be both a primary category and a tag.');
+  }
+  return tags;
 }
 
 function pageUrl(path) {
@@ -115,15 +165,8 @@ function generateIndex() {
             continue;
           }
 
-          // Process categories safely
-          let categories = [];
-          if (Array.isArray(data.categories)) {
-            categories = data.categories;
-          } else if (typeof data.categories === 'string' && data.categories.trim() !== '') {
-            categories = data.categories.split(',').map(c => c.trim()).filter(c => c);
-          } else {
-            console.warn(`\n[Blog Index Generator] Warning for ${file}: 'categories' field is missing or invalid. Defaulting to empty.`);
-          }
+          const categories = normalizeCategories(data.categories);
+          const tags = normalizeTags(data.tags, categories);
 
           // Process author safely
           let author = null;
@@ -162,6 +205,7 @@ function generateIndex() {
             description: data.description,
             image: image,
             categories: categories,
+            tags: tags,
             author: author, // Include author info
             readTime: calculateReadingTime(content) // Calculate read time
             // DO NOT include full 'content' in the index file
