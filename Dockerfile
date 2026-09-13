@@ -22,6 +22,7 @@ COPY --from=build /app/dist/nati-psy/browser/ /usr/share/nginx/html/
 
 # Copy custom Nginx config for Angular routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-security-headers.conf /etc/nginx/snippets/natipsy-security-headers.conf
 
 EXPOSE 80
 
