@@ -8,6 +8,10 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write eslint.config.mjs scripts/**/*.mjs .prettierrc.json",
+    "format:check": "prettier --check eslint.config.mjs scripts/**/*.mjs .prettierrc.json",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
@@ -32,6 +36,9 @@
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
+    "@angular-eslint/eslint-plugin": "22.5.0",
+    "@angular-eslint/eslint-plugin-template": "22.5.0",
+    "@angular-eslint/template-parser": "22.5.0",
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
@@ -39,7 +46,11 @@
     "@types/express": "^5.0.6",
     "@types/jasmine": "~6.0.0",
     "@types/node": "^26.4.1",
+    "@typescript-eslint/eslint-plugin": "8.70.0",
+    "@typescript-eslint/parser": "8.70.0",
+    "eslint": "9.39.5",
     "gray-matter": "^4.0.3",
+    "globals": "14.0.0",
     "istanbul-lib-instrument": "^6.0.3",
     "jasmine-core": "~7.0.2",
     "jsdom": "^30.0.1",
@@ -49,6 +60,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.3.0",
     "marked": "^18.0.11",
+    "prettier": "3.9.6",
     "typescript": "~6.0.3",
     "vitest": "^4.1.11"
   }
