@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Natalia Ferreira | Psicóloga Clínica</title>
+    <link>https://psicologanataliaferreira.com/</link>
+    <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
+    <language>pt-BR</language>
+    <lastBuildDate>Mon, 21 Apr 2025 00:00:00 GMT</lastBuildDate>
+    <atom:link href="https://psicologanataliaferreira.com/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Carreira e Mulheres Negras: Como cuidar da fadiga de batalha racial potencializa o bem-estar e realização na vida e no trabalho</title>
+      <link>https://psicologanataliaferreira.com/blog/carreira-mulheres-negras-fadiga-racial</link>
+      <guid isPermaLink="true">https://psicologanataliaferreira.com/blog/carreira-mulheres-negras-fadiga-racial</guid>
+      <dc:creator>Natalia Ferreira dos Santos</dc:creator>
+      <pubDate>Mon, 21 Apr 2025 00:00:00 GMT</pubDate>
+      <description>Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização.</description>
+    </item>
+  </channel>
+</rss>
