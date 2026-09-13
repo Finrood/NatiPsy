@@ -44,6 +44,14 @@ export class BlogService {
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
+  private clonePost(post: BlogPost): BlogPost {
+    return {
+      ...post,
+      categories: [...post.categories],
+      author: post.author ? { ...post.author } : post.author,
+    };
+  }
+
   private fetchPostsIndex(): Observable<BlogPost[]> {
     // Client hydration: reuse the index rendered on the server synchronously,
     // so the first paint already matches the SSR DOM (no loading flash, no
@@ -85,7 +93,7 @@ export class BlogService {
   ): Observable<BlogPost[]> {
     return this.fetchPostsIndex().pipe(
       map(posts => {
-        let filteredPosts = posts;
+        let filteredPosts = [...posts];
 
         if (filterCategory) {
           filteredPosts = filteredPosts.filter(post =>
@@ -108,10 +116,11 @@ export class BlogService {
             comparison = 1;
           }
 
-          return sortDirection === 'desc' ? comparison * -1 : comparison;
+          const directionComparison = sortDirection === 'desc' ? comparison * -1 : comparison;
+          return directionComparison || a.slug.localeCompare(b.slug);
         });
 
-        return filteredPosts;
+        return filteredPosts.map(post => this.clonePost(post));
       }),
       catchError(err => this.handleError(err, 'filter or sort posts')) // Already handled in fetchPostsIndex, but good practice
     );
@@ -198,7 +207,15 @@ export class BlogService {
           return allPosts
             .filter(post => post.slug !== currentSlug)
             .filter(post => post.categories.some(cat => cats.includes(cat)))
-            .slice(0, maxPosts);
+            .map(post => ({
+              post,
+              sharedCategories: post.categories.filter(cat => cats.includes(cat)).length,
+            }))
+            .sort((a, b) => b.sharedCategories - a.sharedCategories
+              || b.post.date.getTime() - a.post.date.getTime()
+              || a.post.slug.localeCompare(b.post.slug))
+            .slice(0, maxPosts)
+            .map(({ post }) => this.clonePost(post));
         })
       );
     };
