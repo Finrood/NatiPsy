@@ -9,8 +9,12 @@ const postsDir = path.join(contentDir, 'posts');
 const imagesDir = path.join(contentDir, 'images');
 const routesPath = path.join(__dirname, '../../src/routes.txt');
 const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
+const robotsPath = path.join(__dirname, '../../public/robots.txt');
+const llmsPath = path.join(__dirname, '../../public/llms.txt');
+const indexPath = path.join(__dirname, '../../src/index.html');
 
-const SITE_URL = 'https://psicologanataliaferreira.com';
+const SITE_CONFIG = require('../app/config/site-config.json');
+const SITE_URL = SITE_CONFIG.canonicalOrigin;
 
 // Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
@@ -34,6 +38,49 @@ function escapeXml(value) {
 
 function pageUrl(path) {
   return `${SITE_URL}${path}`;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+}
+
+function replaceOnce(html, pattern, replacement) {
+  if (!pattern.test(html)) {
+    throw new Error(`Static metadata marker not found: ${pattern}`);
+  }
+  return html.replace(pattern, replacement);
+}
+
+function synchronizeStaticMetadata() {
+  let html = fs.readFileSync(indexPath, 'utf8');
+  const title = `${SITE_CONFIG.brandName} | Psicóloga Clínica - Terapia Online`;
+  const description = `Psicóloga Clínica especializada em Terapia Relacional Sistêmica. Atendimento online para jovens, adultos e casais. ${SITE_CONFIG.credential}`;
+  const image = pageUrl(SITE_CONFIG.defaultImage);
+  html = replaceOnce(html, /<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
+  html = replaceOnce(html, /<meta name="description" content="[^"]*">/, `<meta name="description" content="${escapeHtml(description)}">`);
+  html = replaceOnce(html, /<meta name="author" content="[^"]*">/, `<meta name="author" content="${escapeHtml(SITE_CONFIG.brandName)}">`);
+  html = replaceOnce(html, /<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${SITE_URL}/">`);
+  html = replaceOnce(html, /<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escapeHtml(title)}">`);
+  html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${image}">`);
+  html = replaceOnce(html, /<meta name="twitter:url" content="[^"]*">/, `<meta name="twitter:url" content="${SITE_URL}/">`);
+  html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escapeHtml(title)}">`);
+  html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${image}">`);
+  html = replaceOnce(html, /<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${SITE_URL}/">`);
+  fs.writeFileSync(indexPath, html);
+}
+
+function generateRobots() {
+  fs.writeFileSync(robotsPath, `User-agent: *\nAllow: /\nDisallow: /404\n\nSitemap: ${pageUrl('/sitemap.xml')}\n`);
+}
+
+function generateLlms() {
+  fs.writeFileSync(llmsPath, `# ${SITE_CONFIG.brandName} - Psicóloga Clínica\n\n> Atendimento psicológico online especializado em Terapia Relacional Sistêmica para jovens, adultos e casais.\n\n## Páginas Principais\n- [Início](${pageUrl('/')}): Página principal com informações sobre atendimento, serviços e agendamento.\n- [Sobre Mim](${pageUrl('/#sobre-mim')}): Informações profissionais sobre ${SITE_CONFIG.brandName} (${SITE_CONFIG.credential}).\n- [Meus Serviços](${pageUrl('/#meus-servicos')}): Terapia individual, desenvolvimento pessoal, ansiedade e orientação de carreira.\n- [Minha Abordagem](${pageUrl('/#abordagem')}): Detalhes sobre a Terapia Relacional Sistêmica.\n- [Vantagens](${pageUrl('/#vantagens')}): Benefícios da terapia online.\n- [Blog](${pageUrl('/blog')}): Artigos sobre psicologia, saúde mental e relacionamentos.\n\n## Contato\n- [WhatsApp](${SITE_CONFIG.whatsappUrl}): Agendamento de consultas via WhatsApp.\n`);
 }
 
 function generateRoutesFile(posts) {
@@ -196,6 +243,9 @@ function generateIndex() {
 
     generateRoutesFile(posts);
     generateSitemap(posts);
+    synchronizeStaticMetadata();
+    generateRobots();
+    generateLlms();
 
   } catch (err) {
     console.error("\n[Blog Index Generator] Error reading content directory or writing index file:", err);

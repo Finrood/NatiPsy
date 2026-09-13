@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { INSTAGRAM_LINK, SITE_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '../../config/contact';
+import { INSTAGRAM_LINK, PERSON_NAME, SITE_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '../../config/contact';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class HeroComponent implements OnInit, OnDestroy {
     this.seoService.setStructuredData('hero-service', {
       '@context': 'https://schema.org',
       '@type': 'ProfessionalService',
-      name: 'Natalia Ferreira - Psicóloga Clínica',
+      name: `${PERSON_NAME} - Psicóloga Clínica`,
       image: `${SITE_URL}/assets/NatiHero.webp`,
       description: 'Psicóloga Clínica especializada em Terapia Relacional Sistêmica',
       address: {

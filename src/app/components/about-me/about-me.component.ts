@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { SITE_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '../../config/contact';
+import { CREDENTIAL, PERSON_NAME, SITE_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '../../config/contact';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class AboutMeComponent implements OnInit, OnDestroy {
     this.seoService.setStructuredData('about-me', {
       '@context': 'https://schema.org',
       '@type': 'Person',
-      name: 'Natalia Ferreira',
+      name: PERSON_NAME,
       jobTitle: 'Psicóloga Clínica',
       description: 'Psicóloga Clínica e Orientadora de Carreira especializada em Terapia Relacional Sistêmica',
       image: `${SITE_URL}/assets/NatiAboutMe.webp`,
@@ -29,7 +29,7 @@ export class AboutMeComponent implements OnInit, OnDestroy {
         addressRegion: 'SC',
         addressCountry: 'BR',
       },
-      hasCredential: 'CRP 12/19892',
+      hasCredential: CREDENTIAL,
     });
   }
 

@@ -4,7 +4,7 @@
 
 ## Páginas Principais
 - [Início](https://psicologanataliaferreira.com/): Página principal com informações sobre atendimento, serviços e agendamento.
-- [Sobre Mim](https://psicologanataliaferreira.com/#sobre-mim): Informações profissionais sobre a psicóloga Natalia Ferreira (CRP 12/19892).
+- [Sobre Mim](https://psicologanataliaferreira.com/#sobre-mim): Informações profissionais sobre Natalia Ferreira (CRP 12/19892).
 - [Meus Serviços](https://psicologanataliaferreira.com/#meus-servicos): Terapia individual, desenvolvimento pessoal, ansiedade e orientação de carreira.
 - [Minha Abordagem](https://psicologanataliaferreira.com/#abordagem): Detalhes sobre a Terapia Relacional Sistêmica.
 - [Vantagens](https://psicologanataliaferreira.com/#vantagens): Benefícios da terapia online.

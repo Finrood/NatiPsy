@@ -1,11 +1,17 @@
-export const SITE_URL = 'https://psicologanataliaferreira.com';
+import siteConfig from './site-config.json';
 
-export const WHATSAPP_NUMBER = '+5548984323764';
+export const SITE_URL = siteConfig.canonicalOrigin;
+export const PERSON_NAME = siteConfig.brandName;
+export const PROFESSIONAL_NAME = siteConfig.professionalName;
+export const CREDENTIAL = siteConfig.credential;
+export const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}${siteConfig.defaultImage}`;
 
-export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
+export const WHATSAPP_NUMBER = siteConfig.whatsappNumber;
 
-export const INSTAGRAM_LINK = 'https://www.instagram.com/curacriativa/';
+export const WHATSAPP_LINK = siteConfig.whatsappUrl;
 
-export const EMAIL_ADDRESS = 'psinataliaferreira@gmail.com';
+export const INSTAGRAM_LINK = siteConfig.instagramUrl;
+
+export const EMAIL_ADDRESS = siteConfig.email;
 
 export const EMAIL_LINK = `mailto:${EMAIL_ADDRESS}`;
