@@ -23,7 +23,12 @@ export interface BlogPost {
 const BLOG_IMAGES_BASE_PATH = '/assets/content/blog/images';
 
 export function blogImageUrl(relativePath: string | null | undefined): string {
-  return relativePath ? `${BLOG_IMAGES_BASE_PATH}/${relativePath}` : '';
+  if (!relativePath) {
+    return '';
+  }
+  return relativePath.startsWith('/')
+    ? relativePath
+    : `${BLOG_IMAGES_BASE_PATH}/${relativePath}`;
 }
 
 export function blogAbsoluteImageUrl(relativePath: string | null | undefined, baseUrl: string = SITE_URL): string {
