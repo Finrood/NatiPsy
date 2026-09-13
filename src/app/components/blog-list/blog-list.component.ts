@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
-import { Subject } from 'rxjs';
+import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SITE_URL } from '../../config/contact';
@@ -27,7 +27,6 @@ export class BlogListComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly platformId = inject(PLATFORM_ID);
 
   allPosts: BlogPost[] = [];
   displayedPosts: BlogPost[] = [];
@@ -51,23 +50,17 @@ export class BlogListComponent implements OnInit, OnDestroy {
   protected readonly imageUrl = blogImageUrl;
 
   ngOnInit(): void {
-    if (this.router.url.includes('/blog')) {
-      this.seoService.updateMetaTags({
-        title: 'Blog | Psicóloga Natalia Ferreira',
-        description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
-        keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-        url: `${SITE_URL}/blog`
-      });
-    }
-
-    this.route.queryParams
+    combineLatest([this.route.paramMap, this.route.queryParams])
       .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        this.currentPage = params['page'] ? +params['page'] : 1;
+      .subscribe(([routeParams, params]) => {
+        const pathPage = Number(routeParams.get('page'));
+        const queryPage = Number(params['page']);
+        this.currentPage = pathPage > 0 ? pathPage : queryPage > 0 ? queryPage : 1;
         this.selectedCategory = params['category'] || '';
         this.sortBy = params['sortBy'] || 'date';
         this.sortDirection = params['sortDir'] || 'desc';
         this.loadInitialData();
+        this.updateSeo();
       });
 
     this.loadCategories();
@@ -95,6 +88,12 @@ export class BlogListComponent implements OnInit, OnDestroy {
         next: (posts) => {
           this.allPosts = posts;
           this.totalItems = this.allPosts.length;
+          if (this.currentPage > this.totalPages) {
+            this.error = 'Esta página do blog não foi encontrada.';
+            this.displayedPosts = [];
+            this.cdr.markForCheck();
+            return;
+          }
           this.updateDisplayedPosts();
           if (this.allPosts.length === 0 && !this.loading) {
             this.error = 'Nenhum post encontrado com os filtros selecionados.';
@@ -135,19 +134,6 @@ export class BlogListComponent implements OnInit, OnDestroy {
 
   // --- Event Handlers ---
 
-  onPageChange(page: number): void {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.updateQueryParams();
-    this.updateDisplayedPosts();
-    if (isPlatformBrowser(this.platformId)) {
-      const element = document.getElementById('blog-list-start');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  }
-
   onFilterChange(): void {
     this.currentPage = 1;
     this.updateQueryParams();
@@ -160,7 +146,6 @@ export class BlogListComponent implements OnInit, OnDestroy {
 
   updateQueryParams(): void {
     const queryParams: Record<string, string | number | null> = {
-      page: this.currentPage > 1 ? this.currentPage : null,
       category: this.selectedCategory || null,
       sortBy: this.sortBy !== 'date' ? this.sortBy : null,
       sortDir: this.sortDirection !== 'desc' ? this.sortDirection : null
@@ -168,11 +153,20 @@ export class BlogListComponent implements OnInit, OnDestroy {
 
     Object.keys(queryParams).forEach(key => queryParams[key] == null && delete queryParams[key]);
 
-    this.router.navigate([], {
-      relativeTo: this.route,
+    this.router.navigate([this.pageUrl(this.currentPage)], {
       queryParams: queryParams,
-      queryParamsHandling: 'merge',
       replaceUrl: true
+    });
+  }
+
+  private updateSeo(): void {
+    const hasAlternateView = Boolean(this.selectedCategory || this.sortBy !== 'date' || this.sortDirection !== 'desc');
+    this.seoService.updateMetaTags({
+      title: this.currentPage === 1 ? 'Blog | Psicóloga Natalia Ferreira' : `Blog — Página ${this.currentPage} | Psicóloga Natalia Ferreira`,
+      description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
+      keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
+      url: `${SITE_URL}${this.pageUrl(this.currentPage)}`,
+      robots: hasAlternateView ? 'noindex,follow' : undefined,
     });
   }
 
@@ -183,10 +177,35 @@ export class BlogListComponent implements OnInit, OnDestroy {
   }
 
   get pages(): number[] {
+    const pageWindow = 5;
+    const halfWindow = Math.floor(pageWindow / 2);
+    let start = Math.max(1, this.currentPage - halfWindow);
+    const end = Math.min(this.totalPages, start + pageWindow - 1);
+    start = Math.max(1, end - pageWindow + 1);
     const pagesArray: number[] = [];
-    for (let i = 1; i <= this.totalPages; i++) {
+    for (let i = start; i <= end; i++) {
       pagesArray.push(i);
     }
     return pagesArray;
+  }
+
+  pageUrl(page: number): string {
+    return page === 1 ? '/blog' : `/blog/page/${page}`;
+  }
+
+  get paginationQueryParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+    if (this.selectedCategory) params['category'] = this.selectedCategory;
+    if (this.sortBy !== 'date') params['sortBy'] = this.sortBy;
+    if (this.sortDirection !== 'desc') params['sortDir'] = this.sortDirection;
+    return params;
+  }
+
+  get previousPage(): number | null {
+    return this.currentPage > 1 ? this.currentPage - 1 : null;
+  }
+
+  get nextPage(): number | null {
+    return this.currentPage < this.totalPages ? this.currentPage + 1 : null;
   }
 }

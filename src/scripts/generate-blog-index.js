@@ -11,6 +11,7 @@ const routesPath = path.join(__dirname, '../../src/routes.txt');
 const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
+const POSTS_PER_PAGE = 6;
 
 // Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
@@ -37,7 +38,9 @@ function pageUrl(path) {
 }
 
 function generateRoutesFile(posts) {
-  const lines = ['/', '/blog', ...posts.map((post) => `/blog/${post.slug}`)];
+  const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const archivePages = Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) => `/blog/page/${index + 2}`);
+  const lines = ['/', '/blog', ...archivePages, ...posts.map((post) => `/blog/${post.slug}`)];
   fs.writeFileSync(routesPath, lines.join('\n') + '\n');
   console.log(`[Blog Index Generator] Wrote ${lines.length} routes to ${routesPath}`);
 }
@@ -69,6 +72,16 @@ function generateSitemap(posts) {
     <priority>0.8</priority>
   </url>`
   ];
+
+  const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  for (let page = 2; page <= pageCount; page++) {
+    urls.push(`  <url>
+    <loc>${escapeXml(pageUrl(`/blog/page/${page}`))}</loc>
+    <lastmod>${lastSiteUpdate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+  }
 
   for (const post of posts) {
     const postImageUrl = imageUrl(post);
