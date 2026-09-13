@@ -2,12 +2,66 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router, Params } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SITE_URL } from '../../config/contact';
+
+export type BlogSortBy = keyof Pick<BlogPost, 'date' | 'title'>;
+export type BlogSortDirection = 'asc' | 'desc';
+
+export interface BlogQueryState {
+  page: number;
+  category: string;
+  sortBy: BlogSortBy;
+  sortDirection: BlogSortDirection;
+}
+
+const validSortFields = new Set<BlogSortBy>(['date', 'title']);
+const validSortDirections = new Set<BlogSortDirection>(['asc', 'desc']);
+
+function firstQueryValue(value: unknown): unknown {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parsePositivePage(value: unknown): number {
+  const raw = firstQueryValue(value);
+  if (typeof raw !== 'string' || !/^[1-9]\d*$/.test(raw)) {
+    return 1;
+  }
+
+  const page = Number(raw);
+  return Number.isSafeInteger(page) && page > 0 ? page : 1;
+}
+
+export function parseBlogQueryParams(params: Params): BlogQueryState {
+  const sortByValue = firstQueryValue(params['sortBy']);
+  const sortDirectionValue = firstQueryValue(params['sortDir']);
+
+  return {
+    page: parsePositivePage(params['page']),
+    category: typeof firstQueryValue(params['category']) === 'string'
+      ? firstQueryValue(params['category']) as string
+      : '',
+    sortBy: typeof sortByValue === 'string' && validSortFields.has(sortByValue as BlogSortBy)
+      ? sortByValue as BlogSortBy
+      : 'date',
+    sortDirection: typeof sortDirectionValue === 'string' && validSortDirections.has(sortDirectionValue as BlogSortDirection)
+      ? sortDirectionValue as BlogSortDirection
+      : 'desc',
+  };
+}
+
+export function blogQueryParams(state: BlogQueryState): Record<string, string | number | null> {
+  return {
+    page: state.page > 1 ? state.page : null,
+    category: state.category || null,
+    sortBy: state.sortBy !== 'date' ? state.sortBy : null,
+    sortDir: state.sortDirection !== 'desc' ? state.sortDirection : null,
+  };
+}
 
 @Component({
   selector: 'app-blog-list',
@@ -43,8 +97,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
 
   // Filtering & Sorting
   selectedCategory: string = '';
-  sortBy: keyof Pick<BlogPost, 'date' | 'title'> = 'date';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortBy: BlogSortBy = 'date';
+  sortDirection: BlogSortDirection = 'desc';
 
   private readonly destroy$ = new Subject<void>();
 
@@ -63,10 +117,11 @@ export class BlogListComponent implements OnInit, OnDestroy {
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        this.currentPage = params['page'] ? +params['page'] : 1;
-        this.selectedCategory = params['category'] || '';
-        this.sortBy = params['sortBy'] || 'date';
-        this.sortDirection = params['sortDir'] || 'desc';
+        const state = parseBlogQueryParams(params);
+        this.currentPage = state.page;
+        this.selectedCategory = state.category;
+        this.sortBy = state.sortBy;
+        this.sortDirection = state.sortDirection;
         this.loadInitialData();
       });
 
@@ -95,6 +150,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
         next: (posts) => {
           this.allPosts = posts;
           this.totalItems = this.allPosts.length;
+          this.normalizeLoadedState();
           this.updateDisplayedPosts();
           if (this.allPosts.length === 0 && !this.loading) {
             this.error = 'Nenhum post encontrado com os filtros selecionados.';
@@ -118,6 +174,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (categories) => {
           this.allCategories = categories;
+          this.normalizeLoadedState();
           this.cdr.markForCheck();
         },
         error: (err) => {
@@ -159,21 +216,30 @@ export class BlogListComponent implements OnInit, OnDestroy {
   }
 
   updateQueryParams(): void {
-    const queryParams: Record<string, string | number | null> = {
-      page: this.currentPage > 1 ? this.currentPage : null,
-      category: this.selectedCategory || null,
-      sortBy: this.sortBy !== 'date' ? this.sortBy : null,
-      sortDir: this.sortDirection !== 'desc' ? this.sortDirection : null
-    };
-
-    Object.keys(queryParams).forEach(key => queryParams[key] == null && delete queryParams[key]);
-
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: queryParams,
-      queryParamsHandling: 'merge',
+      queryParams: blogQueryParams({
+        page: this.currentPage,
+        category: this.selectedCategory,
+        sortBy: this.sortBy,
+        sortDirection: this.sortDirection,
+      }),
       replaceUrl: true
     });
+  }
+
+  private normalizeLoadedState(): void {
+    const maxPage = Math.max(1, this.totalPages);
+    const normalizedPage = Math.min(this.currentPage, maxPage);
+    const normalizedCategory = this.allCategories.length > 0 && this.selectedCategory && !this.allCategories.includes(this.selectedCategory)
+      ? ''
+      : this.selectedCategory;
+
+    if (normalizedPage !== this.currentPage || normalizedCategory !== this.selectedCategory) {
+      this.currentPage = normalizedPage;
+      this.selectedCategory = normalizedCategory;
+      this.updateQueryParams();
+    }
   }
 
   // --- Template Helpers ---
