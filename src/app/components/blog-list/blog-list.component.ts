@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
-import { BlogService } from '../../services/blog.service';
+import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
 import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -35,6 +35,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
 
   loading = true;
   error: string | null = null;
+  categoryError: string | null = null;
 
   // Pagination
   currentPage = 1;
@@ -102,8 +103,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('Error fetching blog posts:', err);
-          this.error = err.message || 'Não foi possível carregar os posts. Tente novamente mais tarde.';
+          this.error = this.messageForError(err);
           this.allPosts = [];
           this.displayedPosts = [];
           this.totalItems = 0;
@@ -121,9 +121,26 @@ export class BlogListComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('Error fetching categories:', err);
+          this.categoryError = this.messageForError(err);
+          this.cdr.markForCheck();
         }
       });
+  }
+
+  retry(): void {
+    this.loadInitialData();
+    this.loadCategories();
+  }
+
+  retryCategories(): void {
+    this.categoryError = null;
+    this.loadCategories();
+  }
+
+  private messageForError(error: unknown): string {
+    return error instanceof BlogServiceError
+      ? BLOG_ERROR_MESSAGES[error.kind]
+      : BLOG_ERROR_MESSAGES['invalid-content'];
   }
 
   updateDisplayedPosts(): void {
