@@ -7,6 +7,8 @@ import { SITE_URL } from '../config/contact';
 export interface SeoConfig {
   title: string;
   description: string;
+  socialTitle?: string;
+  socialDescription?: string;
   keywords?: string;
   image?: string;
   url?: string;
@@ -57,8 +59,8 @@ export class SeoService {
     
     // Open Graph
     this.updateArticleTags(config.tags);
-    this.meta.updateTag({ property: 'og:title', content: config.title });
-    this.meta.updateTag({ property: 'og:description', content: config.description });
+    this.meta.updateTag({ property: 'og:title', content: config.socialTitle || config.title });
+    this.meta.updateTag({ property: 'og:description', content: config.socialDescription || config.description });
     this.meta.updateTag({ property: 'og:url', content: targetUrl });
     this.meta.updateTag({ property: 'og:image', content: targetImage });
     this.meta.updateTag({ property: 'og:type', content: config.type || 'website' });
@@ -72,8 +74,8 @@ export class SeoService {
     
     // Twitter
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
-    this.meta.updateTag({ name: 'twitter:title', content: config.title });
-    this.meta.updateTag({ name: 'twitter:description', content: config.description });
+    this.meta.updateTag({ name: 'twitter:title', content: config.socialTitle || config.title });
+    this.meta.updateTag({ name: 'twitter:description', content: config.socialDescription || config.description });
     this.meta.updateTag({ name: 'twitter:image', content: targetImage });
     
     // Update canonical link (SSR + browser)
@@ -117,4 +119,4 @@ export class SeoService {
       script.remove();
     }
   }
-} 
+}

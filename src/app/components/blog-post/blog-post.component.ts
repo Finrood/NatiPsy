@@ -148,10 +148,17 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   updateMetaAndStructuredData(post: BlogPost): void {
     const imageUrl = blogAbsoluteImageUrl(post.image);
+    const seoTitle = post.seoTitle || post.title;
+    const pageTitle = /\s\|\sBlog Natália Ferreira$/i.test(seoTitle)
+      ? seoTitle
+      : `${seoTitle} | Blog Natália Ferreira`;
+    const seoDescription = post.seoDescription || post.description;
 
     this.seoService.updateMetaTags({
-      title: `${post.title} | Blog Natália Ferreira`,
-      description: post.description,
+      title: pageTitle,
+      description: seoDescription,
+      socialTitle: post.socialTitle || post.seoTitle || post.title,
+      socialDescription: post.socialDescription || post.seoDescription || post.description,
       keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       url: `${SITE_URL}/blog/${post.slug}`,
@@ -166,7 +173,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       '@type': 'BlogPosting',
       headline: post.title,
       name: post.title,
-      description: post.description,
+      description: seoDescription,
       image: imageUrl,
       datePublished: post.date.toISOString(),
       author: {
