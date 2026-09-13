@@ -4,6 +4,8 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "test:public-content": "node --test scripts/assert-public-content.test.mjs",
+    "assert:public-content": "node scripts/assert-public-content.mjs",
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",

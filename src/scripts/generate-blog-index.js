@@ -3,12 +3,14 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 
-const contentDir = path.join(__dirname, '../../public/assets/content/blog');
-const outputIndexPath = path.join(contentDir, 'index.json');
-const postsDir = path.join(contentDir, 'posts');
-const imagesDir = path.join(contentDir, 'images');
-const routesPath = path.join(__dirname, '../../src/routes.txt');
-const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
+const projectRoot = path.join(__dirname, '../..');
+const contentDir = path.join(projectRoot, 'content/blog');
+const publicContentDir = path.join(projectRoot, 'public/assets/content/blog');
+const outputIndexPath = path.join(publicContentDir, 'index.json');
+const postsDir = path.join(publicContentDir, 'posts');
+const imagesDir = path.join(publicContentDir, 'images');
+const routesPath = path.join(projectRoot, 'src/routes.txt');
+const sitemapPath = path.join(projectRoot, 'public/sitemap.xml');
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
 
@@ -99,6 +101,7 @@ function generateIndex() {
   const posts = [];
   try {
     const files = fs.readdirSync(contentDir);
+    fs.mkdirSync(publicContentDir, { recursive: true });
     fs.mkdirSync(postsDir, { recursive: true });
 
     for (const file of files) {
@@ -109,6 +112,11 @@ function generateIndex() {
 
         try {
           const { data, content } = matter(fileContent);
+
+          if (data.draft === true || data.published === false) {
+            console.log(`[Blog Index Generator] Excluding unpublished post ${file}`);
+            continue;
+          }
 
           if (!data.title || !data.date || !data.description) {
             console.warn(`\n[Blog Index Generator] Skipping ${file}: Missing required front matter (title, date, description).`);
