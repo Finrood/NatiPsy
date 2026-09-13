@@ -1,0 +1,50 @@
+name: Quality
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up supported Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Generate blog artifacts
+        run: npm run build:blog-index
+
+      - name: Reject stale generated artifacts
+        run: git diff --exit-code -- public/assets/content/blog src/routes.txt public/sitemap.xml
+
+      - name: Run dependency policy
+        run: |
+          npm audit --audit-level=high
+          npm audit --omit=dev --audit-level=moderate
+
+      - name: Run unit tests
+        run: npm test -- --watch=false
+
+      - name: Build production output
+        run: npm run build -- --configuration=production
+
+      - name: Validate Dockerfile syntax
+        run: docker build --check .
