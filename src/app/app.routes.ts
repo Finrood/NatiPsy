@@ -9,6 +9,22 @@ export const routes: Routes = [
       import('./components/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'terapia-online',
+    loadComponent: () =>
+      import('./components/service-page/service-page.component').then(
+        (m) => m.ServicePageComponent
+      ),
+    data: { pageKey: 'therapyOnline' },
+  },
+  {
+    path: 'orientacao-profissional',
+    loadComponent: () =>
+      import('./components/service-page/service-page.component').then(
+        (m) => m.ServicePageComponent
+      ),
+    data: { pageKey: 'careerGuidance' },
+  },
+  {
     path: 'blog',
     children: [
       {
