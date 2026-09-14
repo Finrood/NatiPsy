@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "test:fonts": "node ./scripts/fonts-contract.test.mjs",
     "test:public-content": "node --test scripts/assert-public-content.test.mjs",
     "assert:public-content": "node scripts/assert-public-content.mjs",
     "build": "npm run build:blog-index && ng build && npm run assert:public-content",
