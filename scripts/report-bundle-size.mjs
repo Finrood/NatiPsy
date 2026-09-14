@@ -45,22 +45,33 @@ const files = [...initialAssets].map(asset => {
   return { asset, bytes: fs.statSync(filePath).size };
 });
 const initialBytes = files.reduce((total, file) => total + file.bytes, 0);
+const lazyFiles = Object.entries(outputs)
+  .filter(([asset]) => !initialAssets.has(asset))
+  .map(([asset, output]) => ({
+    asset,
+    bytes: output.bytes ?? (fs.existsSync(path.resolve(distDir, asset))
+      ? fs.statSync(path.resolve(distDir, asset)).size
+      : 0),
+    entryPoint: output.entryPoint ?? null,
+  }))
+  .filter(file => file.bytes > 0);
+const lazyBytes = lazyFiles.reduce((total, file) => total + file.bytes, 0);
 const report = {
   distDir,
   statsPath,
   initialBytes,
   initialKiB: Number((initialBytes / 1024).toFixed(2)),
   files,
+  lazyBytes,
+  lazyKiB: Number((lazyBytes / 1024).toFixed(2)),
+  lazyFiles,
   warningBytes: policy.initial.warningBytes,
   errorBytes: policy.initial.errorBytes,
 };
 console.log(JSON.stringify(report, null, 2));
 
-const baselinePath = process.env.BUNDLE_BASELINE_FILE;
-if (!baselinePath) {
-  console.error('BUNDLE_BASELINE_FILE is required for CI bundle regression checks.');
-  process.exitCode = 1;
-} else if (!fs.existsSync(baselinePath)) {
+const baselinePath = path.resolve(process.env.BUNDLE_BASELINE_FILE || 'performance-baseline.json');
+if (!fs.existsSync(baselinePath)) {
   console.error(`Bundle baseline not found at ${baselinePath}.`);
   process.exitCode = 1;
 } else {
