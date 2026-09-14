@@ -3,13 +3,14 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 
-const contentDir = path.join(__dirname, '../../public/assets/content/blog');
-const outputIndexPath = path.join(contentDir, 'index.json');
-const postsDir = path.join(contentDir, 'posts');
-const imagesDir = path.join(contentDir, 'images');
-const routesPath = path.join(__dirname, '../../src/routes.txt');
-const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
-const feedPath = path.join(__dirname, '../../public/feed.xml');
+const configuredPath = (name, fallback) => process.env[name] ? path.resolve(process.env[name]) : fallback;
+const contentDir = configuredPath('BLOG_CONTENT_DIR', path.join(__dirname, '../../public/assets/content/blog'));
+const outputIndexPath = configuredPath('BLOG_INDEX_PATH', path.join(contentDir, 'index.json'));
+const postsDir = configuredPath('BLOG_POSTS_DIR', path.join(contentDir, 'posts'));
+const imagesDir = configuredPath('BLOG_IMAGES_DIR', path.join(contentDir, 'images'));
+const routesPath = configuredPath('BLOG_ROUTES_PATH', path.join(__dirname, '../../src/routes.txt'));
+const sitemapPath = configuredPath('BLOG_SITEMAP_PATH', path.join(__dirname, '../../public/sitemap.xml'));
+const feedPath = configuredPath('BLOG_FEED_PATH', path.join(__dirname, '../../public/feed.xml'));
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
 
@@ -140,7 +141,7 @@ function generateIndex() {
         try {
           const { data, content } = matter(fileContent);
 
-          if (data.draft === true) {
+          if (data.draft === true || data.published === false) {
             continue;
           }
 

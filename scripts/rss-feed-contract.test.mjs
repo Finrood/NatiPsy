@@ -8,6 +8,7 @@ const feed = readFileSync(new URL('../public/feed.xml', import.meta.url), 'utf8'
 assert.match(generator, /const feedPath/);
 assert.match(generator, /posts\.slice\(0, 20\)/);
 assert.match(generator, /data\.draft === true/);
+assert.match(generator, /data\.published === false/);
 assert.match(generator, /guid isPermaLink/);
 assert.match(generator, /escapeXml\(post\.description\)/);
 assert.match(generator, /atom:link/);
@@ -19,5 +20,9 @@ assert.match(feed, /<guid isPermaLink="true">https:\/\/psicologanataliaferreira\
 assert.match(feed, /<description>.*<\/description>/s);
 assert.equal((feed.match(/<item>/g) ?? []).length, 1);
 assert.equal((feed.match(/<guid /g) ?? []).length, 1);
+assert.match(readFileSync(new URL('../nginx.conf', import.meta.url), 'utf8'), /location = \/feed\.xml/);
+assert.match(readFileSync(new URL('../nginx.conf', import.meta.url), 'utf8'), /application\/rss\+xml/);
+assert.match(readFileSync(new URL('../nginx.conf', import.meta.url), 'utf8'), /max-age=300/);
+assert.match(readFileSync(new URL('../src/server.ts', import.meta.url), 'utf8'), /application\/rss\+xml/);
 
 console.log('RSS feed contract passed.');
