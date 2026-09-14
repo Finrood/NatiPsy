@@ -29,7 +29,7 @@ describe('BlogService', () => {
     const indexEntry = {
       slug: 'hello',
       title: 'Hello',
-      date: new Date('2025-01-01').toISOString(),
+      date: new Date('2025-01-01'),
       description: 'd',
       image: null,
       categories: ['Test'],
@@ -71,5 +71,22 @@ describe('BlogService', () => {
 
     expect(posts?.[0].slug).toBe('hello');
     expect(categories).toEqual(['Test']);
+  });
+
+  it('allows a failed index load to be retried', () => {
+    let firstError: unknown;
+    service.getPostsList().subscribe({ error: error => { firstError = error; } });
+    httpMock.expectOne('/assets/content/blog/index.json').flush('temporary failure', {
+      status: 503,
+      statusText: 'Service Unavailable',
+    });
+    expect(firstError).toBeTruthy();
+
+    let posts: BlogPost[] | undefined;
+    service.getPostsList().subscribe(result => { posts = result; });
+    httpMock.expectOne('/assets/content/blog/index.json').flush([
+      { slug: 'retried', title: 'Retried', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: [], author: null },
+    ]);
+    expect(posts?.[0].slug).toBe('retried');
   });
 });
