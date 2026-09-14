@@ -6,7 +6,8 @@ import { ApproachComponent } from '../approach/approach.component';
 import { AdvantagesComponent } from '../advantages/advantages.component';
 import { SeoService } from '../../services/seo.service';
 import { BlogListComponent } from '../blog-list/blog-list.component';
-import { SITE_URL } from '../../config/contact';
+import { PERSON_NAME, SITE_URL } from '../../config/contact';
+import { SITE_CONFIG } from '../../config/site-config';
 
 @Component({
   selector: 'app-home',
@@ -38,8 +39,8 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.updateMetaTags({
-      title: 'Psicóloga Natalia Ferreira | Terapia Online - CRP 12/19892',
-      description: 'Psicóloga Clínica especializada em Terapia Relacional Sistêmica. Atendimento online para jovens, adultos e casais. Experiência em terapia sistêmica, ansiedade, depressão e relacionamentos.',
+      title: `Psicóloga ${PERSON_NAME} | Terapia Online - ${SITE_CONFIG.credential}`,
+      description: SITE_CONFIG.siteDescription,
       keywords: 'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
       url: `${SITE_URL}/`,
       imageWidth: 853,

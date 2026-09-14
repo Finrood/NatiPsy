@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { EMAIL_LINK, INSTAGRAM_LINK, WHATSAPP_LINK } from '../../config/contact';
+import { EMAIL_LINK, INSTAGRAM_LINK, PERSON_NAME, WHATSAPP_LINK } from '../../config/contact';
 
 @Component({
   selector: 'app-footer',
@@ -12,4 +12,5 @@ export class FooterComponent {
   readonly instagramLink = INSTAGRAM_LINK;
   readonly whatsappLink = WHATSAPP_LINK;
   readonly emailLink = EMAIL_LINK;
+  readonly personName = PERSON_NAME;
 }

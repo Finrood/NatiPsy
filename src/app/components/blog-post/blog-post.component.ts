@@ -8,7 +8,7 @@ import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
 import { of, Subject } from 'rxjs';
 import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
-import { SITE_URL } from '../../config/contact';
+import { PERSON_NAME, PROFESSIONAL_NAME, SITE_URL } from '../../config/contact';
 
 @Component({
   selector: 'app-blog-post',
@@ -140,7 +140,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.safeContent = null;
     this.loading = false;
     this.seoService.updateMetaTags({
-      title: 'Erro | Psicóloga Natalia Ferreira',
+      title: `Erro | Psicóloga ${PERSON_NAME}`,
       description: 'Página não encontrada ou erro ao carregar o artigo.',
       url: `${SITE_URL}/404`,
       robots: 'noindex'
@@ -152,7 +152,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     const imageUrl = blogAbsoluteImageUrl(post.image);
 
     this.seoService.updateMetaTags({
-      title: `${post.title} | Blog Natália Ferreira`,
+      title: `${post.title} | Blog ${PERSON_NAME}`,
       description: post.description,
       keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
@@ -163,7 +163,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       url: `${SITE_URL}/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
-      author: post.author?.name || 'Natalia Ferreira',
+      author: post.author?.name || PERSON_NAME,
       tags: post.categories
     });
 
@@ -177,12 +177,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       datePublished: post.date.toISOString(),
       author: {
         '@type': 'Person',
-        name: post.author?.name || 'Natalia Ferreira',
+        name: post.author?.name || PERSON_NAME,
         url: SITE_URL
       },
       publisher: {
         '@type': 'Person',
-        name: 'Natalia Ferreira Psicóloga',
+        name: PROFESSIONAL_NAME,
         logo: {
           '@type': 'ImageObject',
           url: `${SITE_URL}/assets/logo.png`

@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import bootstrap from './main.server';
+import { SITE_CONFIG_ALLOWED_HOSTS } from './app/config/site-runtime';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -23,12 +24,7 @@ const HASHED_ASSET = /-[A-Za-z0-9_-]{8}(\.[cm]?js|\.css)$/;
 
 const app = express();
 const commonEngine = new CommonEngine({
-  allowedHosts: [
-    'localhost',
-    '127.0.0.1',
-    'psicologanataliaferreira.com',
-    'www.psicologanataliaferreira.com',
-  ],
+  allowedHosts: SITE_CONFIG_ALLOWED_HOSTS,
 });
 
 /**
