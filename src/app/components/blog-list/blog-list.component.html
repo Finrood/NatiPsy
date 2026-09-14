@@ -1,6 +1,6 @@
 <section id="blog-list-start" class="py-16 bg-gradient-to-b from-gray-50 to-primary-pink/10 scroll-mt-20"> <!-- Added id and scroll-mt -->
   <div class="container mx-auto px-4">
-    <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center text-primary-blue">Blog</h2>
+    <h1 class="text-3xl md:text-4xl font-bold mb-8 text-center text-primary-blue">Blog</h1>
     <p class="text-center text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
       Explore artigos sobre saúde mental, bem-estar, relacionamentos, carreira e desenvolvimento pessoal.
     </p>
@@ -160,26 +160,28 @@
       <!-- Pagination Controls -->
       @if (!loading && !error && totalPages > 1) {
         <div class="mt-12 flex justify-center items-center space-x-2">
-          <button (click)="onPageChange(currentPage - 1)"
-            [disabled]="currentPage === 1"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
-            aria-label="Página Anterior">
+          @if (previousPage) {
+            <a [routerLink]="pageUrl(previousPage)" [queryParams]="paginationQueryParams" fragment="blog-list-start"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+              aria-label="Página Anterior">
             Anterior
-          </button>
+            </a>
+          }
           @for (pageNum of pages; track pageNum) {
-            <button (click)="onPageChange(pageNum)"
+            <a [routerLink]="pageUrl(pageNum)" [queryParams]="paginationQueryParams" fragment="blog-list-start"
               [ngClass]="{'bg-primary-blue text-white border-primary-blue': currentPage === pageNum, 'border-gray-300 text-gray-700 hover:bg-gray-100': currentPage !== pageNum}"
               class="px-4 py-2 border rounded-md transition-colors"
               [attr.aria-current]="currentPage === pageNum ? 'page' : null">
               {{ pageNum }}
-            </button>
+            </a>
           }
-          <button (click)="onPageChange(currentPage + 1)"
-            [disabled]="currentPage === totalPages"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
-            aria-label="Próxima Página">
+          @if (nextPage) {
+            <a [routerLink]="pageUrl(nextPage)" [queryParams]="paginationQueryParams" fragment="blog-list-start"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+              aria-label="Próxima Página">
             Próxima
-          </button>
+            </a>
+          }
         </div>
       }
 

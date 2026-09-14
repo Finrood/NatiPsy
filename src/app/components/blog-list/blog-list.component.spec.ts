@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { BlogListComponent } from './blog-list.component';
+import { BlogListComponent, parseBlogPage } from './blog-list.component';
 
 describe('BlogListComponent', () => {
   let component: BlogListComponent;
@@ -27,5 +27,12 @@ describe('BlogListComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('rejects malformed and non-positive page segments', () => {
+    expect(parseBlogPage(null)).toBeNull();
+    expect(parseBlogPage('2')).toBe(2);
+    expect(parseBlogPage('abc')).toBe(-1);
+    expect(parseBlogPage('0')).toBe(-1);
   });
 });
