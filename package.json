@@ -8,6 +8,9 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
+    "test:lazy-bundle": "node --test scripts/lazy-blog-bundle.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
@@ -35,6 +38,7 @@
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/typography": "^0.5.20",
     "@types/express": "^5.0.6",
     "@types/jasmine": "~6.0.0",
