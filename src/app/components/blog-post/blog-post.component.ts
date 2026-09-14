@@ -10,6 +10,22 @@ import { of, Subject } from 'rxjs';
 import { takeUntil, finalize, catchError, tap } from 'rxjs/operators';
 import { SITE_URL } from '../../config/contact';
 
+const BLOG_TITLE_SUFFIX = ' | Blog Natália Ferreira';
+
+export function buildBlogPageTitle(editorialTitle: string, seoTitle?: string): string {
+  const dedicatedTitle = seoTitle?.trim();
+  if (dedicatedTitle) return dedicatedTitle.slice(0, 60);
+
+  const baseTitle = editorialTitle.trim();
+  if (baseTitle.toLowerCase().endsWith(BLOG_TITLE_SUFFIX.toLowerCase())) {
+    return baseTitle.slice(0, 60);
+  }
+
+  const availableTitleLength = 60 - BLOG_TITLE_SUFFIX.length;
+  if (baseTitle.length <= availableTitleLength) return `${baseTitle}${BLOG_TITLE_SUFFIX}`;
+  return `${baseTitle.slice(0, availableTitleLength - 1).trimEnd()}…${BLOG_TITLE_SUFFIX}`;
+}
+
 @Component({
   selector: 'app-blog-post',
   standalone: true,
@@ -148,10 +164,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   updateMetaAndStructuredData(post: BlogPost): void {
     const imageUrl = blogAbsoluteImageUrl(post.image);
-    const seoTitle = post.seoTitle || post.title;
-    const pageTitle = /\s\|\sBlog Natália Ferreira$/i.test(seoTitle)
-      ? seoTitle
-      : `${seoTitle} | Blog Natália Ferreira`;
+    const pageTitle = buildBlogPageTitle(post.title, post.seoTitle);
     const seoDescription = post.seoDescription || post.description;
 
     this.seoService.updateMetaTags({
