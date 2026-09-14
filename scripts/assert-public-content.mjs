@@ -1,15 +1,20 @@
 import { readdir } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { extname, join, relative } from 'node:path';
 
 export async function findPrivateContent(root) {
   const violations = [];
+  const normalizedRoot = root.replaceAll('\\', '/').replace(/\/$/, '');
+  const isBlogRoot = normalizedRoot.endsWith('/assets/content/blog');
+
   async function visit(directory) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
       if (entry.isDirectory()) {
         await visit(path);
       } else if (extname(entry.name).toLowerCase() === '.md') {
-        violations.push(path);
+        const relativePath = relative(root, path).replaceAll('\\', '/');
+        const isBlogMarkdown = isBlogRoot || relativePath.startsWith('assets/content/blog/');
+        if (isBlogMarkdown) violations.push(path);
       }
     }
   }
