@@ -63,6 +63,24 @@ export function blogQueryParams(state: BlogQueryState): Record<string, string | 
   };
 }
 
+export function normalizeBlogQueryState(
+  state: BlogQueryState,
+  maxPage: number,
+  categories: string[],
+): BlogQueryState {
+  return {
+    ...state,
+    page: Math.min(Math.max(1, state.page), Math.max(1, maxPage)),
+    category: state.category && categories.includes(state.category) ? state.category : '',
+  };
+}
+
+function sameQueryValue(rawValue: unknown, normalizedValue: string | number | null): boolean {
+  const value = firstQueryValue(rawValue);
+  if (normalizedValue === null) return value === undefined;
+  return String(value) === String(normalizedValue);
+}
+
 @Component({
   selector: 'app-blog-list',
   standalone: true,
@@ -101,6 +119,10 @@ export class BlogListComponent implements OnInit, OnDestroy {
   sortDirection: BlogSortDirection = 'desc';
 
   private readonly destroy$ = new Subject<void>();
+  private rawQueryParams: Params = {};
+  private postsLoaded = false;
+  private categoriesLoaded = false;
+  private canonicalizationPending = false;
 
   protected readonly imageUrl = blogImageUrl;
 
@@ -117,6 +139,9 @@ export class BlogListComponent implements OnInit, OnDestroy {
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
+        this.rawQueryParams = params;
+        this.postsLoaded = false;
+        this.canonicalizationPending = false;
         const state = parseBlogQueryParams(params);
         this.currentPage = state.page;
         this.selectedCategory = state.category;
@@ -150,6 +175,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
         next: (posts) => {
           this.allPosts = posts;
           this.totalItems = this.allPosts.length;
+          this.postsLoaded = true;
           this.normalizeLoadedState();
           this.updateDisplayedPosts();
           if (this.allPosts.length === 0 && !this.loading) {
@@ -174,6 +200,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (categories) => {
           this.allCategories = categories;
+          this.categoriesLoaded = true;
           this.normalizeLoadedState();
           this.cdr.markForCheck();
         },
@@ -229,15 +256,24 @@ export class BlogListComponent implements OnInit, OnDestroy {
   }
 
   private normalizeLoadedState(): void {
-    const maxPage = Math.max(1, this.totalPages);
-    const normalizedPage = Math.min(this.currentPage, maxPage);
-    const normalizedCategory = this.allCategories.length > 0 && this.selectedCategory && !this.allCategories.includes(this.selectedCategory)
-      ? ''
-      : this.selectedCategory;
+    if (!this.postsLoaded || !this.categoriesLoaded || this.canonicalizationPending) return;
 
-    if (normalizedPage !== this.currentPage || normalizedCategory !== this.selectedCategory) {
-      this.currentPage = normalizedPage;
-      this.selectedCategory = normalizedCategory;
+    const normalizedState = normalizeBlogQueryState({
+      page: this.currentPage,
+      category: this.selectedCategory,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+    }, this.totalPages, this.allCategories);
+    const normalizedParams = blogQueryParams(normalizedState);
+    const canonicalKeys = new Set(Object.keys(normalizedParams));
+    const queryIsCanonical = Object.keys(this.rawQueryParams).every((key) => canonicalKeys.has(key))
+      && Object.entries(normalizedParams)
+        .every(([key, value]) => sameQueryValue(this.rawQueryParams[key], value));
+
+    if (!queryIsCanonical) {
+      this.currentPage = normalizedState.page;
+      this.selectedCategory = normalizedState.category;
+      this.canonicalizationPending = true;
       this.updateQueryParams();
     }
   }

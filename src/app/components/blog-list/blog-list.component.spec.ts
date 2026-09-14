@@ -3,7 +3,13 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { BlogListComponent, blogQueryParams, parseBlogQueryParams } from './blog-list.component';
+import {
+  BlogListComponent,
+  blogQueryParams,
+  normalizeBlogQueryState,
+  parseBlogQueryParams,
+} from './blog-list.component';
+import { Router } from '@angular/router';
 
 describe('BlogListComponent', () => {
   let component: BlogListComponent;
@@ -47,6 +53,20 @@ describe('BlogListComponent', () => {
     expect(parseBlogQueryParams({ page: '999999999999999999999' }).page).toBe(1);
   });
 
+  it('clears invalid categories and bounds excessive pages after data is loaded', () => {
+    expect(normalizeBlogQueryState({
+      page: 99,
+      category: 'missing',
+      sortBy: 'title',
+      sortDirection: 'asc',
+    }, 3, ['Carreira'])).toEqual({
+      page: 3,
+      category: '',
+      sortBy: 'title',
+      sortDirection: 'asc',
+    });
+  });
+
   it('serializes default state with nulls so stale query keys are removed', () => {
     expect(blogQueryParams({
       page: 1,
@@ -54,5 +74,17 @@ describe('BlogListComponent', () => {
       sortBy: 'date',
       sortDirection: 'desc',
     })).toEqual({ page: null, category: null, sortBy: null, sortDir: null });
+  });
+
+  it('updates the URL with replaceUrl so normalization adds no history entry', () => {
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.updateQueryParams();
+
+    expect(router.navigate).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: { page: null, category: null, sortBy: null, sortDir: null },
+      replaceUrl: true,
+    }));
   });
 });
