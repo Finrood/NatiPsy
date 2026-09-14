@@ -8,10 +8,10 @@ const prettier = JSON.parse(fs.readFileSync('.prettierrc.json', 'utf8'));
 assert.match(config, /extract-inline-html/);
 assert.match(config, /click-events-have-key-events/);
 assert.match(config, /interactive-supports-focus/);
-assert.equal(packageJson.scripts.lint, 'eslint .');
+assert.equal(packageJson.scripts.lint, 'eslint . --max-warnings=0');
 assert.equal(
   packageJson.scripts['format:check'],
-  'prettier --check eslint.config.mjs scripts/**/*.mjs .prettierrc.json',
+  'prettier --check "src/**/*.{ts,html,css}" "scripts/**/*.mjs" eslint.config.mjs .prettierrc.json package.json',
 );
 assert.equal(prettier.singleQuote, true);
 assert.equal(prettier.overrides[0].options.parser, 'angular');

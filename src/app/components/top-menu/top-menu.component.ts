@@ -9,7 +9,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   HostListener,
-  signal
+  signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -24,13 +24,11 @@ import { trigger, transition, style, animate } from '@angular/animations';
     trigger('fadeInOut', [
       transition(':enter', [
         style({ opacity: 0 }),
-        animate('300ms ease-out', style({ opacity: 1 }))
+        animate('300ms ease-out', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-in', style({ opacity: 0 }))
-      ])
-    ])
-  ]
+      transition(':leave', [animate('300ms ease-in', style({ opacity: 0 }))]),
+    ]),
+  ],
 })
 export class TopMenuComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
@@ -47,14 +45,21 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   readonly isHidden = signal(false);
   lastScrollPosition = 0;
 
-  readonly menuItems = ['inicio', 'meus-servicos', 'abordagem', 'vantagens', 'sobre-mim', 'blog'] as const;
+  readonly menuItems = [
+    'inicio',
+    'meus-servicos',
+    'abordagem',
+    'vantagens',
+    'sobre-mim',
+    'blog',
+  ] as const;
   readonly menuDisplayNames: Record<string, string> = {
-    'inicio': 'Início',
+    inicio: 'Início',
     'meus-servicos': 'Meus Serviços',
-    'abordagem': 'Abordagem',
-    'vantagens': 'Terapia Online',
+    abordagem: 'Abordagem',
+    vantagens: 'Terapia Online',
     'sobre-mim': 'Sobre Mim',
-    'blog': 'Blog',
+    blog: 'Blog',
   };
 
   ngOnInit(): void {
@@ -119,7 +124,7 @@ export class TopMenuComponent implements OnInit, OnDestroy {
       return;
     }
     const focusable = Array.from(
-      document.querySelectorAll<HTMLElement>('#mobile-menu a[href], #mobile-menu button')
+      document.querySelectorAll<HTMLElement>('#mobile-menu a[href], #mobile-menu button'),
     );
     if (focusable.length === 0) return;
     const first = focusable[0];

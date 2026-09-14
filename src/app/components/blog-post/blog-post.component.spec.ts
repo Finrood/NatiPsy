@@ -16,9 +16,8 @@ describe('BlogPostComponent', () => {
         provideRouter([{ path: '**', redirectTo: '' }]),
         provideHttpClient(),
         provideHttpClientTesting(),
-      ]
-    })
-    .compileComponents();
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(BlogPostComponent);
     component = fixture.componentInstance;
@@ -31,7 +30,9 @@ describe('BlogPostComponent', () => {
 
   it('should strip scripts and event handlers from rendered html', () => {
     const dirty = '<p>Hello</p><script>alert("xss")</script><img src="x" onerror="alert(1)">';
-    const trusted = component.toSafeHtml(dirty) as { changingThisBreaksApplicationSecurity: string };
+    const trusted = component.toSafeHtml(dirty) as {
+      changingThisBreaksApplicationSecurity: string;
+    };
     const html = trusted?.changingThisBreaksApplicationSecurity ?? String(trusted);
 
     expect(html).not.toContain('<script');

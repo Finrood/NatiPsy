@@ -18,7 +18,7 @@ export class NotFoundComponent implements OnInit {
       title: 'Página Não Encontrada | Natalia Ferreira',
       description: 'A página que você está procurando não foi encontrada.',
       url: `${SITE_URL}/404`,
-      robots: 'noindex, follow'
+      robots: 'noindex, follow',
     });
   }
 }

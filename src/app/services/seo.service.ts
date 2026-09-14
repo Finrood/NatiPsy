@@ -19,7 +19,7 @@ export interface SeoConfig {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SeoService {
   private readonly meta = inject(Meta);
@@ -35,13 +35,12 @@ export class SeoService {
     // and Angular router URLs). Normalize centrally so a stray slash in
     // any caller can never split SEO equity across duplicate canonicals.
     const rawUrl = config.url || currentUrl;
-    const targetUrl = rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/')
-      ? rawUrl.slice(0, -1)
-      : rawUrl;
+    const targetUrl =
+      rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
 
     this.title.setTitle(config.title);
-    
+
     this.meta.updateTag({ name: 'description', content: config.description });
     if (config.keywords) {
       this.meta.updateTag({ name: 'keywords', content: config.keywords });
@@ -54,7 +53,7 @@ export class SeoService {
         this.meta.removeTag('name="robots"');
       }
     }
-    
+
     // Open Graph
     this.updateArticleTags(config.tags);
     this.meta.updateTag({ property: 'og:title', content: config.title });
@@ -69,13 +68,13 @@ export class SeoService {
     if (config.author) {
       this.meta.updateTag({ property: 'article:author', content: config.author });
     }
-    
+
     // Twitter
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: config.title });
     this.meta.updateTag({ name: 'twitter:description', content: config.description });
     this.meta.updateTag({ name: 'twitter:image', content: targetImage });
-    
+
     // Update canonical link (SSR + browser)
     let link: HTMLLinkElement | null = this.document.querySelector('link[rel="canonical"]');
     if (!link) {
@@ -95,7 +94,7 @@ export class SeoService {
     while (this.meta.getTag('property="article:tag"')) {
       this.meta.removeTag('property="article:tag"');
     }
-    tags?.forEach(tag => this.meta.addTag({ property: 'article:tag', content: tag }));
+    tags?.forEach((tag) => this.meta.addTag({ property: 'article:tag', content: tag }));
   }
 
   setStructuredData(id: string, schema: object | object[]): void {
@@ -117,4 +116,4 @@ export class SeoService {
       script.remove();
     }
   }
-} 
+}

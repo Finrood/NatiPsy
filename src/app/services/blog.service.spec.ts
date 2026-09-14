@@ -11,7 +11,7 @@ describe('BlogService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()]
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(BlogService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -33,17 +33,17 @@ describe('BlogService', () => {
       description: 'd',
       image: null,
       categories: ['Test'],
-      author: null
+      author: null,
     };
 
     let result: BlogPost | null | undefined;
-    service.getPostBySlug('hello').subscribe(post => (result = post));
+    service.getPostBySlug('hello').subscribe((post) => (result = post));
 
     httpMock.expectOne('/assets/content/blog/index.json').flush([indexEntry]);
     httpMock.expectOne('/assets/content/blog/posts/hello.json').flush({
       ...indexEntry,
       readTime: 2,
-      content: '<p>Hello</p>'
+      content: '<p>Hello</p>',
     });
 
     expect(result?.content).toBe('<p>Hello</p>');
