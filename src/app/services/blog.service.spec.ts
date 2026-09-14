@@ -50,4 +50,26 @@ describe('BlogService', () => {
     expect(result?.readTime).toBe(2);
     expect(result?.date instanceof Date).toBe(true);
   });
+
+  it('shares one in-flight index GET across article and related navigation work', () => {
+    let posts: BlogPost[] | undefined;
+    let categories: string[] | undefined;
+    service.getPostsList().subscribe(value => (posts = value));
+    service.getAllCategories().subscribe(value => (categories = value));
+
+    const requests = httpMock.match('/assets/content/blog/index.json');
+    expect(requests).toHaveLength(1);
+    requests[0].flush([{
+      slug: 'hello',
+      title: 'Hello',
+      date: new Date('2025-01-01').toISOString(),
+      description: 'd',
+      image: null,
+      categories: ['Test'],
+      author: null,
+    }]);
+
+    expect(posts?.[0].slug).toBe('hello');
+    expect(categories).toEqual(['Test']);
+  });
 });

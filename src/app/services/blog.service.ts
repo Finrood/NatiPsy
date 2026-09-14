@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, finalize, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
 
 @Injectable({
@@ -9,6 +9,7 @@ import { BlogPost } from '../models/blog-post.model';
 })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
+  private postsIndexRequest$: Observable<BlogPost[]> | null = null;
   private postsIndexUrl = '/assets/content/blog/index.json';
 
   constructor(private http: HttpClient) {}
@@ -32,7 +33,9 @@ export class BlogService {
     if (this.postsCache) {
       return of(this.postsCache);
     }
-    return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
+    if (this.postsIndexRequest$) return this.postsIndexRequest$;
+
+    this.postsIndexRequest$ = this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
       map(posts => posts.map(post => ({
         ...post,
         date: new Date(post.date),
@@ -43,8 +46,13 @@ export class BlogService {
       tap(posts => {
         this.postsCache = posts;
       }),
-      catchError(err => this.handleError(err, 'load posts list'))
+      catchError(err => this.handleError(err, 'load posts list')),
+      finalize(() => {
+        this.postsIndexRequest$ = null;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+    return this.postsIndexRequest$;
   }
 
   getPostsList(
