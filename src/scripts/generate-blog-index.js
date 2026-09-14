@@ -158,9 +158,14 @@ function generateIndex() {
           const postData = {
             slug: slug,
             title: data.title,
+            dateOnly: data.date instanceof Date
+              ? data.date.toISOString().slice(0, 10)
+              : String(data.date).slice(0, 10),
             date: new Date(data.date).toISOString(), // Store as ISO string
             description: data.description,
             image: image,
+            imageWidth: data.imageWidth,
+            imageHeight: data.imageHeight,
             categories: categories,
             author: author, // Include author info
             readTime: calculateReadingTime(content) // Calculate read time
