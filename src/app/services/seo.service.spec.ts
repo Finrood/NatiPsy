@@ -80,6 +80,33 @@ describe('SeoService', () => {
     expect(tags().map(t => t.content)).toEqual(['Relacionamentos']);
   });
 
+  it('removes optional route metadata and updates social image geometry on navigation', () => {
+    service.updateMetaTags({
+      title: 'Post',
+      description: 'd',
+      keywords: 'Carreira',
+      type: 'article',
+      author: 'Natalia',
+      publishedTime: '2025-04-21',
+      image: `${SITE_URL}/assets/content/blog/images/post.webp`,
+      imageWidth: 1024,
+      imageHeight: 1536,
+      imageType: 'image/webp',
+      imageAlt: 'Post hero',
+    });
+    expect(metaService.getTag('property="article:published_time"')?.content).toBe('2025-04-21');
+    expect(metaService.getTag('property="og:image:width"')?.content).toBe('1024');
+    expect(metaService.getTag('name="twitter:url"')?.content).toBe(`${SITE_URL}/`);
+
+    service.updateMetaTags({ title: 'Home', description: 'home', url: `${SITE_URL}/` });
+    expect(metaService.getTag('name="keywords"')).toBeNull();
+    expect(metaService.getTag('property="article:published_time"')).toBeNull();
+    expect(metaService.getTag('property="article:author"')).toBeNull();
+    expect(metaService.getTag('property="og:image:width"')?.content).toBe('853');
+    expect(metaService.getTag('property="og:image:height"')?.content).toBe('1280');
+    expect(metaService.getTag('name="twitter:image:alt"')?.content).toBe('Natalia Ferreira - Psicóloga Clínica');
+  });
+
   it('should remove robots tag cleanup when config omits it', () => {
     metaService.addTag({ name: 'robots', content: 'noindex' });
     expect(metaService.getTag('name="robots"')).toBeTruthy();
