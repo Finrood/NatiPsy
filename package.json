@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "build:favicon": "node ./scripts/generate-favicon.mjs",
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",

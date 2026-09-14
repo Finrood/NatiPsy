@@ -35,8 +35,26 @@ for (const size of [16, 32, 48, 180, 192, 512]) {
 
 assert.equal(favicon.readUInt16LE(0), 0, 'favicon reserved field must be zero');
 assert.equal(favicon.readUInt16LE(2), 1, 'favicon must be an ICO resource');
-assert.ok(favicon.readUInt16LE(4) >= 1, 'favicon must contain at least one image');
-assert.equal(favicon[6] || 256, favicon[7] || 256, 'favicon image must be square');
+const faviconCount = favicon.readUInt16LE(4);
+assert.equal(faviconCount, 3, 'favicon must contain exactly the 16, 32, and 48 pixel layers');
+const faviconEntries = [];
+for (let index = 0; index < faviconCount; index += 1) {
+  const entryOffset = 6 + index * 16;
+  const width = favicon[entryOffset] || 256;
+  const height = favicon[entryOffset + 1] || 256;
+  const bytesInResource = favicon.readUInt32LE(entryOffset + 8);
+  const resourceOffset = favicon.readUInt32LE(entryOffset + 12);
+  assert.equal(width, height, 'favicon layers must be square');
+  assert.ok([16, 32, 48].includes(width), 'favicon layer size must be 16, 32, or 48 pixels');
+  assert.ok(bytesInResource > 0, 'favicon layer must contain image data');
+  assert.ok(resourceOffset + bytesInResource <= favicon.length, 'favicon layer must fit inside the ICO file');
+  const resource = favicon.subarray(resourceOffset, resourceOffset + bytesInResource);
+  assert.deepEqual([...resource.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'ICO layers must contain complete PNG data');
+  assert.equal(resource.readUInt32BE(16), width, 'ICO PNG width must match its directory entry');
+  assert.equal(resource.readUInt32BE(20), height, 'ICO PNG height must match its directory entry');
+  faviconEntries.push(width);
+}
+assert.deepEqual(faviconEntries.sort((a, b) => a - b), [16, 32, 48], 'favicon must include every required layer');
 
 for (const source of [indexHtml, topMenu]) {
   assert.doesNotMatch(source, /logo(?:_signature)?\.webp/, 'removed WebP logos must not be referenced');
