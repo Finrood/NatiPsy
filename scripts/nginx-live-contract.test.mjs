@@ -115,7 +115,7 @@ test('exercises the production Nginx routing and header contract', async (t) => 
     assert.equal(unknown.headers.get('x-robots-tag'), 'noindex, nofollow');
     assert.match(await unknown.text(), /Not found/);
 
-    const malformed = await fetch(`${baseUrl}/blog/%2F`);
+    const malformed = await fetch(`${baseUrl}/blog/%2`);
     assert.ok([400, 404].includes(malformed.status));
   } finally {
     if (containerId) execFileSync('docker', ['stop', containerId], { stdio: 'ignore' });
