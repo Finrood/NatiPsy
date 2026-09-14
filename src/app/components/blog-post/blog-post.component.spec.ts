@@ -4,6 +4,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { BlogPostComponent } from './blog-post.component';
+import { buildBlogPageTitle } from './blog-post.component';
+import { Meta, Title } from '@angular/platform-browser';
+import { SITE_URL } from '../../config/contact';
 
 describe('BlogPostComponent', () => {
   let component: BlogPostComponent;
@@ -37,5 +40,39 @@ describe('BlogPostComponent', () => {
     expect(html).not.toContain('<script');
     expect(html).not.toContain('onerror');
     expect(html).toContain('<p>Hello</p>');
+  });
+
+  it('budgets the final title and keeps dedicated SEO titles suffix-free', () => {
+    const dedicated = buildBlogPageTitle('Editorial title', 'Concise discovery title');
+    const fallback = buildBlogPageTitle('A very long editorial title that would otherwise exceed the complete search title budget by a wide margin');
+    const alreadySuffixed = buildBlogPageTitle('Short | Blog Natália Ferreira');
+
+    expect(dedicated).toBe('Concise discovery title');
+    expect(dedicated).not.toContain('Blog Natália Ferreira');
+    expect(fallback.length).toBeLessThanOrEqual(60);
+    expect(fallback.endsWith(' | Blog Natália Ferreira')).toBe(true);
+    expect(alreadySuffixed.match(/Blog Natália Ferreira/g)).toHaveLength(1);
+  });
+
+  it('writes final title, canonical, Open Graph, and Twitter values', () => {
+    component.updateMetaAndStructuredData({
+      slug: 'article',
+      title: 'Editorial title',
+      seoTitle: 'Concise discovery title',
+      seoDescription: 'Concise description',
+      socialTitle: 'Social title',
+      socialDescription: 'Social description',
+      date: new Date('2025-01-01'),
+      description: 'Editorial description',
+      image: null,
+      categories: ['Carreira'],
+      content: '<p>content</p>',
+      readTime: 1,
+    });
+
+    expect(TestBed.inject(Title).getTitle()).toBe('Concise discovery title');
+    expect(TestBed.inject(Meta).getTag('property="og:title"')?.content).toBe('Social title');
+    expect(TestBed.inject(Meta).getTag('name="twitter:title"')?.content).toBe('Social title');
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_URL}/blog/article`);
   });
 });

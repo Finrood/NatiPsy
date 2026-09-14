@@ -46,6 +46,21 @@ function imageUrl(post) {
   return post.image ? `${SITE_URL}/assets/content/blog/images/${post.image}` : null;
 }
 
+function optionalDiscoveryText(data, file, field, maxLength) {
+  if (data[field] === undefined || data[field] === null) {
+    return undefined;
+  }
+  if (typeof data[field] !== 'string' || data[field].trim() === '') {
+    console.warn(`[Blog Index Generator] Warning for ${file}: '${field}' must be a nonempty string. Ignoring.`);
+    return undefined;
+  }
+  const value = data[field].trim();
+  if (value.length > maxLength) {
+    console.warn(`[Blog Index Generator] Warning for ${file}: '${field}' is ${value.length} characters; consider keeping it under ${maxLength}.`);
+  }
+  return value;
+}
+
 function generateSitemap(posts) {
   // posts are sorted by date descending; the newest post date is the site's last modification
   const lastSiteUpdate = posts.length ? posts[0].date.slice(0, 10) : new Date().toISOString().slice(0, 10);
@@ -158,9 +173,10 @@ function generateIndex() {
           const postData = {
             slug: slug,
             title: data.title,
-            dateOnly: data.date instanceof Date
-              ? data.date.toISOString().slice(0, 10)
-              : String(data.date).slice(0, 10),
+            seoTitle: optionalDiscoveryText(data, file, 'seoTitle', 60),
+            seoDescription: optionalDiscoveryText(data, file, 'seoDescription', 160),
+            socialTitle: optionalDiscoveryText(data, file, 'socialTitle', 70),
+            socialDescription: optionalDiscoveryText(data, file, 'socialDescription', 200),
             date: new Date(data.date).toISOString(), // Store as ISO string
             description: data.description,
             image: image,
