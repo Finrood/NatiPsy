@@ -33,10 +33,11 @@ for (const file of nearMisses) {
   assert.doesNotMatch(file, hashedAsset, `${file} should not receive immutable caching`);
 }
 
+const cachePolicies = nginx.match(/add_header Cache-Control/g) ?? [];
 assert.equal(
-  (nginx.match(/add_header Cache-Control/g) ?? []).length,
-  3,
-  'Nginx should declare one Cache-Control policy per location',
+  cachePolicies.length,
+  8,
+  'Nginx should declare one Cache-Control policy for each cache-controlled location',
 );
 assert.equal(
   (nginx.match(/^\s*expires\b/gm) ?? []).length,
