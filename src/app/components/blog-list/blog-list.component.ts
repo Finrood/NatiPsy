@@ -32,6 +32,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
   allPosts: BlogPost[] = [];
   displayedPosts: BlogPost[] = [];
   allCategories: string[] = [];
+  private readonly categoryRouteSlug = this.route.snapshot.paramMap.get('category');
 
   loading = true;
   error: string | null = null;
@@ -85,7 +86,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
     this.error = null;
     this.cdr.markForCheck();
 
-    this.blogService.getPostsList(this.selectedCategory, this.sortBy, this.sortDirection)
+    this.blogService.getPostsList(this.categoryRouteSlug ? undefined : this.selectedCategory, this.sortBy, this.sortDirection)
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -95,7 +96,10 @@ export class BlogListComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (posts) => {
-          this.allPosts = posts;
+          const categoryPosts = this.categoryRouteSlug
+            ? posts.filter(post => post.categoryDetails?.some(category => category.slug === this.categoryRouteSlug))
+            : posts;
+          this.allPosts = categoryPosts;
           this.totalItems = this.allPosts.length;
           this.updateDisplayedPosts();
           if (this.allPosts.length === 0 && !this.loading) {

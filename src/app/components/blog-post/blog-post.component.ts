@@ -154,7 +154,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.seoService.updateMetaTags({
       title: `${post.title} | Blog Natália Ferreira`,
       description: post.description,
-      keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
+      keywords: [...post.categories, ...post.tags].join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       imageWidth: post.imageWidth,
       imageHeight: post.imageHeight,
@@ -164,7 +164,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
       author: post.author?.name || 'Natalia Ferreira',
-      tags: post.categories
+      tags: [...post.categories, ...post.tags]
     });
 
     this.seoService.setStructuredData(`blog-post-${post.slug}`, {
@@ -193,7 +193,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         '@type': 'WebPage',
         '@id': `${SITE_URL}/blog/${post.slug}`
       },
-      keywords: post.categories.join(', ')
+      keywords: [...post.categories, ...post.tags].join(', ')
     });
   }
 }

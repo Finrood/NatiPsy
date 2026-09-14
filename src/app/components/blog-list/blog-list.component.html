@@ -140,11 +140,12 @@
                 </h3>
                 <p class="mt-1 text-gray-600 line-clamp-3 flex-grow">{{ post.description }}</p>
                 <div class="mt-4 flex flex-wrap gap-2">
-                  @for (category of post.categories; track category) {
-                    <span
-                      class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full">
-                      {{ category }}
-                    </span>
+                  @for (category of post.categoryDetails; track category.slug) {
+                    <a [routerLink]="['/blog/category', category.slug]"
+                      [attr.title]="category.description"
+                      class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full hover:underline">
+                      {{ category.label }}
+                    </a>
                   }
                 </div>
                 <a [routerLink]="['/blog', post.slug]"

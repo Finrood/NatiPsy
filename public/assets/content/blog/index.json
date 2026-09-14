@@ -9,16 +9,23 @@
     "imageWidth": 1024,
     "imageHeight": 1536,
     "categories": [
-      "Carreira",
+      "Carreira"
+    ],
+    "tags": [
       "Mulheres Negras",
-      "Orientação Profissional",
-      "Psicologia",
       "Interseccionalidade",
       "Racismo",
       "Racismo de Gênero",
       "Fadiga de Batalha Racial",
       "Bem-Estar",
       "Saúde Mental"
+    ],
+    "categoryDetails": [
+      {
+        "slug": "carreira",
+        "label": "Carreira",
+        "description": "Reflexões e ferramentas para escolhas, transições e desenvolvimento profissional."
+      }
     ],
     "author": {
       "name": "Natalia Ferreira dos Santos",

@@ -11,9 +11,8 @@ imageWidth: 1024
 imageHeight: 1536
 categories:
   - Carreira
+tags:
   - Mulheres Negras
-  - Orientação Profissional
-  - Psicologia
   - Interseccionalidade
   - Racismo
   - Racismo de Gênero

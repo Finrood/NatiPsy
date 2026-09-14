@@ -19,6 +19,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'category/:category',
+        loadComponent: () =>
+          import('./components/blog-list/blog-list.component').then(
+            (m) => m.BlogListComponent
+          ),
+      },
+      {
         path: ':slug',
         // Eager on purpose: lazy loadComponent evaluation during navigation
         // races activation in dev (ng serve) and freezes the view on its
