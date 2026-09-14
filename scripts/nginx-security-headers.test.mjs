@@ -11,6 +11,7 @@ assert.match(dockerfile, /COPY nginx-security-headers\.conf \/etc\/nginx\/snippe
 assert.match(config, /server_tokens off/);
 assert.match(headers, /object-src 'none'/);
 assert.match(headers, /base-uri 'self'/);
+assert.doesNotMatch(headers, /fonts\.(?:googleapis|gstatic)\.com/);
 assert.match(headers, /form-action 'self'/);
 assert.match(headers, /frame-ancestors 'self'/);
 assert.match(headers, /Permissions-Policy/);
