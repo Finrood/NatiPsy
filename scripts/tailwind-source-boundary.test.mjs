@@ -1,13 +1,23 @@
 import assert from 'node:assert/strict';
-import { readFile, unlink, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { dirname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import postcss from 'postcss';
 import tailwindcss from '@tailwindcss/postcss';
 
-const stylesheetPath = resolve(process.cwd(), 'src/styles.css');
-const appProbePath = resolve(process.cwd(), 'src/app/tailwind-source-probe.html');
-const docsProbePath = '/tmp/natipsy-tailwind-doc-probe.md';
+const sourceStylesheet = resolve(process.cwd(), 'src/styles.css');
 const probeClass = 'bg-fuchsia-950';
+const tempProject = await mkdtemp(join(tmpdir(), 'natipsy-tailwind-project-'));
+const stylesheetPath = join(tempProject, 'src', 'styles.css');
+const appProbePath = join(tempProject, 'src', 'app', 'tailwind-source-probe.html');
+const docsProbePath = join(tempProject, 'docs', 'tailwind-source-probe.md');
+
+await mkdir(dirname(stylesheetPath), { recursive: true });
+await mkdir(dirname(appProbePath), { recursive: true });
+await mkdir(dirname(docsProbePath), { recursive: true });
+await copyFile(sourceStylesheet, stylesheetPath);
+await symlink(resolve(process.cwd(), 'node_modules'), join(tempProject, 'node_modules'), 'junction');
 
 const compileStyles = async () => {
   const css = await readFile(stylesheetPath, 'utf8');
@@ -15,24 +25,28 @@ const compileStyles = async () => {
   return result.css;
 };
 
-const baseline = await compileStyles();
-assert.doesNotMatch(baseline, /fuchsia-950/, 'the probe utility must not already be present');
+const fingerprint = css => ({
+  bytes: Buffer.byteLength(css),
+  sha256: createHash('sha256').update(css).digest('hex'),
+});
 
 try {
-  await writeFile(docsProbePath, '<div class="' + probeClass + '"></div>\n');
-  const withDocumentationProbe = await compileStyles();
-  assert.equal(withDocumentationProbe, baseline,
-    'a utility token in a documentation fixture must not change production CSS');
+  const baseline = await compileStyles();
+  assert.doesNotMatch(baseline, /fuchsia-950/, 'the probe utility must not already be present');
 
-  await writeFile(appProbePath, '<div class="' + probeClass + '"></div>\n');
+  await writeFile(docsProbePath, `<div class="${probeClass}"></div>\n`);
+  const withDocumentationProbe = await compileStyles();
+  assert.deepEqual(fingerprint(withDocumentationProbe), fingerprint(baseline),
+    'a documentation fixture inside the temporary repository must not change production CSS');
+
+  await writeFile(appProbePath, `<div class="${probeClass}"></div>\n`);
   const withApplicationProbe = await compileStyles();
-  assert.notEqual(withApplicationProbe, baseline,
-    'a utility token in an application template must change production CSS');
+  assert.notDeepEqual(fingerprint(withApplicationProbe), fingerprint(baseline),
+    'an application-template fixture must change the generated CSS');
   assert.match(withApplicationProbe, /\.bg-fuchsia-950/,
-    'the application probe utility must be emitted into production CSS');
+    'the application-template utility must be emitted into production CSS');
 } finally {
-  await unlink(docsProbePath).catch(() => {});
-  await unlink(appProbePath).catch(() => {});
+  await rm(tempProject, { recursive: true, force: true });
 }
 
 console.log('Tailwind source boundary contract passed.');
