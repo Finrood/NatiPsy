@@ -36,7 +36,7 @@ export class BlogService {
 
   private reviveIndex(raw: Omit<BlogPost, 'content' | 'readTime'>[]): BlogPost[] {
     return raw
-      .map(post => ({
+      .map((post) => ({
         ...post,
         date: new Date(post.date),
         dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
@@ -63,29 +63,25 @@ export class BlogService {
         this.transferState.remove(POSTS_INDEX_KEY);
         return of(this.reviveIndex(raw));
       }
-      if (this.postsCache) {
-        if (this.isServer) {
-          this.transferState.set(POSTS_INDEX_KEY, this.postsCache);
-        }
-        return of(this.postsCache);
-      }
-      return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
-        map(posts => this.reviveIndex(posts)),
-      );
-    }).pipe(
-      tap(posts => {
+      return of(this.postsCache);
+    }
+    return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
+      map((posts) =>
+        posts.map((post) => ({
+          ...post,
+          date: new Date(post.date),
+          content: '',
+          readTime: null,
+        })),
+      ),
+      map((posts) => posts.sort((a, b) => b.date.getTime() - a.date.getTime())),
+      tap((posts) => {
         this.postsCache = posts;
         if (this.isServer) {
           this.transferState.set(POSTS_INDEX_KEY, posts);
         }
       }),
-      catchError(err => {
-        // A failed shared observable must not permanently poison future retry
-        // attempts. Existing subscribers still receive the same error.
-        this.postsIndex$ = null;
-        return this.handleError(err, 'load posts list');
-      }),
-      shareReplay({ bufferSize: 1, refCount: false }),
+      catchError((err) => this.handleError(err, 'load posts list')),
     );
 
     this.postsIndex$ = source$;
@@ -95,16 +91,14 @@ export class BlogService {
   getPostsList(
     filterCategory?: string,
     sortBy: keyof Pick<BlogPost, 'date' | 'title'> = 'date',
-    sortDirection: 'asc' | 'desc' = 'desc'
+    sortDirection: 'asc' | 'desc' = 'desc',
   ): Observable<BlogPost[]> {
     return this.fetchPostsIndex().pipe(
-      map(posts => {
+      map((posts) => {
         let filteredPosts = posts;
 
         if (filterCategory) {
-          filteredPosts = filteredPosts.filter(post =>
-            post.categories.includes(filterCategory)
-          );
+          filteredPosts = filteredPosts.filter((post) => post.categories.includes(filterCategory));
         }
 
         filteredPosts.sort((a, b) => {
@@ -127,21 +121,20 @@ export class BlogService {
 
         return filteredPosts;
       }),
-      catchError(err => this.handleError(err, 'filter or sort posts')) // Already handled in fetchPostsIndex, but good practice
+      catchError((err) => this.handleError(err, 'filter or sort posts')), // Already handled in fetchPostsIndex, but good practice
     );
   }
 
   getAllCategories(): Observable<string[]> {
     return this.fetchPostsIndex().pipe(
-      map(posts => {
+      map((posts) => {
         const categories = new Set<string>();
-        posts.forEach(post => post.categories.forEach(cat => categories.add(cat)));
+        posts.forEach((post) => post.categories.forEach((cat) => categories.add(cat)));
         return Array.from(categories).sort();
       }),
-      catchError(err => this.handleError(err, 'load categories'))
+      catchError((err) => this.handleError(err, 'load categories')),
     );
   }
-
 
   getPostBySlug(slug: string): Observable<BlogPost | null> {
     // Client hydration: the server already fetched + rendered this post, so
@@ -153,26 +146,31 @@ export class BlogService {
       if (!raw) {
         return of(null);
       }
-      return of({ ...raw, date: new Date(raw.date), dateOnly: raw.dateOnly ?? new Date(raw.date).toISOString().slice(0, 10) });
+      return of({
+        ...raw,
+        date: new Date(raw.date),
+        dateOnly: raw.dateOnly ?? new Date(raw.date).toISOString().slice(0, 10),
+      });
     }
     // Check the post index first: unknown slugs return `null` immediately,
     // avoiding a pointless markdown request (and nested SSR fetches for
     // routes that don't exist).
     return this.fetchPostsIndex().pipe(
-      switchMap(index =>
-        index.some(post => post.slug === slug)
-          ? this.fetchPostJson(slug)
-          : of(null)
+      switchMap((index) =>
+        index.some((post) => post.slug === slug) ? this.fetchPostJson(slug) : of(null),
       ),
-      tap(post => {
+      tap((post) => {
         if (this.isServer && post) {
           this.transferState.set(postKey(slug), post);
         }
       }),
-      catchError(err => {
+      catchError((err) => {
         console.error(`Failed to load blog post ${slug}:`, err.message || err);
-        return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
-      })
+        return throwError(
+          () =>
+            new Error(`Could not load post "${slug}". It might not exist or there was a problem.`),
+        );
+      }),
     );
   }
 
@@ -185,36 +183,41 @@ export class BlogService {
    */
   private fetchPostJson(slug: string): Observable<BlogPost | null> {
     const postUrl = `/assets/content/blog/posts/${slug}.json`;
-    return this.http.get<BlogPost>(postUrl)
-      .pipe(
-        map((post) => ({
-          ...post,
-          date: new Date(post.date),
-          dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
-        })),
-        catchError(error => {
-          if (error instanceof HttpErrorResponse && error.status === 404) {
-            console.warn(`Blog post not found: ${slug}`);
-            return of(null);
-          }
-          console.error(`Failed to load or process blog post ${slug}:`, error.message || error);
-          return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
-        })
-      );
+    return this.http.get<BlogPost>(postUrl).pipe(
+      map((post) => ({
+        ...post,
+        date: new Date(post.date),
+      })),
+      catchError((error) => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          console.warn(`Blog post not found: ${slug}`);
+          return of(null);
+        }
+        console.error(`Failed to load or process blog post ${slug}:`, error.message || error);
+        return throwError(
+          () =>
+            new Error(`Could not load post "${slug}". It might not exist or there was a problem.`),
+        );
+      }),
+    );
   }
 
-  getRelatedPosts(currentSlug: string, categories?: string[], maxPosts: number = 3): Observable<BlogPost[]> {
+  getRelatedPosts(
+    currentSlug: string,
+    categories?: string[],
+    maxPosts: number = 3,
+  ): Observable<BlogPost[]> {
     const findRelated = (cats: string[]) => {
       if (!cats || cats.length === 0) {
         return of([]);
       }
       return this.fetchPostsIndex().pipe(
-        map(allPosts => {
+        map((allPosts) => {
           return allPosts
-            .filter(post => post.slug !== currentSlug)
-            .filter(post => post.categories.some(cat => cats.includes(cat)))
+            .filter((post) => post.slug !== currentSlug)
+            .filter((post) => post.categories.some((cat) => cats.includes(cat)))
             .slice(0, maxPosts);
-        })
+        }),
       );
     };
 
@@ -223,11 +226,11 @@ export class BlogService {
     }
 
     return this.getPostBySlug(currentSlug).pipe(
-      switchMap(currentPost => findRelated(currentPost?.categories || [])),
-      catchError(err => {
-        console.error("Error fetching related posts:", err);
+      switchMap((currentPost) => findRelated(currentPost?.categories || [])),
+      catchError((err) => {
+        console.error('Error fetching related posts:', err);
         return of([]);
-      })
+      }),
     );
   }
 }

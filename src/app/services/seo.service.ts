@@ -23,7 +23,7 @@ export interface SeoConfig {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SeoService {
   private readonly meta = inject(Meta);
@@ -39,22 +39,22 @@ export class SeoService {
     // and Angular router URLs). Normalize centrally so a stray slash in
     // any caller can never split SEO equity across duplicate canonicals.
     const rawUrl = config.url || currentUrl;
-    const targetUrl = rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/')
-      ? rawUrl.slice(0, -1)
-      : rawUrl;
+    const targetUrl =
+      rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
     const usingDefaultImage = !config.image;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
     const targetImageWidth = config.imageWidth ?? (usingDefaultImage ? 853 : undefined);
     const targetImageHeight = config.imageHeight ?? (usingDefaultImage ? 1280 : undefined);
     const targetImageType = config.imageType ?? (usingDefaultImage ? 'image/webp' : undefined);
-    const targetImageAlt = config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
+    const targetImageAlt =
+      config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
 
     this.title.setTitle(config.title);
-    
+
     this.setMeta({ name: 'description' }, config.description);
     this.setMeta({ name: 'keywords' }, config.keywords);
     this.setMeta({ name: 'robots' }, config.robots);
-    
+
     // Open Graph
     this.updateArticleTags(config.tags);
     this.setMeta({ property: 'og:title' }, config.title);
@@ -66,9 +66,10 @@ export class SeoService {
     this.setMeta({ property: 'og:image:type' }, targetImageType);
     this.setMeta({ property: 'og:image:alt' }, targetImageAlt);
     this.setMeta({ property: 'og:type' }, config.type || 'website');
+
     this.setMeta({ property: 'article:published_time' }, config.publishedTime);
     this.setMeta({ property: 'article:author' }, config.author);
-    
+
     // Twitter
     this.setMeta({ name: 'twitter:card' }, 'summary_large_image');
     this.setMeta({ name: 'twitter:url' }, targetUrl);
@@ -76,7 +77,7 @@ export class SeoService {
     this.setMeta({ name: 'twitter:description' }, config.description);
     this.setMeta({ name: 'twitter:image' }, targetImage);
     this.setMeta({ name: 'twitter:image:alt' }, targetImageAlt);
-    
+
     // Update canonical link (SSR + browser)
     let link: HTMLLinkElement | null = this.document.querySelector('link[rel="canonical"]');
     if (!link) {
@@ -87,7 +88,10 @@ export class SeoService {
     link.setAttribute('href', targetUrl);
   }
 
-  private setMeta(selector: { name?: string; property?: string }, content: string | undefined): void {
+  private setMeta(
+    selector: { name?: string; property?: string },
+    content: string | undefined,
+  ): void {
     const attribute = selector.name ? `name="${selector.name}"` : `property="${selector.property}"`;
     if (content === undefined) {
       this.meta.getTag(attribute) && this.meta.removeTag(attribute);
@@ -105,7 +109,7 @@ export class SeoService {
     while (this.meta.getTag('property="article:tag"')) {
       this.meta.removeTag('property="article:tag"');
     }
-    tags?.forEach(tag => this.meta.addTag({ property: 'article:tag', content: tag }));
+    tags?.forEach((tag) => this.meta.addTag({ property: 'article:tag', content: tag }));
   }
 
   setStructuredData(id: string, schema: object | object[]): void {

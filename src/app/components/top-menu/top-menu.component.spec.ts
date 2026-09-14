@@ -11,9 +11,8 @@ describe('TopMenuComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TopMenuComponent],
-      providers: [provideRouter([]), provideNoopAnimations()]
-    })
-    .compileComponents();
+      providers: [provideRouter([]), provideNoopAnimations()],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TopMenuComponent);
     component = fixture.componentInstance;

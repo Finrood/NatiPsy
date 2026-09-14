@@ -19,7 +19,8 @@ export class AboutMeComponent implements OnInit, OnDestroy {
       '@type': 'Person',
       name: 'Natalia Ferreira',
       jobTitle: 'Psicóloga Clínica',
-      description: 'Psicóloga Clínica e Orientadora de Carreira especializada em Terapia Relacional Sistêmica',
+      description:
+        'Psicóloga Clínica e Orientadora de Carreira especializada em Terapia Relacional Sistêmica',
       image: `${SITE_URL}/assets/NatiAboutMe.webp`,
       url: SITE_URL,
       telephone: WHATSAPP_NUMBER,

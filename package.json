@@ -6,6 +6,7 @@
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
     "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
+    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "build:favicon": "node ./scripts/generate-favicon.mjs",
     "build": "npm run build:blog-index && ng build",
@@ -13,7 +14,11 @@
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
     "test": "ng test",
-    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{ts,html,css}\" \"scripts/**/*.mjs\" eslint.config.mjs .prettierrc.json package.json",
+    "format:check": "prettier --check \"src/**/*.{ts,html,css}\" \"scripts/**/*.mjs\" eslint.config.mjs .prettierrc.json package.json",
+    "test:lint-format-contract": "node ./scripts/lint-format-fixtures.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
@@ -38,6 +43,9 @@
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
+    "@angular-eslint/eslint-plugin": "22.5.0",
+    "@angular-eslint/eslint-plugin-template": "22.5.0",
+    "@angular-eslint/template-parser": "22.5.0",
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
@@ -45,7 +53,11 @@
     "@types/express": "^5.0.6",
     "@types/jasmine": "~6.0.0",
     "@types/node": "^26.4.1",
+    "@typescript-eslint/eslint-plugin": "8.70.0",
+    "@typescript-eslint/parser": "8.70.0",
+    "eslint": "9.39.5",
     "gray-matter": "^4.0.3",
+    "globals": "14.0.0",
     "istanbul-lib-instrument": "^6.0.3",
     "jasmine-core": "~7.0.2",
     "jsdom": "^30.0.1",
@@ -55,6 +67,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.3.0",
     "marked": "^18.0.11",
+    "prettier": "3.9.6",
     "typescript": "~6.0.3",
     "vitest": "^4.1.11"
   }

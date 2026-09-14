@@ -12,13 +12,8 @@ describe('BlogListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BlogListComponent],
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-      ]
-    })
-    .compileComponents();
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(BlogListComponent);
     component = fixture.componentInstance;
