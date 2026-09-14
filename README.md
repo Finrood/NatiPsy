@@ -34,14 +34,13 @@ To build the project run:
 ng build
 ```
 
-## Production serving model
+## Production robots monitoring
 
-The production image serves Angular's prerendered browser output as static files
-with Nginx. The build generates `index.html` for `/`, `/blog`, and each article;
-Nginx resolves those extensionless paths internally, redirects trailing-slash
-variants to their canonical no-slash URLs, and returns the branded
-`/404/index.html` with HTTP 404 and `noindex` for unknown paths. The Express SSR
-entry point is not the production serving contract.
+`npm run smoke:robots` checks the live `/robots.txt` policy, including one
+canonical `Sitemap` directive. The same bounded assertion runs daily through
+GitHub Actions and can be run manually after deployment. Configure the
+repository secret `SMOKE_BASE_URL`; a failure should be routed to the
+deployment/on-call notification destination.
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 

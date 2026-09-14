@@ -1,0 +1,23 @@
+name: Production robots smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '27 6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  robots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SMOKE_BASE_URL: ${{ secrets.SMOKE_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.3
+      - name: Verify live robots policy
+        run: node scripts/robots-smoke-check.mjs
