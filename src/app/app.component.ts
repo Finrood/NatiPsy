@@ -19,6 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroy$ = new Subject<void>();
+  private routeObserver: MutationObserver | null = null;
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -43,31 +44,40 @@ export class AppComponent implements OnInit, OnDestroy {
           return;
         }
 
-        window.setTimeout(() => this.focusRouteDestination(), 0);
+        this.focusRouteDestination();
       });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.routeObserver?.disconnect();
   }
 
   private focusRouteDestination(): void {
-    const heading = document.querySelector<HTMLElement>('main h1');
-    const destination = heading ?? document.getElementById('main-content');
-    if (!destination) {
-      return;
-    }
+    this.routeObserver?.disconnect();
+    const main = document.getElementById('main-content');
+    if (!main) return;
 
-    if (!destination.hasAttribute('tabindex')) {
-      destination.setAttribute('tabindex', '-1');
-    }
-    destination.focus({ preventScroll: true });
+    const focusReadyDestination = () => {
+      const heading = main.querySelector<HTMLElement>('h1');
+      const loading = main.querySelector('[aria-busy="true"]');
+      if (!heading && loading) return;
 
-    const announcement = document.getElementById('route-announcer');
-    if (announcement) {
-      const label = heading?.textContent?.trim() || 'Conteúdo principal';
-      announcement.textContent = `Navegação concluída: ${label}`;
-    }
+      this.routeObserver?.disconnect();
+      const destination = heading ?? main;
+      if (!destination.hasAttribute('tabindex')) destination.setAttribute('tabindex', '-1');
+      destination.focus({ preventScroll: true });
+
+      const announcement = document.getElementById('route-announcer');
+      if (announcement) {
+        const label = heading?.textContent?.trim() || 'Conteúdo principal';
+        announcement.textContent = `Navegação concluída: ${label}`;
+      }
+    };
+
+    this.routeObserver = new MutationObserver(focusReadyDestination);
+    this.routeObserver.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-busy'] });
+    focusReadyDestination();
   }
 }
