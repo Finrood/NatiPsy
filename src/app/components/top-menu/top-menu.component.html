@@ -72,9 +72,12 @@
 
 </header>
 
-@if (isMenuOpen()) {
-  <div
+<div
     class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
+    [class.mobile-menu-open]="isMenuOpen()"
+    [class.mobile-menu-closed]="!isMenuOpen()"
+    [attr.aria-hidden]="isMenuOpen() ? 'false' : 'true'"
+    [attr.inert]="isMenuOpen() ? null : ''"
     id="mobile-menu"
     role="dialog"
     aria-modal="true"
@@ -94,4 +97,3 @@
       }
     </nav>
   </div>
-}

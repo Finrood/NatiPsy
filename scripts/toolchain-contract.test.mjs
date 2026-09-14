@@ -2,12 +2,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const toolchainGuard = fs.readFileSync('scripts/check-toolchain.mjs', 'utf8');
 const nvmrc = fs.readFileSync('.nvmrc', 'utf8').trim();
 const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
 
 assert.equal(nvmrc, '22.22.3');
 assert.deepEqual(packageJson.engines, { node: '>=22.22.3 <23', npm: '>=10.9.7 <11' });
 assert.equal(packageJson.packageManager, 'npm@10.9.7');
+assert.equal(packageJson.scripts.preinstall, 'node ./scripts/check-toolchain.mjs');
+assert.match(toolchainGuard, /Unsupported toolchain/);
+assert.match(fs.readFileSync('Dockerfile', 'utf8'), /FROM node:22\.22\.3-alpine AS build/);
 for (const name of ['@angular/common', '@angular/core', '@angular/router', '@angular/build', '@angular/cli']) {
   assert.match(dependencies[name], /^22\.1\./, `${name} should stay on the documented Angular 22.1 patch line`);
 }

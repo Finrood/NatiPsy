@@ -7,6 +7,7 @@
   },
   "packageManager": "npm@10.9.7",
   "scripts": {
+    "preinstall": "node ./scripts/check-toolchain.mjs",
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
     "build": "npm run build:blog-index && ng build",

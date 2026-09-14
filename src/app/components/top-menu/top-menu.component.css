@@ -1,14 +1,21 @@
 .mobile-menu-container {
-  animation: top-menu-fade-in 300ms ease-out;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-0.5rem);
+  transition: opacity 300ms ease, transform 300ms ease, visibility 0s linear 300ms;
 }
 
-@keyframes top-menu-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.mobile-menu-container.mobile-menu-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .mobile-menu-container {
-    animation: none;
+    transition-duration: 0.01ms;
   }
 }
