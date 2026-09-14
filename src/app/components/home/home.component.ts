@@ -38,17 +38,13 @@ export function homepageStructuredData() {
         telephone: WHATSAPP_NUMBER,
       },
       {
-        '@type': 'ProfessionalService',
+        '@type': 'Service',
         '@id': `${SITE_URL}/#service`,
         name: 'Natalia Ferreira - Psicóloga Clínica',
         url: `${SITE_URL}/`,
         image: `${SITE_URL}/assets/NatiHero.webp`,
         provider: { '@id': `${SITE_URL}/#person` },
-        availableChannel: {
-          '@type': 'ServiceChannel',
-          serviceUrl: `${SITE_URL}/`,
-          serviceLocation: { '@type': 'VirtualLocation', url: `${SITE_URL}/` },
-        },
+        serviceUrl: `${SITE_URL}/`,
       },
     ],
   };

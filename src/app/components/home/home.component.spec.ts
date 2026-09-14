@@ -3,7 +3,7 @@ import { homepageStructuredData } from './home.component';
 describe('homepage structured data', () => {
   it('uses linked entities without inventing location or credential types', () => {
     const graph = homepageStructuredData()['@graph'];
-    const service = graph.find((entity) => entity['@type'] === 'ProfessionalService')! as any;
+    const service = graph.find((entity) => entity['@type'] === 'Service')! as any;
     const person = graph.find((entity) => entity['@type'] === 'Person')! as any;
 
     expect(graph.map((entity) => entity['@id'])).toEqual([
@@ -15,6 +15,8 @@ describe('homepage structured data', () => {
     expect(service).not.toHaveProperty('address');
     expect(service).not.toHaveProperty('geo');
     expect(person).not.toHaveProperty('hasCredential');
-    expect(service.availableChannel.serviceLocation['@type']).toBe('VirtualLocation');
+    expect(service.serviceUrl).toBe('https://psicologanataliaferreira.com/');
+    expect(service).not.toHaveProperty('availableChannel');
+    expect(service).not.toHaveProperty('serviceLocation');
   });
 });
