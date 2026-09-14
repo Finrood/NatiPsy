@@ -28,4 +28,22 @@ describe('BlogListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('uses automatic pagination scrolling when reduced motion is requested', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = (() => ({ matches: true })) as unknown as typeof window.matchMedia;
+
+    expect(component.getPaginationScrollBehavior()).toBe('auto');
+
+    window.matchMedia = originalMatchMedia;
+  });
+
+  it('uses smooth pagination scrolling when reduced motion is not requested', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = (() => ({ matches: false })) as unknown as typeof window.matchMedia;
+
+    expect(component.getPaginationScrollBehavior()).toBe('smooth');
+
+    window.matchMedia = originalMatchMedia;
+  });
 });
