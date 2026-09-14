@@ -44,6 +44,21 @@ To execute unit tests with the [Karma](https://karma-runner.github.io) test runn
 ng test
 ```
 
+## Quality gates
+
+The GitHub Actions quality workflow runs the following checks. Run the same
+commands locally before opening or updating a pull request:
+
+```bash
+npm ci
+npm run build:blog-index
+git diff --exit-code -- public/assets/content/blog src/routes.txt public/sitemap.xml
+npm run audit:security
+npm test -- --watch=false
+npm run build -- --configuration=production
+docker build --check .
+```
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:
