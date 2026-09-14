@@ -44,7 +44,7 @@ assert.equal(
   0,
   'Nginx should not emit an extra Expires-derived cache policy',
 );
-assert.match(nginx, /add_header Cache-Control "no-cache, must-revalidate";/);
+assert.match(nginx, /add_header Cache-Control "no-cache, must-revalidate"(?: always)?;/);
 assert.match(nginx, /add_header Cache-Control "public, max-age=31536000, immutable";/);
 assert.match(nginx, /add_header Cache-Control "public, max-age=604800, must-revalidate";/);
 
