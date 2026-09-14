@@ -11,16 +11,17 @@ test('quality workflow is read-only and cancels superseded runs', () => {
   assert.match(workflow, /actions\/setup-node@v4/);
 });
 
-test('quality workflow protects generation, audit, tests, build, and Docker syntax', () => {
+test('quality workflow protects generation, audit, tests, build, contracts, and Docker', () => {
   for (const command of [
     'npm ci',
     'npm run build:blog-index',
     'git diff --exit-code',
-    'npm audit --audit-level=high',
-    'npm audit --omit=dev --audit-level=moderate',
+    'npm run audit:security',
     'npm test -- --watch=false',
     'npm run build -- --configuration=production',
-    'docker build --check .',
+    'for contract in scripts/*contract.test.mjs',
+    'npm run report:bundle-size',
+    'docker build --tag natipsy-quality .',
   ]) {
     assert.match(workflow, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
