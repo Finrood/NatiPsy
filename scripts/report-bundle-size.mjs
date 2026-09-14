@@ -1,29 +1,53 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const distDir = path.resolve(process.env.BUNDLE_DIST || 'dist/nati-psy/browser');
+const distRoot = path.resolve(process.env.BUNDLE_DIST_ROOT || 'dist/nati-psy');
+const distDir = path.join(distRoot, 'browser');
 const indexPath = path.join(distDir, 'index.html');
+const statsPath = path.resolve(process.env.BUNDLE_STATS_FILE || path.join(distRoot, 'stats.json'));
 const policy = JSON.parse(fs.readFileSync('performance-budgets.json', 'utf8'));
 
-if (!fs.existsSync(indexPath)) {
-  console.error(`Bundle output not found at ${indexPath}. Run the production build first.`);
+if (!fs.existsSync(indexPath) || !fs.existsSync(statsPath)) {
+  console.error(`Bundle output or stats not found. Expected ${indexPath} and ${statsPath}.`);
   process.exit(1);
 }
 
+const stats = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
+const outputs = stats.outputs || {};
 const html = fs.readFileSync(indexPath, 'utf8');
-const assets = [
+const entryAssets = [
   ...html.matchAll(/<script[^>]+src="([^"]+)"/g),
   ...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g),
 ].map(match => match[1]).filter(asset => !asset.startsWith('http'));
 
-const uniqueAssets = [...new Set(assets)];
-const files = uniqueAssets.map(asset => {
-  const filePath = path.resolve(distDir, asset.replace(/^\//, ''));
+const initialAssets = new Set(entryAssets.map(asset => asset.replace(/^\//, '')));
+const queue = [...initialAssets];
+while (queue.length > 0) {
+  const asset = queue.shift();
+  const output = outputs[asset];
+  if (!output) {
+    throw new Error(`Initial asset ${asset} is missing from ${statsPath}.`);
+  }
+  for (const imported of output.imports || []) {
+    if (imported.kind !== 'import-statement' || initialAssets.has(imported.path)) {
+      continue;
+    }
+    initialAssets.add(imported.path);
+    queue.push(imported.path);
+  }
+}
+
+const files = [...initialAssets].map(asset => {
+  const filePath = path.resolve(distDir, asset);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Initial asset ${asset} is missing from ${distDir}.`);
+  }
   return { asset, bytes: fs.statSync(filePath).size };
 });
 const initialBytes = files.reduce((total, file) => total + file.bytes, 0);
 const report = {
   distDir,
+  statsPath,
   initialBytes,
   initialKiB: Number((initialBytes / 1024).toFixed(2)),
   files,
@@ -33,7 +57,13 @@ const report = {
 console.log(JSON.stringify(report, null, 2));
 
 const baselinePath = process.env.BUNDLE_BASELINE_FILE;
-if (baselinePath && fs.existsSync(baselinePath)) {
+if (!baselinePath) {
+  console.error('BUNDLE_BASELINE_FILE is required for CI bundle regression checks.');
+  process.exitCode = 1;
+} else if (!fs.existsSync(baselinePath)) {
+  console.error(`Bundle baseline not found at ${baselinePath}.`);
+  process.exitCode = 1;
+} else {
   const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
   const increasePercent = ((initialBytes - baseline.initialBytes) / baseline.initialBytes) * 100;
   console.log(`Initial bundle change: ${increasePercent.toFixed(2)}%`);

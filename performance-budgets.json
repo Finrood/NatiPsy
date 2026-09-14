@@ -1,7 +1,7 @@
 {
   "initial": {
-    "warningBytes": 614400,
-    "errorBytes": 819200
+    "warningBytes": 512000,
+    "errorBytes": 563200
   },
   "regression": {
     "maxIncreasePercent": 10,

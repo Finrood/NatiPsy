@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
-    "build": "npm run build:blog-index && ng build",
+    "build": "npm run build:blog-index && ng build --stats-json",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
