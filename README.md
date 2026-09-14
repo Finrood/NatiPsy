@@ -45,6 +45,10 @@ entry point is not the production serving contract.
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+## Container deployment
+
+The production container is a static Nginx image pinned by digest and listens on unprivileged port `8080`. Compose runs it as UID/GID `101:101` with a read-only root filesystem, dropped capabilities, `no-new-privileges`, and writable Nginx paths supplied through `tmpfs`. The external `caddy-network` must be created by the host/reverse-proxy owner (`docker network create caddy-network`) before `docker compose up -d`; Caddy should proxy to service `psicologa-web:8080`. The image healthcheck requests `/index.html`.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:

@@ -17,4 +17,7 @@ jobs:
         with:
           node-version: 22.22.3
       - name: Exercise the live Nginx contract
+        env:
+          NGINX_LIVE_IMAGE: nginxinc/nginx-unprivileged:1.27.5-alpine
+          NGINX_LIVE_CONTAINER_PORT: 8080
         run: npm run test:nginx:live

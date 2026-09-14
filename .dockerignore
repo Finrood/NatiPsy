@@ -1,34 +1,17 @@
-# Repository and local dependency trees never belong in the build context.
-.git
-.git/**
 node_modules
 dist
-.angular
-coverage
-
-# Editor, OS, logs, and disposable audit output.
-.idea
+.git
+.github
+.codex
+.agents
 .vscode
-*.iml
+coverage
 *.log
-*.swp
-.DS_Store
-audit-screenshots
-tmp
-temp
-
-# Local configuration and credentials. Keep only an explicitly named example.
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
-*.pem
-*.key
-*.crt
-*.p12
-
-# Generated archives and caches.
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.cache
-.npm
+tmp
+.tmp
+playwright-report
+test-results
