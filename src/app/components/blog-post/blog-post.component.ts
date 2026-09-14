@@ -61,6 +61,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   protected readonly imageUrl = blogImageUrl;
+  protected readonly dateOnly = blogDateOnly;
+  protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
     this.route.paramMap
@@ -180,6 +182,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       keywords:
         post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
+      imageWidth: post.imageWidth,
+      imageHeight: post.imageHeight,
+      imageType: post.image ? 'image/webp' : undefined,
+      imageAlt: post.title,
       url: `${SITE_URL}/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
