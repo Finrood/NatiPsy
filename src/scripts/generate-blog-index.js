@@ -97,7 +97,6 @@ function synchronizeStaticMetadata() {
   html = replaceOnce(html, /<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escapeHtml(title)}">`);
   html = replaceOnce(html, /<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escapeHtml(description)}">`);
   html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${image}">`);
-  html = replaceOnce(html, /<meta name="twitter:url" content="[^"]*">/, `<meta name="twitter:url" content="${SITE_URL}/">`);
   html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escapeHtml(title)}">`);
   html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escapeHtml(description)}">`);
   html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${image}">`);
