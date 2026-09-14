@@ -164,6 +164,8 @@ function generateIndex() {
             date: new Date(data.date).toISOString(), // Store as ISO string
             description: data.description,
             image: image,
+            imageWidth: data.imageWidth,
+            imageHeight: data.imageHeight,
             categories: categories,
             author: author, // Include author info
             readTime: calculateReadingTime(content) // Calculate read time
