@@ -7,6 +7,7 @@
     "build": "npm run build:blog-index && ng build --stats-json",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
+    "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test": "ng test",
     "report:bundle-size": "node ./scripts/report-bundle-size.mjs",
     "test:bundle-budget": "node ./scripts/bundle-budget-contract.test.mjs",
