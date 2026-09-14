@@ -39,6 +39,7 @@ export class BlogService {
       map(posts => posts.map(post => ({
         ...post,
         date: new Date(post.date),
+        dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
         content: '',
         readTime: null
       }))),
@@ -137,6 +138,7 @@ export class BlogService {
         map((post) => ({
           ...post,
           date: new Date(post.date),
+          dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
         })),
         catchError(error => {
           if (error instanceof HttpErrorResponse && error.status === 404) {
