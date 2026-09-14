@@ -1,23 +1,44 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, PLATFORM_ID, SecurityContext, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  ViewEncapsulation,
+  PLATFORM_ID,
+  SecurityContext,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogAbsoluteImageUrl, blogImageUrl } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import {
+  BlogPost,
+  blogAbsoluteImageUrl,
+  blogImageUrl,
+} from '../../models/blog-post.model';
+import {
+  CommonModule,
+  NgOptimizedImage,
+  isPlatformBrowser,
+} from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
-import { forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  map,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
 import { SITE_URL } from '../../config/contact';
 
 @Component({
   selector: 'app-blog-post',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    NgOptimizedImage
-  ],
+  imports: [CommonModule, RouterLink, NgOptimizedImage],
   templateUrl: './blog-post.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -44,7 +65,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
-        map(params => params.get('slug')),
+        map((params) => params.get('slug')),
         distinctUntilChanged(),
         tap(() => {
           this.loading = true;
@@ -55,15 +76,25 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           this.relatedPosts = [];
           this.cdr.markForCheck();
         }),
-        switchMap(slug => slug ? this.loadPostState(slug) : of({ post: null, relatedPosts: [], error: 'Post slug not found in URL.' })),
-        takeUntil(this.destroy$)
+        switchMap((slug) =>
+          slug
+            ? this.loadPostState(slug)
+            : of({
+                post: null,
+                relatedPosts: [],
+                error: 'Post slug not found in URL.',
+              }),
+        ),
+        takeUntil(this.destroy$),
       )
-      .subscribe(state => {
+      .subscribe((state) => {
         this.loading = false;
         this.post = state.post;
         this.relatedPosts = state.relatedPosts;
         this.error = state.error;
-        this.safeContent = state.post ? this.toSafeHtml(state.post.content as string) : null;
+        this.safeContent = state.post
+          ? this.toSafeHtml(state.post.content as string)
+          : null;
 
         if (state.post) {
           this.updateMetaAndStructuredData(state.post);
@@ -83,20 +114,31 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.seoService.removeStructuredData('blog-post');
   }
 
-  private loadPostState(slug: string): Observable<{ post: BlogPost | null; relatedPosts: BlogPost[]; error: string | null }> {
+  private loadPostState(
+    slug: string,
+  ): Observable<{
+    post: BlogPost | null;
+    relatedPosts: BlogPost[];
+    error: string | null;
+  }> {
     return this.blogService.getPostBySlug(slug).pipe(
-      switchMap(post => post
-        ? forkJoin({
-            post: of(post),
-            relatedPosts: this.blogService.getRelatedPosts(slug, post.categories, 3),
-          })
-        : of({ post: null, relatedPosts: [], error: 'Post não encontrado.' })),
-      map(state => 'error' in state ? state : { ...state, error: null }),
-      catchError(error => of({
-        post: null,
-        relatedPosts: [],
-        error: error instanceof Error ? error.message : 'Erro ao carregar o post.',
-      }))
+      switchMap((post) =>
+        post
+          ? this.blogService.getRelatedPosts(slug, post.categories, 3).pipe(
+              map((relatedPosts) => ({ post, relatedPosts })),
+              catchError(() => of({ post, relatedPosts: [] })),
+            )
+          : of({ post: null, relatedPosts: [], error: 'Post não encontrado.' }),
+      ),
+      map((state) => ('error' in state ? state : { ...state, error: null })),
+      catchError((error) =>
+        of({
+          post: null,
+          relatedPosts: [],
+          error:
+            error instanceof Error ? error.message : 'Erro ao carregar o post.',
+        }),
+      ),
     );
   }
 
@@ -124,7 +166,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       title: 'Erro | Psicóloga Natalia Ferreira',
       description: 'Página não encontrada ou erro ao carregar o artigo.',
       url: `${SITE_URL}/404`,
-      robots: 'noindex'
+      robots: 'noindex',
     });
     this.cdr.detectChanges();
   }
@@ -135,13 +177,14 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.seoService.updateMetaTags({
       title: `${post.title} | Blog Natália Ferreira`,
       description: post.description,
-      keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
+      keywords:
+        post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       url: `${SITE_URL}/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
       author: post.author?.name || 'Natalia Ferreira',
-      tags: post.categories
+      tags: post.categories,
     });
 
     const blogPosting = {
@@ -155,22 +198,22 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       author: {
         '@type': 'Person',
         name: post.author?.name || 'Natalia Ferreira',
-        url: SITE_URL
+        url: SITE_URL,
       },
       publisher: {
         '@type': 'Person',
         name: 'Natalia Ferreira Psicóloga',
         logo: {
           '@type': 'ImageObject',
-          url: `${SITE_URL}/assets/logo.png`
-        }
+          url: `${SITE_URL}/assets/logo.png`,
+        },
       },
       url: `${SITE_URL}/blog/${post.slug}`,
       mainEntityOfPage: {
         '@type': 'WebPage',
-        '@id': `${SITE_URL}/blog/${post.slug}`
+        '@id': `${SITE_URL}/blog/${post.slug}`,
       },
-      keywords: post.categories.join(', ')
+      keywords: post.categories.join(', '),
     };
     this.seoService.setStructuredData('blog-post', {
       '@context': 'https://schema.org',
@@ -179,9 +222,24 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         {
           '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
-            { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
-            { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Início',
+              item: SITE_URL,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Blog',
+              item: `${SITE_URL}/blog`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: post.title,
+              item: `${SITE_URL}/blog/${post.slug}`,
+            },
           ],
         },
       ],
