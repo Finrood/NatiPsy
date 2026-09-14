@@ -108,6 +108,20 @@ test("publishes only validated content and cleans stale generated artifacts", as
   );
   assert.deepEqual(await findPrivateContent(publicBlog), []);
 
+  const browserRoot = join(root, "dist/nati-psy/browser");
+  const leakedBlogMarkdown = join(
+    browserRoot,
+    "assets/content/blog/source.md",
+  );
+  await mkdir(join(browserRoot, "assets/content/blog"), { recursive: true });
+  await mkdir(join(browserRoot, "assets/fonts"), { recursive: true });
+  await writeFile(leakedBlogMarkdown, "private source");
+  await writeFile(
+    join(browserRoot, "assets/fonts/README.md"),
+    "public font license",
+  );
+  assert.deepEqual(await findPrivateContent(browserRoot), [leakedBlogMarkdown]);
+
   await writeFile(
     join(root, "content/blog/keep.md"),
     "---\ntitle: Keep this post\ndate: 2026-01-01\ndescription: Now unpublished\npublished: false\nimage: keep.webp\n---\nNo longer public.\n",
