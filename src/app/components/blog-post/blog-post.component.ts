@@ -39,9 +39,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   safeContent: SafeHtml | string | null = null;
 
   private readonly destroy$ = new Subject<void>();
+  private fragmentObserver: MutationObserver | null = null;
+  private readonly onHashChange = () => this.resolveFragment();
   protected readonly imageUrl = blogImageUrl;
 
   ngOnInit(): void {
+    if (this.isBrowser) window.addEventListener('hashchange', this.onHashChange);
     this.route.paramMap
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
@@ -60,6 +63,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.fragmentObserver?.disconnect();
+    if (this.isBrowser) window.removeEventListener('hashchange', this.onHashChange);
     if (this.post) {
       this.seoService.removeStructuredData(`blog-post-${this.post.slug}`);
     }
@@ -96,6 +101,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             // Pass categories so related posts resolve from the (transferred)
             // index without refetching the current post.
             this.loadRelatedPosts(slug, post.categories);
+            this.resolveFragment();
           } else {
             // Keep the URL; show the not-found state and let the noindex
             // robots meta drive an HTTP 404 from the server.
@@ -106,6 +112,29 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe();
+  }
+
+  private resolveFragment(): void {
+    if (!this.isBrowser || !window.location.hash) return;
+
+    this.fragmentObserver?.disconnect();
+    const targetId = decodeURIComponent(window.location.hash.slice(1));
+    const article = document.querySelector('article');
+    if (!article) return;
+
+    const scrollToTarget = () => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      this.fragmentObserver?.disconnect();
+      target.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+
+    this.fragmentObserver = new MutationObserver(scrollToTarget);
+    this.fragmentObserver.observe(article, { childList: true, subtree: true });
+    scrollToTarget();
   }
 
   loadRelatedPosts(slug: string, categories?: string[]): void {

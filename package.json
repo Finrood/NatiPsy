@@ -8,6 +8,7 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test:article-reading": "node ./scripts/article-reading-contract.test.mjs",
+    "test:article-headings": "node ./scripts/article-heading-fixtures.test.mjs",
     "test": "ng test",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },

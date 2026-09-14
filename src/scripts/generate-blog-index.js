@@ -234,4 +234,6 @@ function generateIndex() {
   }
 }
 
-generateIndex();
+if (require.main === module) generateIndex();
+
+module.exports = { generateIndex, renderPostMarkdown, slugifyHeading };
