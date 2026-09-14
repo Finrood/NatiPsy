@@ -7,6 +7,8 @@ author:
 date: 2025-04-21
 description: "Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização."
 image: carreira-mulheres-negras-fadiga-racial.webp # Relative to assets/content/blog/images/
+imageWidth: 1024
+imageHeight: 1536
 categories:
   - Carreira
   - Mulheres Negras

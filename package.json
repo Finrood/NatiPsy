@@ -10,6 +10,7 @@
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
     "test": "ng test",
+    "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
