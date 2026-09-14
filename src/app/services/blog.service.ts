@@ -1,9 +1,29 @@
 import { Injectable, PLATFORM_ID, TransferState, inject, makeStateKey } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { defer, Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
+
+export type BlogErrorKind = 'not-found' | 'offline' | 'server' | 'invalid-content';
+
+export class BlogServiceError extends Error {
+  constructor(
+    readonly kind: BlogErrorKind,
+    readonly context: string,
+    options?: { cause?: unknown },
+  ) {
+    super(kind, options);
+    this.name = 'BlogServiceError';
+  }
+}
+
+export const BLOG_ERROR_MESSAGES: Record<BlogErrorKind, string> = {
+  'not-found': 'Não encontramos este conteúdo.',
+  offline: 'Não foi possível conectar. Verifique sua internet e tente novamente.',
+  server: 'O conteúdo está temporariamente indisponível. Tente novamente em instantes.',
+  'invalid-content': 'Não foi possível ler este conteúdo. Tente novamente mais tarde.',
+};
 
 const POSTS_INDEX_KEY = makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index');
 const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
@@ -13,7 +33,7 @@ const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
 })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
-  private postsIndex$: Observable<BlogPost[]> | null = null;
+  private postsIndexRequest$: Observable<BlogPost[]> | null = null;
   private postsIndexUrl = '/assets/content/blog/index.json';
 
   private readonly transferState = inject(TransferState);
@@ -22,16 +42,31 @@ export class BlogService {
 
   constructor(private http: HttpClient) {}
 
-  private handleError(error: HttpErrorResponse, context: string) {
-    let errorMessage = 'An unknown error occurred!';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+  private handleError(error: unknown, context: string) {
+    const blogError = this.toBlogError(error, context);
+    if (!(error instanceof BlogServiceError)) {
+      const status = error instanceof HttpErrorResponse ? error.status : undefined;
+      console.error('BlogService request failed', { context, kind: blogError.kind, status });
     }
-    console.error(`BlogService Error (${context}):`, error);
-    console.error(`BlogService Error Message (${context}):`, errorMessage);
-    return throwError(() => new Error(`Failed to ${context}. Please try again later.`));
+    return throwError(() => blogError);
+  }
+
+  private toBlogError(error: unknown, context: string): BlogServiceError {
+    if (error instanceof BlogServiceError) {
+      return error;
+    }
+
+    let kind: BlogErrorKind = 'invalid-content';
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        kind = 'offline';
+      } else if (error.status >= 500) {
+        kind = 'server';
+      } else if (error.status === 404) {
+        kind = 'not-found';
+      }
+    }
+    return new BlogServiceError(kind, context, { cause: error });
   }
 
   private reviveIndex(raw: Omit<BlogPost, 'content' | 'readTime'>[]): BlogPost[] {
@@ -63,33 +98,38 @@ export class BlogService {
         this.transferState.remove(POSTS_INDEX_KEY);
         return of(this.reviveIndex(raw));
       }
-      if (this.postsCache) {
-        if (this.isServer) {
-          this.transferState.set(POSTS_INDEX_KEY, this.postsCache);
+      return of(this.postsCache);
+    }
+    if (this.postsIndexRequest$) {
+      return this.postsIndexRequest$;
+    }
+    const request$ = this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
+      map(posts => {
+        if (!Array.isArray(posts)) {
+          throw new Error('Blog index must be an array.');
         }
-        return of(this.postsCache);
-      }
-      return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
-        map(posts => this.reviveIndex(posts)),
-      );
-    }).pipe(
+        return posts;
+      }),
+      map(posts => posts.map(post => ({
+        ...post,
+        date: new Date(post.date),
+        dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
+        content: '',
+        readTime: null
+      }))),
+      map(posts => posts.sort((a, b) => b.date.getTime() - a.date.getTime())),
       tap(posts => {
         this.postsCache = posts;
         if (this.isServer) {
           this.transferState.set(POSTS_INDEX_KEY, posts);
         }
       }),
-      catchError(err => {
-        // A failed shared observable must not permanently poison future retry
-        // attempts. Existing subscribers still receive the same error.
-        this.postsIndex$ = null;
-        return this.handleError(err, 'load posts list');
-      }),
-      shareReplay({ bufferSize: 1, refCount: false }),
+      catchError(err => this.handleError(err, 'load posts list')),
+      tap({ error: () => { this.postsIndexRequest$ = null; } }),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
-
-    this.postsIndex$ = source$;
-    return source$;
+    this.postsIndexRequest$ = request$;
+    return request$;
   }
 
   getPostsList(
@@ -126,8 +166,7 @@ export class BlogService {
         });
 
         return filteredPosts;
-      }),
-      catchError(err => this.handleError(err, 'filter or sort posts')) // Already handled in fetchPostsIndex, but good practice
+      })
     );
   }
 
@@ -137,8 +176,7 @@ export class BlogService {
         const categories = new Set<string>();
         posts.forEach(post => post.categories.forEach(cat => categories.add(cat)));
         return Array.from(categories).sort();
-      }),
-      catchError(err => this.handleError(err, 'load categories'))
+      })
     );
   }
 
@@ -170,8 +208,7 @@ export class BlogService {
         }
       }),
       catchError(err => {
-        console.error(`Failed to load blog post ${slug}:`, err.message || err);
-        return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
+        return this.handleError(err, `load post ${slug}`);
       })
     );
   }
@@ -194,11 +231,9 @@ export class BlogService {
         })),
         catchError(error => {
           if (error instanceof HttpErrorResponse && error.status === 404) {
-            console.warn(`Blog post not found: ${slug}`);
             return of(null);
           }
-          console.error(`Failed to load or process blog post ${slug}:`, error.message || error);
-          return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
+          return this.handleError(error, `load post ${slug}`);
         })
       );
   }
@@ -224,10 +259,7 @@ export class BlogService {
 
     return this.getPostBySlug(currentSlug).pipe(
       switchMap(currentPost => findRelated(currentPost?.categories || [])),
-      catchError(err => {
-        console.error("Error fetching related posts:", err);
-        return of([]);
-      })
+      catchError(() => of([]))
     );
   }
 }

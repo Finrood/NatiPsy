@@ -1,7 +1,13 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, PLATFORM_ID, SecurityContext, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogAbsoluteImageUrl, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
+import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
+import {
+  BlogPost,
+  blogAbsoluteImageUrl,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
@@ -36,7 +42,9 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   relatedPosts: BlogPost[] = [];
   loading = true;
   error: string | null = null;
+  retryable = false;
   safeContent: SafeHtml | string | null = null;
+  private currentSlug: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
   protected readonly imageUrl = blogImageUrl;
@@ -54,7 +62,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           // Render the 404 state in place: navigating away mid-render makes SSR
           // unstable, and the noindex meta (set by handleErrorState) is mapped
           // to an HTTP 404 status by the server.
-          this.handleErrorState('Post slug not found in URL.');
+          this.handleErrorState(new BlogServiceError('not-found', 'read post URL'));
         }
       });
   }
@@ -68,8 +76,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   }
 
   loadPost(slug: string): void {
+    this.currentSlug = slug;
     this.loading = true;
     this.error = null;
+    this.retryable = false;
     this.post = null;
     this.safeContent = null;
     this.relatedPosts = [];
@@ -87,7 +97,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }),
         catchError(err => {
-          this.handleErrorState(err.message || 'Erro ao carregar o post.');
+          this.handleErrorState(err);
           return of(null);
         }),
         tap(post => {
@@ -101,7 +111,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           } else {
             // Keep the URL; show the not-found state and let the noindex
             // robots meta drive an HTTP 404 from the server.
-            this.handleErrorState('Post não encontrado.');
+            this.handleErrorState(new BlogServiceError('not-found', `load post ${slug}`));
           }
           this.cdr.detectChanges();
         }),
@@ -134,8 +144,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
   }
 
-  handleErrorState(errorMessage: string): void {
-    this.error = errorMessage;
+  handleErrorState(error: unknown): void {
+    const blogError = error instanceof BlogServiceError
+      ? error
+      : new BlogServiceError('invalid-content', 'render post error', { cause: error });
+    this.error = BLOG_ERROR_MESSAGES[blogError.kind];
+    this.retryable = blogError.kind !== 'not-found';
     this.post = null;
     this.safeContent = null;
     this.loading = false;
@@ -146,6 +160,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       robots: 'noindex'
     });
     this.cdr.detectChanges();
+  }
+
+  retryPost(): void {
+    if (this.currentSlug && !this.loading) {
+      this.loadPost(this.currentSlug);
+    }
   }
 
   updateMetaAndStructuredData(post: BlogPost): void {

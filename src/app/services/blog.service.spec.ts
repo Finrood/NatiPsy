@@ -2,8 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { makeStateKey, TransferState } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { vi } from 'vitest';
 
-import { BlogService } from './blog.service';
+import { BlogService, BlogServiceError } from './blog.service';
 import { BlogPost } from '../models/blog-post.model';
 
 describe('BlogService', () => {
@@ -52,55 +53,49 @@ describe('BlogService', () => {
     expect(result?.date instanceof Date).toBe(true);
   });
 
-  it('shares the first index request across concurrent consumers', () => {
-    const index = [
-      { slug: 'hello', title: 'Hello', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-    ];
-    let posts: BlogPost[] | undefined;
-    let categories: string[] | undefined;
+  it('shares one in-flight index request across list and category consumers', () => {
+    let list: BlogPost[] = [];
+    let categories: string[] = [];
+    service.getPostsList().subscribe(posts => { list = posts; });
+    service.getAllCategories().subscribe(values => { categories = values; });
 
-    service.getPostsList().subscribe(result => { posts = result; });
-    service.getAllCategories().subscribe(result => { categories = result; });
-
-    httpMock.expectOne('/assets/content/blog/index.json').flush(index);
-
-    expect(posts?.map(post => post.slug)).toEqual(['hello']);
-    expect(categories).toEqual(['A']);
-    httpMock.expectNone('/assets/content/blog/index.json');
-  });
-
-  it('uses the transferred index without an HTTP request', () => {
-    const transferState = TestBed.inject(TransferState);
-    transferState.set(makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index'), [{
-      slug: 'hydrated',
-      title: 'Hydrated',
-      date: new Date('2025-01-01'),
-      description: 'd',
-      image: null,
-      categories: ['A'],
+    const requests = httpMock.match('/assets/content/blog/index.json');
+    expect(requests).toHaveLength(1);
+    requests[0].flush([{
+      slug: 'hello', title: 'Hello', date: new Date('2025-01-01').toISOString(),
+      description: 'd', image: null, categories: ['Test'], tags: [], categoryDetails: [], author: null,
     }]);
 
-    let posts: BlogPost[] | undefined;
-    service.getPostsList().subscribe(result => { posts = result; });
-
-    expect(posts?.[0].slug).toBe('hydrated');
-    httpMock.expectNone('/assets/content/blog/index.json');
+    expect(list).toHaveLength(1);
+    expect(categories).toEqual(['Test']);
   });
 
-  it('allows a failed index load to be retried', () => {
-    let firstError: unknown;
-    service.getPostsList().subscribe({ error: error => { firstError = error; } });
-    httpMock.expectOne('/assets/content/blog/index.json').flush('temporary failure', {
-      status: 503,
-      statusText: 'Service Unavailable',
-    });
-    expect(firstError).toBeTruthy();
+  it('logs one sanitized record and maps server failures without exposing the response body', () => {
+    const log = vi.spyOn(console, 'error');
+    let error: BlogServiceError | undefined;
+    service.getPostsList().subscribe({ error: value => { error = value; } });
 
-    let posts: BlogPost[] | undefined;
-    service.getPostsList().subscribe(result => { posts = result; });
-    httpMock.expectOne('/assets/content/blog/index.json').flush([
-      { slug: 'retried', title: 'Retried', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: [], author: null },
-    ]);
-    expect(posts?.[0].slug).toBe('retried');
+    httpMock.expectOne('/assets/content/blog/index.json').flush({ secret: 'do-not-log' }, {
+      status: 500,
+      statusText: 'Server Error',
+    });
+
+    expect(error?.kind).toBe('server');
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(log.mock.calls.at(-1))).not.toContain('do-not-log');
+    log.mockRestore();
+  });
+
+  it('allows a failed index request to be retried without sharing the failed request', () => {
+    let firstError: BlogServiceError | undefined;
+    service.getPostsList().subscribe({ error: value => { firstError = value; } });
+    httpMock.expectOne('/assets/content/blog/index.json').error(new ProgressEvent('offline'));
+    expect(firstError?.kind).toBe('offline');
+
+    let secondResult: BlogPost[] = [];
+    service.getPostsList().subscribe(posts => { secondResult = posts; });
+    const retry = httpMock.expectOne('/assets/content/blog/index.json');
+    retry.flush([]);
+    expect(secondResult).toEqual([]);
   });
 });

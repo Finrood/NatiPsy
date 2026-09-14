@@ -1,6 +1,11 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
-import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
+import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
+import {
+  BlogPost,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
@@ -35,6 +40,9 @@ export class BlogListComponent implements OnInit, OnDestroy {
 
   loading = true;
   error: string | null = null;
+  categoryError: string | null = null;
+  retryingList = false;
+  retryingCategories = false;
 
   // Pagination
   currentPage = 1;
@@ -89,6 +97,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .pipe(
         finalize(() => {
           this.loading = false;
+          this.retryingList = false;
           this.cdr.markForCheck();
         }),
         takeUntil(this.destroy$)
@@ -104,8 +113,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('Error fetching blog posts:', err);
-          this.error = err.message || 'Não foi possível carregar os posts. Tente novamente mais tarde.';
+          this.error = this.messageForError(err);
           this.allPosts = [];
           this.displayedPosts = [];
           this.totalItems = 0;
@@ -120,12 +128,38 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (categories) => {
           this.allCategories = categories;
+          this.retryingCategories = false;
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('Error fetching categories:', err);
+          this.categoryError = this.messageForError(err);
+          this.retryingCategories = false;
+          this.cdr.markForCheck();
         }
       });
+  }
+
+  retry(): void {
+    if (this.retryingList) {
+      return;
+    }
+    this.retryingList = true;
+    this.loadInitialData();
+  }
+
+  retryCategories(): void {
+    if (this.retryingCategories) {
+      return;
+    }
+    this.categoryError = null;
+    this.retryingCategories = true;
+    this.loadCategories();
+  }
+
+  private messageForError(error: unknown): string {
+    return error instanceof BlogServiceError
+      ? BLOG_ERROR_MESSAGES[error.kind]
+      : BLOG_ERROR_MESSAGES['invalid-content'];
   }
 
   updateDisplayedPosts(): void {
