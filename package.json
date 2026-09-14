@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "build:stats": "npm run build:blog-index && ng build --configuration production --stats-json",
     "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
     "build": "npm run build:blog-index && ng build",
@@ -13,7 +14,7 @@
     "test": "ng test",
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium",
-    "test:lazy-bundle": "node --test scripts/lazy-blog-bundle.test.mjs",
+    "test:lazy-bundle": "npm run build:stats && node --test scripts/lazy-blog-bundle.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
