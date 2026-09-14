@@ -1,0 +1,63 @@
+<main class="bg-white py-12 md:py-16" aria-labelledby="service-page-title">
+  <div class="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <nav aria-label="Breadcrumb" class="mb-8 text-sm text-gray-600">
+      <ol class="flex flex-wrap items-center gap-2">
+        <li><a routerLink="/" class="hover:text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue rounded-sm">Início</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page" class="font-medium text-primary-blue">{{ page.title }}</li>
+      </ol>
+    </nav>
+
+    <article>
+      <header class="mb-10 max-w-3xl">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-primary-pink-dark">{{ page.eyebrow }}</p>
+        <h1 id="service-page-title" class="mb-5 text-4xl font-bold leading-tight text-primary-blue sm:text-5xl">{{ page.title }}</h1>
+        <p class="text-xl leading-relaxed text-gray-700">{{ page.intro }}</p>
+      </header>
+
+      <div class="space-y-10">
+        @for (section of page.sections; track section.heading; let sectionIndex = $index) {
+          <section [attr.id]="'service-section-' + sectionIndex" [attr.aria-labelledby]="'service-section-heading-' + sectionIndex">
+            <h2 [attr.id]="'service-section-heading-' + sectionIndex" class="mb-4 text-2xl font-semibold text-primary-blue">{{ section.heading }}</h2>
+            @for (paragraph of section.paragraphs; track paragraph) {
+              <p class="mb-4 text-lg leading-relaxed text-gray-700">{{ paragraph }}</p>
+            }
+            @if (section.bullets) {
+              <ul class="ml-6 list-disc space-y-2 text-lg leading-relaxed text-gray-700">
+                @for (bullet of section.bullets; track bullet) {
+                  <li>{{ bullet }}</li>
+                }
+              </ul>
+            }
+          </section>
+        }
+      </div>
+
+      <aside class="mt-12 rounded-lg bg-primary-pink/20 p-6 sm:p-8" aria-labelledby="service-page-cta-title">
+        <h2 id="service-page-cta-title" class="mb-3 text-2xl font-semibold text-primary-blue">{{ page.ctaTitle }}</h2>
+        <p class="mb-6 text-lg leading-relaxed text-gray-700">{{ page.ctaDescription }}</p>
+        <a
+          [href]="whatsappLink"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center rounded-full bg-primary-blue px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors duration-300 hover:bg-primary-blue/90 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
+          aria-label="Agende uma conversa sobre este atendimento via WhatsApp">
+          Agende uma conversa
+        </a>
+      </aside>
+    </article>
+
+    <nav aria-label="Conteúdos relacionados" class="mt-12 border-t border-gray-200 pt-8">
+      <h2 class="mb-4 text-xl font-semibold text-primary-blue">Você também pode conhecer</h2>
+      <ul class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
+        @for (link of page.relatedLinks; track link.route) {
+          <li>
+            <a [routerLink]="link.route" [fragment]="link.fragment" class="text-lg font-semibold text-primary-blue underline decoration-primary-pink-dark underline-offset-4 hover:text-primary-pink-dark focus:outline-none focus:ring-2 focus:ring-primary-blue rounded-sm">
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+  </div>
+</main>

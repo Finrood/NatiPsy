@@ -12,6 +12,40 @@ const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
 
+// Keep these dates explicit and update them only when the corresponding page
+// receives a material content review. Never replace them with the build date.
+const STATIC_PAGES = [
+  {
+    path: '/',
+    lastmod: '2026-09-12',
+    changefreq: 'weekly',
+    priority: '1.0',
+    image: {
+      loc: '/assets/NatiHero.webp',
+      title: 'Natalia Ferreira - Psicóloga Clínica',
+      caption: 'Psicóloga especializada em Terapia Relacional Sistêmica'
+    }
+  },
+  {
+    path: '/blog',
+    lastmod: '2025-04-21',
+    changefreq: 'weekly',
+    priority: '0.8'
+  },
+  {
+    path: '/terapia-online',
+    lastmod: '2026-09-12',
+    changefreq: 'monthly',
+    priority: '0.8'
+  },
+  {
+    path: '/orientacao-profissional',
+    lastmod: '2026-09-12',
+    changefreq: 'monthly',
+    priority: '0.8'
+  }
+];
+
 // Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
   if (!content) return 0;
@@ -37,7 +71,7 @@ function pageUrl(path) {
 }
 
 function generateRoutesFile(posts) {
-  const lines = ['/', '/blog', ...posts.map((post) => `/blog/${post.slug}`)];
+  const lines = [...STATIC_PAGES.map((page) => page.path), ...posts.map((post) => `/blog/${post.slug}`)];
   fs.writeFileSync(routesPath, lines.join('\n') + '\n');
   console.log(`[Blog Index Generator] Wrote ${lines.length} routes to ${routesPath}`);
 }
@@ -47,28 +81,19 @@ function imageUrl(post) {
 }
 
 function generateSitemap(posts) {
-  // posts are sorted by date descending; the newest post date is the site's last modification
-  const lastSiteUpdate = posts.length ? posts[0].date.slice(0, 10) : new Date().toISOString().slice(0, 10);
-
-  const urls = [
-    `  <url>
-    <loc>${escapeXml(pageUrl('/'))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+  const staticUrls = STATIC_PAGES.map((page) => `  <url>
+    <loc>${escapeXml(pageUrl(page.path))}</loc>
+    <lastmod>${page.lastmod}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>${page.image ? `
     <image:image>
-      <image:loc>${escapeXml(pageUrl('/assets/NatiHero.webp'))}</image:loc>
-      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
-      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
-    </image:image>
-  </url>`,
-    `  <url>
-    <loc>${escapeXml(pageUrl('/blog'))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-  ];
+      <image:loc>${escapeXml(pageUrl(page.image.loc))}</image:loc>
+      <image:title>${escapeXml(page.image.title)}</image:title>
+      <image:caption>${escapeXml(page.image.caption)}</image:caption>
+    </image:image>` : ''}
+  </url>`);
+
+  const urls = [...staticUrls];
 
   for (const post of posts) {
     const postImageUrl = imageUrl(post);
