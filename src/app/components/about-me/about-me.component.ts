@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { CREDENTIAL, PERSON_NAME, SITE_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '../../config/contact';
+import { SITE_CONFIG } from '../../config/site-config';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
@@ -19,7 +20,7 @@ export class AboutMeComponent implements OnInit, OnDestroy {
       '@type': 'Person',
       name: PERSON_NAME,
       jobTitle: 'Psicóloga Clínica',
-      description: 'Psicóloga Clínica e Orientadora de Carreira especializada em Terapia Relacional Sistêmica',
+      description: SITE_CONFIG.specialization,
       image: `${SITE_URL}/assets/NatiAboutMe.webp`,
       url: SITE_URL,
       telephone: WHATSAPP_NUMBER,

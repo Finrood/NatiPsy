@@ -1,3 +1,1 @@
-import siteConfig from './site-config.json';
-
-export const SITE_CONFIG_ALLOWED_HOSTS = siteConfig.allowedHosts;
+export { SITE_CONFIG, SITE_CONFIG_ALLOWED_HOSTS } from './site-config';

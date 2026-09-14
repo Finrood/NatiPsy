@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { INSTAGRAM_LINK, PERSON_NAME, SITE_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '../../config/contact';
+import { SITE_CONFIG } from '../../config/site-config';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
@@ -19,7 +20,7 @@ export class HeroComponent implements OnInit, OnDestroy {
       '@type': 'ProfessionalService',
       name: `${PERSON_NAME} - Psicóloga Clínica`,
       image: `${SITE_URL}/assets/NatiHero.webp`,
-      description: 'Psicóloga Clínica especializada em Terapia Relacional Sistêmica',
+      description: SITE_CONFIG.specialization,
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'Atendimento Online',

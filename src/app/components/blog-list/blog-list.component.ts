@@ -7,7 +7,7 @@ import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import { SITE_URL } from '../../config/contact';
+import { PERSON_NAME, SITE_URL } from '../../config/contact';
 
 @Component({
   selector: 'app-blog-list',
@@ -53,8 +53,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.router.url.includes('/blog')) {
       this.seoService.updateMetaTags({
-        title: 'Blog | Psicóloga Natalia Ferreira',
-        description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
+        title: `Blog | Psicóloga ${PERSON_NAME}`,
+        description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
         keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
         url: `${SITE_URL}/blog`
       });
