@@ -5,7 +5,8 @@ FROM node:22.22.3-alpine3.22@sha256:cd7807368cf24826297cbad5dca1a44972ccfd770647
 WORKDIR /app
 
 COPY package*.json ./
-RUN test "$(npm --version)" = "10.9.8" \
+RUN npm install --global npm@10.9.9 --no-audit --no-fund \
+    && test "$(npm --version)" = "10.9.9" \
     && npm ci --ignore-scripts --no-audit --no-fund
 
 COPY . .
