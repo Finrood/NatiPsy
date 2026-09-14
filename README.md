@@ -34,6 +34,14 @@ To build the project run:
 ng build
 ```
 
+## Production smoke monitoring
+
+After a deployment, set `SMOKE_BASE_URL` and run `npm run smoke:production`.
+The same bounded check runs daily through GitHub Actions and fails on origin
+errors, redirects, timeouts, or branded-page marker mismatches. Configure the
+repository secret `SMOKE_BASE_URL` and route workflow failures to the
+deployment/on-call notification destination.
+
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
 ## Running unit tests

@@ -1,12 +1,12 @@
 import process from 'node:process';
 
 export const smokePaths = [
-  { path: '/', marker: '<html' },
-  { path: '/blog', marker: '<html' },
-  { path: '/sitemap.xml', marker: '<urlset' },
+  { path: '/', markers: ['<main id="main-content"', 'NatiPsy'] },
+  { path: '/blog', markers: ['<section id="blog-list-start"', 'Blog'] },
+  { path: '/sitemap.xml', markers: ['<urlset', '<loc>'] },
   {
     path: process.env.SMOKE_ARTICLE_PATH || '/blog/carreira-mulheres-negras-fadiga-racial',
-    marker: '<html',
+    markers: ['<article', '<h1'],
   },
 ];
 
@@ -15,9 +15,11 @@ export function validateSmokeResponse(path, status, body) {
     throw new Error(`${path} returned HTTP ${status}; expected 200`);
   }
 
-  const expected = smokePaths.find((entry) => entry.path === path)?.marker;
-  if (expected && !body.toLowerCase().includes(expected)) {
-    throw new Error(`${path} returned 200 without the expected ${expected} marker`);
+  const expected = smokePaths.find((entry) => entry.path === path)?.markers ?? [];
+  const normalizedBody = body.toLowerCase();
+  const missing = expected.filter(marker => !normalizedBody.includes(marker.toLowerCase()));
+  if (missing.length > 0) {
+    throw new Error(`${path} returned 200 without stable markers: ${missing.join(', ')}`);
   }
 }
 
@@ -33,10 +35,20 @@ export async function runSmokeCheck(baseUrl = process.env.SMOKE_BASE_URL) {
 
   for (const { path } of smokePaths) {
     const url = new URL(path, origin);
-    const response = await fetch(url, { redirect: 'manual' });
-    const body = await response.text();
-    validateSmokeResponse(path, response.status, body);
-    console.log(`PASS ${response.status} ${url}`);
+    try {
+      const response = await fetch(url, {
+        redirect: 'manual',
+        signal: AbortSignal.timeout(10_000),
+      });
+      const body = await response.text();
+      validateSmokeResponse(path, response.status, body);
+      console.log(`PASS ${response.status} ${url}`);
+    } catch (error) {
+      if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+        throw new Error(`${path} timed out after 10000ms`);
+      }
+      throw error;
+    }
   }
 }
 

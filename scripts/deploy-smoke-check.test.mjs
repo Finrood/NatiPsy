@@ -10,5 +10,12 @@ test('rejects a Cloudflare 523 instead of treating the origin as healthy', () =>
 });
 
 test('accepts a successful HTML response with the expected marker', () => {
-  assert.doesNotThrow(() => validateSmokeResponse('/', 200, '<html><body>ok</body></html>'));
+  assert.doesNotThrow(() => validateSmokeResponse('/', 200, '<main id="main-content">NatiPsy</main>'));
+});
+
+test('rejects generic HTML that is not the expected page', () => {
+  assert.throws(
+    () => validateSmokeResponse('/blog', 200, '<html><body>proxy error</body></html>'),
+    /stable markers/,
+  );
 });
