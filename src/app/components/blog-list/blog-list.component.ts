@@ -1,6 +1,11 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
+import {
+  BlogPost,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
