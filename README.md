@@ -1,6 +1,6 @@
 # NatiPsy
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
+This project uses Angular CLI 22.1.7 with Node 22.22.3 and npm 10.9.7. Use the version in `.nvmrc` before installing dependencies.
 
 ## Development server
 
@@ -47,10 +47,10 @@ This will compile your project and store the build artifacts in the `dist/` dire
 
 ## Running unit tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+To execute unit tests with the Angular Vitest runner, use the following command:
 
 ```bash
-ng test
+npm test -- --watch=false
 ```
 
 ## Running end-to-end tests
