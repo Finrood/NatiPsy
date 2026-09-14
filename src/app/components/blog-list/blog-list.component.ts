@@ -1,13 +1,14 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import { BlogPost } from '../../models/blog-post.model';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SITE_URL } from '../../config/contact';
+import { BlogCardComponent } from '../blog-card/blog-card.component';
 
 @Component({
   selector: 'app-blog-list',
@@ -16,7 +17,7 @@ import { SITE_URL } from '../../config/contact';
     CommonModule,
     RouterLink,
     FormsModule,
-    NgOptimizedImage,
+    BlogCardComponent,
   ],
   templateUrl: './blog-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,10 +48,6 @@ export class BlogListComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'desc';
 
   private readonly destroy$ = new Subject<void>();
-
-  protected readonly imageUrl = blogImageUrl;
-  protected readonly dateOnly = blogDateOnly;
-  protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
     if (this.router.url.includes('/blog')) {

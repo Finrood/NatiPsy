@@ -5,7 +5,7 @@ import { ServicesComponent } from '../services/services.component';
 import { ApproachComponent } from '../approach/approach.component';
 import { AdvantagesComponent } from '../advantages/advantages.component';
 import { SeoService } from '../../services/seo.service';
-import { BlogListComponent } from '../blog-list/blog-list.component';
+import { BlogPreviewComponent } from '../blog-preview/blog-preview.component';
 import { SITE_URL } from '../../config/contact';
 
 @Component({
@@ -17,7 +17,7 @@ import { SITE_URL } from '../../config/contact';
     ServicesComponent,
     ApproachComponent,
     AdvantagesComponent,
-    BlogListComponent
+    BlogPreviewComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -28,7 +28,7 @@ import { SITE_URL } from '../../config/contact';
         <app-approach id="abordagem"></app-approach>
         <app-advantages id="vantagens"></app-advantages>
         <app-about-me id="sobre-mim"></app-about-me>
-        <app-blog-list id="blog"></app-blog-list>
+        <app-blog-preview id="blog"></app-blog-preview>
       </div>
     </div>
   `
