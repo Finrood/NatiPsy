@@ -42,7 +42,11 @@ export class HomeComponent implements OnInit {
       title: `Psicóloga ${PERSON_NAME} | Terapia Online - ${SITE_CONFIG.credential}`,
       description: SITE_CONFIG.siteDescription,
       keywords: 'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
-      url: `${SITE_URL}/`
+      url: `${SITE_URL}/`,
+      imageWidth: 853,
+      imageHeight: 1280,
+      imageType: 'image/webp',
+      imageAlt: 'Natalia Ferreira - Psicóloga Clínica',
     });
   }
 }
