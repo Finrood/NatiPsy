@@ -1,7 +1,24 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import {
+  BlogPost,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
+import {
+  CommonModule,
+  NgOptimizedImage,
+  isPlatformBrowser,
+} from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
@@ -12,12 +29,7 @@ import { SITE_URL } from '../../config/contact';
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    FormsModule,
-    NgOptimizedImage,
-  ],
+  imports: [CommonModule, RouterLink, FormsModule, NgOptimizedImage],
   templateUrl: './blog-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -56,15 +68,17 @@ export class BlogListComponent implements OnInit, OnDestroy {
     if (this.router.url.includes('/blog')) {
       this.seoService.updateMetaTags({
         title: 'Blog | Psicóloga Natalia Ferreira',
-        description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
-        keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-        url: `${SITE_URL}/blog`
+        description:
+          'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
+        keywords:
+          'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
+        url: `${SITE_URL}/blog`,
       });
     }
 
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
+      .subscribe((params) => {
         this.currentPage = params['page'] ? +params['page'] : 1;
         this.selectedCategory = params['category'] || '';
         this.sortBy = params['sortBy'] || 'date';
@@ -85,13 +99,14 @@ export class BlogListComponent implements OnInit, OnDestroy {
     this.error = null;
     this.cdr.markForCheck();
 
-    this.blogService.getPostsList(this.selectedCategory, this.sortBy, this.sortDirection)
+    this.blogService
+      .getPostsList(this.selectedCategory, this.sortBy, this.sortDirection)
       .pipe(
         finalize(() => {
           this.loading = false;
           this.cdr.markForCheck();
         }),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe({
         next: (posts) => {
@@ -105,17 +120,20 @@ export class BlogListComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error fetching blog posts:', err);
-          this.error = err.message || 'Não foi possível carregar os posts. Tente novamente mais tarde.';
+          this.error =
+            err.message ||
+            'Não foi possível carregar os posts. Tente novamente mais tarde.';
           this.allPosts = [];
           this.displayedPosts = [];
           this.totalItems = 0;
           this.cdr.markForCheck();
-        }
+        },
       });
   }
 
   loadCategories(): void {
-    this.blogService.getAllCategories()
+    this.blogService
+      .getAllCategories()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (categories) => {
@@ -124,7 +142,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error fetching categories:', err);
-        }
+        },
       });
   }
 
@@ -165,16 +183,17 @@ export class BlogListComponent implements OnInit, OnDestroy {
       page: this.currentPage > 1 ? this.currentPage : null,
       category: this.selectedCategory || null,
       sortBy: this.sortBy !== 'date' ? this.sortBy : null,
-      sortDir: this.sortDirection !== 'desc' ? this.sortDirection : null
+      sortDir: this.sortDirection !== 'desc' ? this.sortDirection : null,
     };
 
-    Object.keys(queryParams).forEach(key => queryParams[key] == null && delete queryParams[key]);
+    Object.keys(queryParams).forEach(
+      (key) => queryParams[key] == null && delete queryParams[key],
+    );
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: queryParams,
-      queryParamsHandling: 'merge',
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
