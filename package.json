@@ -10,6 +10,7 @@
     "preinstall": "node ./scripts/check-toolchain.mjs",
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
