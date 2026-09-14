@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, PLATFORM_ID, SecurityContext, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogAbsoluteImageUrl, blogImageUrl } from '../../models/blog-post.model';
+import { BlogPost, blogAbsoluteImageUrl, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
@@ -40,6 +40,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   protected readonly imageUrl = blogImageUrl;
+  protected readonly dateOnly = blogDateOnly;
+  protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
     this.route.paramMap
@@ -154,6 +156,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: post.description,
       keywords: [...post.categories, ...post.tags].join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
+      imageWidth: post.imageWidth,
+      imageHeight: post.imageHeight,
+      imageType: post.image ? 'image/webp' : undefined,
+      imageAlt: post.title,
       url: `${SITE_URL}/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,

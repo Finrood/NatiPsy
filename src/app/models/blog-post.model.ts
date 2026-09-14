@@ -17,8 +17,12 @@ export interface BlogPost {
   slug: string;
   title: string;
   date: Date;
+  /** Calendar date from frontmatter; deliberately not a local timestamp. */
+  dateOnly?: string;
   description: string;
   image: string | null;
+  imageWidth?: number;
+  imageHeight?: number;
   categories: string[];
   tags: string[];
   categoryDetails: BlogCategory[];
@@ -26,6 +30,21 @@ export interface BlogPost {
   readTime: number | null;
 
   author?: BlogPostAuthor;
+}
+
+export function blogDateOnly(post: Pick<BlogPost, 'date' | 'dateOnly'>): string {
+  return post.dateOnly ?? post.date.toISOString().slice(0, 10);
+}
+
+export function formatBlogDate(dateOnly: string): string {
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(utcDate);
 }
 
 const BLOG_IMAGES_BASE_PATH = '/assets/content/blog/images';
