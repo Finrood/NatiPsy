@@ -9,6 +9,11 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SITE_URL } from '../../config/contact';
 
+export function parseBlogPage(value: string | null | undefined): number | null {
+  if (value == null) return null;
+  return /^[1-9]\d*$/.test(value) ? Number(value) : -1;
+}
+
 @Component({
   selector: 'app-blog-list',
   standalone: true,
@@ -46,6 +51,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'desc';
 
   private readonly destroy$ = new Subject<void>();
+  private rawPageSegment: string | null = null;
+  private invalidPage = false;
 
   protected readonly imageUrl = blogImageUrl;
 
@@ -53,9 +60,18 @@ export class BlogListComponent implements OnInit, OnDestroy {
     combineLatest([this.route.paramMap, this.route.queryParams])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([routeParams, params]) => {
-        const pathPage = Number(routeParams.get('page'));
-        const queryPage = Number(params['page']);
-        this.currentPage = pathPage > 0 ? pathPage : queryPage > 0 ? queryPage : 1;
+        this.rawPageSegment = routeParams.get('page');
+        const pathPage = parseBlogPage(this.rawPageSegment);
+        const queryValue = Array.isArray(params['page']) ? params['page'][0] : params['page'];
+        const queryPage = parseBlogPage(queryValue);
+        this.invalidPage = pathPage === -1 || (pathPage === null && queryPage === -1);
+        if (pathPage === null && queryPage !== null && queryPage !== -1) {
+          this.router.navigate(queryPage > 1 ? ['/blog/page', queryPage] : ['/blog'], {
+            queryParams: { ...params, page: null },
+            replaceUrl: true,
+          });
+        }
+        this.currentPage = pathPage && pathPage > 0 ? pathPage : queryPage && queryPage > 0 ? queryPage : 1;
         this.selectedCategory = params['category'] || '';
         this.sortBy = params['sortBy'] || 'date';
         this.sortDirection = params['sortDir'] || 'desc';
@@ -88,9 +104,10 @@ export class BlogListComponent implements OnInit, OnDestroy {
         next: (posts) => {
           this.allPosts = posts;
           this.totalItems = this.allPosts.length;
-          if (this.currentPage > this.totalPages) {
+          if (this.invalidPage || (this.totalPages > 0 && this.currentPage > this.totalPages)) {
             this.error = 'Esta página do blog não foi encontrada.';
             this.displayedPosts = [];
+            this.updateSeo();
             this.cdr.markForCheck();
             return;
           }
@@ -160,12 +177,13 @@ export class BlogListComponent implements OnInit, OnDestroy {
   }
 
   private updateSeo(): void {
-    const hasAlternateView = Boolean(this.selectedCategory || this.sortBy !== 'date' || this.sortDirection !== 'desc');
+    const hasAlternateView = Boolean(this.invalidPage || this.selectedCategory || this.sortBy !== 'date' || this.sortDirection !== 'desc');
+    const canonicalPath = this.rawPageSegment ? `/blog/page/${this.rawPageSegment}` : this.pageUrl(this.currentPage);
     this.seoService.updateMetaTags({
       title: this.currentPage === 1 ? 'Blog | Psicóloga Natalia Ferreira' : `Blog — Página ${this.currentPage} | Psicóloga Natalia Ferreira`,
       description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
       keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-      url: `${SITE_URL}${this.pageUrl(this.currentPage)}`,
+      url: `${SITE_URL}${canonicalPath}`,
       robots: hasAlternateView ? 'noindex,follow' : undefined,
     });
   }
