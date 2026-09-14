@@ -1,7 +1,13 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, PLATFORM_ID, SecurityContext, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
-import { BlogPost, blogAbsoluteImageUrl, blogImageUrl } from '../../models/blog-post.model';
+import {
+  BlogPost,
+  blogAbsoluteImageUrl,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
