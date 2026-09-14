@@ -4,6 +4,8 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "test:fonts": "node ./scripts/fonts-contract.test.mjs",
+    "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test:blog-generator": "node --test src/scripts/validate-blog-content.test.js scripts/assert-public-content.test.mjs src/scripts/watch-blog-index.test.js",
     "test:public-content": "node --test scripts/assert-public-content.test.mjs",
     "assert:public-content": "node scripts/assert-public-content.mjs",
