@@ -110,16 +110,17 @@
     <!-- Posts Grid -->
     @if (!loading && !error && displayedPosts.length > 0) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        @for (post of displayedPosts; track post.slug) {
+        @for (post of displayedPosts; track post.slug; let index = $index) {
           <article class="group bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 motion-safe:hover:scale-[1.03] flex flex-col">
-            <a [routerLink]="['/blog', post.slug]" class="block h-48 bg-gray-200 overflow-hidden">
+            <a [routerLink]="['/blog', post.slug]" class="block relative aspect-[2/1] bg-gray-200 overflow-hidden">
               @if (post.image) {
                 <img
                   [ngSrc]="imageUrl(post.image)"
                   [alt]="post.title"
-                  class="w-full h-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
-                  loading="lazy"
-                  width="400" height="200"
+                  fill
+                  class="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+                  [priority]="shouldPrioritizeFirstImage && index === 0"
+                  [loading]="shouldPrioritizeFirstImage && index === 0 ? 'eager' : 'lazy'"
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw">
                 }
                 <!-- Placeholder for posts without images -->

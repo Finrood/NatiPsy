@@ -28,4 +28,14 @@ describe('BlogListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('does not prioritize the homepage preview image', () => {
+    component.firstImagePriority = false;
+    expect(component.shouldPrioritizeFirstImage).toBe(false);
+  });
+
+  it('prioritizes the first image only for the archive context', () => {
+    component.firstImagePriority = true;
+    expect(component.shouldPrioritizeFirstImage).toBe(true);
+  });
 });
