@@ -23,7 +23,12 @@ import {
 } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
+import {
+  BlogPost,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
 import { SeoService } from '../../services/seo.service';
 import { SITE_URL } from '../../config/contact';
 
