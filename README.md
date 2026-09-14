@@ -34,14 +34,10 @@ To build the project run:
 ng build
 ```
 
-## Production serving model
-
-The production image serves Angular's prerendered browser output as static files
-with Nginx. The build generates `index.html` for `/`, `/blog`, and each article;
-Nginx resolves those extensionless paths internally, redirects trailing-slash
-variants to their canonical no-slash URLs, and returns the branded
-`/404/index.html` with HTTP 404 and `noindex` for unknown paths. The Express SSR
-entry point is not the production serving contract.
+Blog Markdown and authored blog images live under `content/blog`, outside the
+public asset tree. The blog generator stages a clean publish set, copies only
+assets referenced by validated publishable posts, atomically replaces generated
+outputs, and the production build fails if Markdown sources enter `dist`.
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
