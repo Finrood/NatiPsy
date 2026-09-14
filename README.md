@@ -34,6 +34,11 @@ To build the project run:
 ng build
 ```
 
+Blog Markdown and authored blog images live under `content/blog`, outside the
+public asset tree. The blog generator stages a clean publish set, copies only
+assets referenced by validated publishable posts, atomically replaces generated
+outputs, and the production build fails if Markdown sources enter `dist`.
+
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
 ## Running unit tests
