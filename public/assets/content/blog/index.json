@@ -17,6 +17,13 @@
       "Bem-Estar",
       "Saúde Mental"
     ],
+    "categoryDetails": [
+      {
+        "slug": "carreira",
+        "label": "Carreira",
+        "description": "Reflexões e ferramentas para escolhas, transições e desenvolvimento profissional."
+      }
+    ],
     "author": {
       "name": "Natalia Ferreira dos Santos",
       "bio": "Psicóloga Clínica (CRP 12/19892) e Orientadora de Carreira, graduada pela UFSC, com formação em Terapia Relacional Sistêmica. Comprometida com uma prática inclusiva e antirracista.",

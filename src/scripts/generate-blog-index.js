@@ -15,10 +15,36 @@ const SITE_URL = 'https://psicologanataliaferreira.com';
 // Categories are the small, navigable primary taxonomy. More specific
 // descriptors belong in the open-ended `tags` field below.
 const CATEGORY_REGISTRY = new Map([
-  ['carreira', 'Carreira'],
-  ['psicologia', 'Psicologia'],
-  ['orientacao profissional', 'Orientação Profissional'],
+  ['carreira', {
+    slug: 'carreira',
+    label: 'Carreira',
+    description: 'Reflexões e ferramentas para escolhas, transições e desenvolvimento profissional.',
+    aliases: ['carreira', 'desenvolvimento profissional'],
+  }],
+  ['psicologia', {
+    slug: 'psicologia',
+    label: 'Psicologia',
+    description: 'Conteúdos sobre saúde mental, relações e desenvolvimento pessoal.',
+    aliases: ['psicologia', 'saúde mental'],
+  }],
+  ['orientacao profissional', {
+    slug: 'orientacao-profissional',
+    label: 'Orientação Profissional',
+    description: 'Apoio para construir percursos profissionais alinhados a valores e possibilidades.',
+    aliases: ['orientação profissional', 'orientacao profissional'],
+  }],
 ]);
+
+const normalizeKey = (value) => String(value)
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .trim()
+  .replace(/\s+/g, ' ')
+  .toLowerCase();
+
+const CATEGORY_ALIASES = new Map(
+  [...CATEGORY_REGISTRY.values()].flatMap(category => category.aliases.map(alias => [normalizeKey(alias), category])),
+);
 
 // Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
@@ -49,7 +75,7 @@ function normalizeLabels(value, fieldName) {
   const labels = values.map(label => String(label).trim()).filter(Boolean);
   const seen = new Set();
   return labels.map(label => {
-    const key = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const key = normalizeKey(label);
     if (seen.has(key)) {
       throw new Error(`Duplicate ${fieldName}: ${label}`);
     }
@@ -63,23 +89,38 @@ function normalizeCategories(value) {
   if (labels.length < 1 || labels.length > 3) {
     throw new Error('Each post must have between one and three primary categories.');
   }
+  const seenCategories = new Set();
   return labels.map(label => {
-    const key = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const canonical = CATEGORY_REGISTRY.get(key);
-    if (!canonical) {
+    const category = CATEGORY_ALIASES.get(normalizeKey(label));
+    if (!category) {
       throw new Error(`Unknown primary category: ${label}`);
     }
-    return canonical;
+    if (seenCategories.has(category.slug)) {
+      throw new Error(`Duplicate category: ${label}`);
+    }
+    seenCategories.add(category.slug);
+    return category.label;
   });
 }
 
 function normalizeTags(value, categories) {
   const tags = normalizeLabels(value, 'tag');
-  const categoryKeys = new Set(categories.map(category => category.toLowerCase()));
-  if (tags.some(tag => categoryKeys.has(tag.toLowerCase()))) {
+  const categoryKeys = new Set(categories.map(category => normalizeKey(category)));
+  if (tags.some(tag => categoryKeys.has(normalizeKey(tag)))) {
     throw new Error('A label cannot be both a primary category and a tag.');
   }
   return tags;
+}
+
+function categoryDetails(categories) {
+  return categories.map(label => {
+    const category = CATEGORY_ALIASES.get(normalizeKey(label));
+    return {
+      slug: category.slug,
+      label: category.label,
+      description: category.description,
+    };
+  });
 }
 
 function pageUrl(path) {
@@ -87,7 +128,8 @@ function pageUrl(path) {
 }
 
 function generateRoutesFile(posts) {
-  const lines = ['/', '/blog', ...posts.map((post) => `/blog/${post.slug}`)];
+  const categoryRoutes = [...new Set(posts.flatMap(post => post.categoryDetails.map(category => `/blog/category/${category.slug}`)))];
+  const lines = ['/', '/blog', ...categoryRoutes, ...posts.map((post) => `/blog/${post.slug}`)];
   fs.writeFileSync(routesPath, lines.join('\n') + '\n');
   console.log(`[Blog Index Generator] Wrote ${lines.length} routes to ${routesPath}`);
 }
@@ -119,6 +161,16 @@ function generateSitemap(posts) {
     <priority>0.8</priority>
   </url>`
   ];
+
+  const categories = [...new Map(posts.flatMap(post => post.categoryDetails.map(category => [category.slug, category]))).values()];
+  for (const category of categories) {
+    urls.push(`  <url>
+    <loc>${escapeXml(pageUrl(`/blog/category/${category.slug}`))}</loc>
+    <lastmod>${lastSiteUpdate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+  }
 
   for (const post of posts) {
     const postImageUrl = imageUrl(post);
@@ -206,6 +258,7 @@ function generateIndex() {
             image: image,
             categories: categories,
             tags: tags,
+            categoryDetails: categoryDetails(categories),
             author: author, // Include author info
             readTime: calculateReadingTime(content) // Calculate read time
             // DO NOT include full 'content' in the index file
