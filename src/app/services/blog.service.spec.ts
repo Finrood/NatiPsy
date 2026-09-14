@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { makeStateKey, TransferState } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -52,39 +51,26 @@ describe('BlogService', () => {
     expect(result?.date instanceof Date).toBe(true);
   });
 
-  it('shares the first index request across concurrent consumers', () => {
-    const index = [
-      { slug: 'hello', title: 'Hello', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-    ];
+  it('shares one in-flight index GET across article and related navigation work', () => {
     let posts: BlogPost[] | undefined;
     let categories: string[] | undefined;
+    service.getPostsList().subscribe(value => (posts = value));
+    service.getAllCategories().subscribe(value => (categories = value));
 
-    service.getPostsList().subscribe(result => { posts = result; });
-    service.getAllCategories().subscribe(result => { categories = result; });
-
-    httpMock.expectOne('/assets/content/blog/index.json').flush(index);
-
-    expect(posts?.map(post => post.slug)).toEqual(['hello']);
-    expect(categories).toEqual(['A']);
-    httpMock.expectNone('/assets/content/blog/index.json');
-  });
-
-  it('uses the transferred index without an HTTP request', () => {
-    const transferState = TestBed.inject(TransferState);
-    transferState.set(makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index'), [{
-      slug: 'hydrated',
-      title: 'Hydrated',
-      date: new Date('2025-01-01'),
+    const requests = httpMock.match('/assets/content/blog/index.json');
+    expect(requests).toHaveLength(1);
+    requests[0].flush([{
+      slug: 'hello',
+      title: 'Hello',
+      date: new Date('2025-01-01').toISOString(),
       description: 'd',
       image: null,
-      categories: ['A'],
+      categories: ['Test'],
+      author: null,
     }]);
 
-    let posts: BlogPost[] | undefined;
-    service.getPostsList().subscribe(result => { posts = result; });
-
-    expect(posts?.[0].slug).toBe('hydrated');
-    httpMock.expectNone('/assets/content/blog/index.json');
+    expect(posts?.[0].slug).toBe('hello');
+    expect(categories).toEqual(['Test']);
   });
 
   it('allows a failed index load to be retried', () => {

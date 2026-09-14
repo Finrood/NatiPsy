@@ -11,6 +11,8 @@
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
+    "test:hydration-cache": "node ./scripts/hydration-cache-contract.test.mjs",
+    "test:hydration-render": "node scripts/hydration-render-contract.mjs",
     "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
     "test": "ng test",
     "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
