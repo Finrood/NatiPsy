@@ -1,8 +1,8 @@
 import { Injectable, PLATFORM_ID, TransferState, inject, makeStateKey } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { defer, Observable, of, throwError } from 'rxjs';
+import { catchError, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
 
 const POSTS_INDEX_KEY = makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index');
@@ -13,6 +13,7 @@ const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
 })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
+  private postsIndex$: Observable<BlogPost[]> | null = null;
   private postsIndexUrl = '/assets/content/blog/index.json';
 
   private readonly transferState = inject(TransferState);
@@ -46,18 +47,21 @@ export class BlogService {
   }
 
   private fetchPostsIndex(): Observable<BlogPost[]> {
-    // Client hydration: reuse the index rendered on the server synchronously,
-    // so the first paint already matches the SSR DOM (no loading flash, no
-    // change-detection race with hydration).
-    if (this.transferState.hasKey(POSTS_INDEX_KEY)) {
-      const raw = this.transferState.get(POSTS_INDEX_KEY, []);
-      this.transferState.remove(POSTS_INDEX_KEY);
-      this.postsCache = this.reviveIndex(raw);
-      return of(this.postsCache);
+    if (this.postsIndex$) {
+      return this.postsIndex$;
     }
-    if (this.postsCache) {
-      if (this.isServer) {
-        this.transferState.set(POSTS_INDEX_KEY, this.postsCache);
+
+    // Keep the first request shared across concurrent consumers. This covers
+    // BlogList's posts/categories subscriptions as well as any other first
+    // render consumer without duplicating the index request.
+    const source$ = defer(() => {
+      // Client hydration: reuse the index rendered on the server synchronously,
+      // so the first paint already matches the SSR DOM (no loading flash, no
+      // change-detection race with hydration).
+      if (this.transferState.hasKey(POSTS_INDEX_KEY)) {
+        const raw = this.transferState.get(POSTS_INDEX_KEY, []);
+        this.transferState.remove(POSTS_INDEX_KEY);
+        return of(this.reviveIndex(raw));
       }
       return of(this.postsCache);
     }
@@ -79,6 +83,9 @@ export class BlogService {
       }),
       catchError((err) => this.handleError(err, 'load posts list')),
     );
+
+    this.postsIndex$ = source$;
+    return source$;
   }
 
   getPostsList(
