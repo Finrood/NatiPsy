@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { makeStateKey, TransferState } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -29,7 +30,7 @@ describe('BlogService', () => {
     const indexEntry = {
       slug: 'hello',
       title: 'Hello',
-      date: new Date('2025-01-01').toISOString(),
+      date: new Date('2025-01-01'),
       description: 'd',
       image: null,
       categories: ['Test'],

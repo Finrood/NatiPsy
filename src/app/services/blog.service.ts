@@ -1,8 +1,8 @@
 import { Injectable, PLATFORM_ID, TransferState, inject, makeStateKey } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { defer, Observable, of, throwError } from 'rxjs';
+import { catchError, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
 
 const POSTS_INDEX_KEY = makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index');
@@ -13,6 +13,7 @@ const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
 })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
+  private postsIndex$: Observable<BlogPost[]> | null = null;
   private postsIndexUrl = '/assets/content/blog/index.json';
 
   private readonly transferState = inject(TransferState);
@@ -55,38 +56,49 @@ export class BlogService {
   }
 
   private fetchPostsIndex(): Observable<BlogPost[]> {
-    // Client hydration: reuse the index rendered on the server synchronously,
-    // so the first paint already matches the SSR DOM (no loading flash, no
-    // change-detection race with hydration).
-    if (this.transferState.hasKey(POSTS_INDEX_KEY)) {
-      const raw = this.transferState.get(POSTS_INDEX_KEY, []);
-      this.transferState.remove(POSTS_INDEX_KEY);
-      this.postsCache = this.reviveIndex(raw);
-      return of(this.postsCache);
+    if (this.postsIndex$) {
+      return this.postsIndex$;
     }
-    if (this.postsCache) {
-      if (this.isServer) {
-        this.transferState.set(POSTS_INDEX_KEY, this.postsCache);
+
+    // Keep the first request shared across concurrent consumers. This covers
+    // BlogList's posts/categories subscriptions as well as any other first
+    // render consumer without duplicating the index request.
+    const source$ = defer(() => {
+      // Client hydration: reuse the index rendered on the server synchronously,
+      // so the first paint already matches the SSR DOM (no loading flash, no
+      // change-detection race with hydration).
+      if (this.transferState.hasKey(POSTS_INDEX_KEY)) {
+        const raw = this.transferState.get(POSTS_INDEX_KEY, []);
+        this.transferState.remove(POSTS_INDEX_KEY);
+        return of(this.reviveIndex(raw));
       }
-      return of(this.postsCache);
-    }
-    return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
-      map(posts => posts.map(post => ({
-        ...post,
-        date: new Date(post.date),
-        dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
-        content: '',
-        readTime: null
-      }))),
-      map(posts => posts.sort((a, b) => b.date.getTime() - a.date.getTime())),
+      if (this.postsCache) {
+        if (this.isServer) {
+          this.transferState.set(POSTS_INDEX_KEY, this.postsCache);
+        }
+        return of(this.postsCache);
+      }
+      return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
+        map(posts => this.reviveIndex(posts)),
+      );
+    }).pipe(
       tap(posts => {
         this.postsCache = posts;
         if (this.isServer) {
           this.transferState.set(POSTS_INDEX_KEY, posts);
         }
       }),
-      catchError(err => this.handleError(err, 'load posts list'))
+      catchError(err => {
+        // A failed shared observable must not permanently poison future retry
+        // attempts. Existing subscribers still receive the same error.
+        this.postsIndex$ = null;
+        return this.handleError(err, 'load posts list');
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+
+    this.postsIndex$ = source$;
+    return source$;
   }
 
   getPostsList(
