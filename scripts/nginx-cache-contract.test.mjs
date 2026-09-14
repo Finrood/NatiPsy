@@ -33,17 +33,18 @@ for (const file of nearMisses) {
   assert.doesNotMatch(file, hashedAsset, `${file} should not receive immutable caching`);
 }
 
+const cachePolicies = nginx.match(/add_header Cache-Control/g) ?? [];
 assert.equal(
-  (nginx.match(/add_header Cache-Control/g) ?? []).length,
-  3,
-  'Nginx should declare one Cache-Control policy per location',
+  cachePolicies.length,
+  8,
+  'Nginx should declare one Cache-Control policy for each cache-controlled location',
 );
 assert.equal(
   (nginx.match(/^\s*expires\b/gm) ?? []).length,
   0,
   'Nginx should not emit an extra Expires-derived cache policy',
 );
-assert.match(nginx, /add_header Cache-Control "no-cache, must-revalidate";/);
+assert.match(nginx, /add_header Cache-Control "no-cache, must-revalidate"(?: always)?;/);
 assert.match(nginx, /add_header Cache-Control "public, max-age=31536000, immutable";/);
 assert.match(nginx, /add_header Cache-Control "public, max-age=604800, must-revalidate";/);
 

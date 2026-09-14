@@ -1,0 +1,92 @@
+name: Quality
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up supported Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Generate blog artifacts
+        run: npm run build:blog-index
+
+      - name: Reject stale generated artifacts
+        run: git diff --exit-code -- public/assets/content/blog src/routes.txt public/sitemap.xml
+
+      - name: Run dependency policy
+        run: npm run audit:security
+
+      - name: Run lint and format gates when present
+        run: |
+          set -eu
+          run_if_present() {
+            if node -e "const p=require('./package.json'); process.exit(p.scripts?.[process.argv[1]] ? 0 : 1)" "$1"; then
+              npm run "$1"
+            else
+              echo "Skipping unavailable script: $1"
+            fi
+          }
+          run_if_present lint
+          run_if_present format:check
+
+      - name: Run finding contracts
+        run: |
+          set -eu
+          for contract in scripts/*contract.test.mjs; do
+            node --test "$contract"
+          done
+          for script in test:fonts test:mobile-home test:blog-images test:public-content test:blog-generator test:nginx-security test:lazy-bundle test:rss-feed test:rss-feed:fixtures test:rss-feed:http test:bundle-budget test:toolchain test:ci-config test:container; do
+            if node -e "const p=require('./package.json'); process.exit(p.scripts?.[process.argv[1]] ? 0 : 1)" "$script"; then
+              npm run "$script"
+            else
+              echo "Skipping unavailable script: $script"
+            fi
+          done
+
+      - name: Run unit tests
+        run: npm test -- --watch=false
+
+      - name: Build production output
+        run: npm run build -- --configuration=production
+
+      - name: Report bundle regression when stats are available
+        run: |
+          if [ -f dist/nati-psy/stats.json ]; then
+            npm run report:bundle-size
+          else
+            echo "Skipping bundle report because this branch predates stats output."
+          fi
+
+      - name: Run browser suite when present
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts?.e2e ? 0 : 1)"; then
+            npm run e2e:install
+            npm run e2e
+          else
+            echo "Skipping unavailable browser suite."
+          fi
+
+      - name: Build container image
+        run: docker build --tag natipsy-quality .
