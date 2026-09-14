@@ -139,7 +139,11 @@ export class BlogService {
       if (!raw) {
         return of(null);
       }
-      return of({ ...raw, date: new Date(raw.date), dateOnly: raw.dateOnly ?? new Date(raw.date).toISOString().slice(0, 10) });
+      return of({
+        ...raw,
+        date: new Date(raw.date),
+        dateOnly: raw.dateOnly ?? new Date(raw.date).toISOString().slice(0, 10),
+      });
     }
     // Check the post index first: unknown slugs return `null` immediately,
     // avoiding a pointless markdown request (and nested SSR fetches for

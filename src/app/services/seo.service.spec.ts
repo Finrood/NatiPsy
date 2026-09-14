@@ -123,7 +123,9 @@ describe('SeoService', () => {
     expect(metaService.getTag('property="article:author"')).toBeNull();
     expect(metaService.getTag('property="og:image:width"')?.content).toBe('853');
     expect(metaService.getTag('property="og:image:height"')?.content).toBe('1280');
-    expect(metaService.getTag('name="twitter:image:alt"')?.content).toBe('Natalia Ferreira - Psicóloga Clínica');
+    expect(metaService.getTag('name="twitter:image:alt"')?.content).toBe(
+      'Natalia Ferreira - Psicóloga Clínica',
+    );
   });
 
   it('should remove robots tag cleanup when config omits it', () => {

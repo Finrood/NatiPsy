@@ -11,7 +11,13 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogAbsoluteImageUrl, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
+import {
+  BlogPost,
+  blogAbsoluteImageUrl,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';

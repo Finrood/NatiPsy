@@ -41,47 +41,42 @@ export class SeoService {
     const rawUrl = config.url || currentUrl;
     const targetUrl =
       rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+    const usingDefaultImage = !config.image;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
     const targetImageWidth = config.imageWidth ?? (usingDefaultImage ? 853 : undefined);
     const targetImageHeight = config.imageHeight ?? (usingDefaultImage ? 1280 : undefined);
     const targetImageType = config.imageType ?? (usingDefaultImage ? 'image/webp' : undefined);
-    const targetImageAlt = config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
+    const targetImageAlt =
+      config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
 
     this.title.setTitle(config.title);
 
-    this.meta.updateTag({ name: 'description', content: config.description });
-    if (config.keywords) {
-      this.meta.updateTag({ name: 'keywords', content: config.keywords });
-    }
-    if (config.robots) {
-      this.meta.updateTag({ name: 'robots', content: config.robots });
-    } else {
-      const existingRobots = this.meta.getTag('name="robots"');
-      if (existingRobots) {
-        this.meta.removeTag('name="robots"');
-      }
-    }
+    this.setMeta({ name: 'description' }, config.description);
+    this.setMeta({ name: 'keywords' }, config.keywords);
+    this.setMeta({ name: 'robots' }, config.robots);
 
     // Open Graph
     this.updateArticleTags(config.tags);
-    this.meta.updateTag({ property: 'og:title', content: config.title });
-    this.meta.updateTag({ property: 'og:description', content: config.description });
-    this.meta.updateTag({ property: 'og:url', content: targetUrl });
-    this.meta.updateTag({ property: 'og:image', content: targetImage });
-    this.meta.updateTag({ property: 'og:type', content: config.type || 'website' });
+    this.setMeta({ property: 'og:title' }, config.title);
+    this.setMeta({ property: 'og:description' }, config.description);
+    this.setMeta({ property: 'og:url' }, targetUrl);
+    this.setMeta({ property: 'og:image' }, targetImage);
+    this.setMeta({ property: 'og:image:width' }, targetImageWidth?.toString());
+    this.setMeta({ property: 'og:image:height' }, targetImageHeight?.toString());
+    this.setMeta({ property: 'og:image:type' }, targetImageType);
+    this.setMeta({ property: 'og:image:alt' }, targetImageAlt);
+    this.setMeta({ property: 'og:type' }, config.type || 'website');
 
-    if (config.publishedTime) {
-      this.meta.updateTag({ property: 'article:published_time', content: config.publishedTime });
-    }
-    if (config.author) {
-      this.meta.updateTag({ property: 'article:author', content: config.author });
-    }
+    this.setMeta({ property: 'article:published_time' }, config.publishedTime);
+    this.setMeta({ property: 'article:author' }, config.author);
 
     // Twitter
-    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
-    this.meta.updateTag({ name: 'twitter:title', content: config.title });
-    this.meta.updateTag({ name: 'twitter:description', content: config.description });
-    this.meta.updateTag({ name: 'twitter:image', content: targetImage });
+    this.setMeta({ name: 'twitter:card' }, 'summary_large_image');
+    this.setMeta({ name: 'twitter:url' }, targetUrl);
+    this.setMeta({ name: 'twitter:title' }, config.title);
+    this.setMeta({ name: 'twitter:description' }, config.description);
+    this.setMeta({ name: 'twitter:image' }, targetImage);
+    this.setMeta({ name: 'twitter:image:alt' }, targetImageAlt);
 
     // Update canonical link (SSR + browser)
     let link: HTMLLinkElement | null = this.document.querySelector('link[rel="canonical"]');
@@ -93,7 +88,10 @@ export class SeoService {
     link.setAttribute('href', targetUrl);
   }
 
-  private setMeta(selector: { name?: string; property?: string }, content: string | undefined): void {
+  private setMeta(
+    selector: { name?: string; property?: string },
+    content: string | undefined,
+  ): void {
     const attribute = selector.name ? `name="${selector.name}"` : `property="${selector.property}"`;
     if (content === undefined) {
       this.meta.getTag(attribute) && this.meta.removeTag(attribute);
