@@ -21,6 +21,7 @@ FROM nginxinc/nginx-unprivileged:1.27.5-alpine@sha256:65e3e85dbaed8ba248841d9d58
 
 # Copy built static files to Nginx's default directory
 COPY --from=build /app/dist/nati-psy/browser/ /usr/share/nginx/html/
+COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 
 # Copy custom Nginx config for Angular routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
