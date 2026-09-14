@@ -22,7 +22,7 @@ import { BlogCardComponent } from '../blog-card/blog-card.component';
           <p class="text-center text-red-700" role="alert">{{ error }}</p>
         } @else if (posts.length > 0) {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            @for (post of posts; track post.slug) { <app-blog-card [post]="post"></app-blog-card> }
+            @for (post of posts; track post.slug) { <app-blog-card [post]="post" headingLevel="h3"></app-blog-card> }
           </div>
         } @else {
           <p class="text-center text-gray-600">Novos artigos em breve.</p>

@@ -30,9 +30,15 @@ import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
           </svg>
           <time [attr.datetime]="post.date.toISOString()">{{ post.date | date:'dd MMM yyyy' }}</time>
         </div>
-        <h3 class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors">
-          <a [routerLink]="['/blog', post.slug]" class="line-clamp-2">{{ post.title }}</a>
-        </h3>
+        @if (headingLevel === 'h2') {
+          <h2 class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors">
+            <a [routerLink]="['/blog', post.slug]" class="line-clamp-2">{{ post.title }}</a>
+          </h2>
+        } @else {
+          <h3 class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors">
+            <a [routerLink]="['/blog', post.slug]" class="line-clamp-2">{{ post.title }}</a>
+          </h3>
+        }
         <p class="mt-1 text-gray-600 line-clamp-3 flex-grow">{{ post.description }}</p>
         <div class="mt-4 flex flex-wrap gap-2">
           @for (category of post.categories; track category) {
@@ -48,6 +54,7 @@ import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
 })
 export class BlogCardComponent {
   @Input({ required: true }) post!: BlogPost;
+  @Input() headingLevel: 'h2' | 'h3' = 'h3';
 
   protected readonly imageUrl = blogImageUrl;
 }
