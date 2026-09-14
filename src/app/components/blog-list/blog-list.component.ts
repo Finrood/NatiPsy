@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID, Input } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
 import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
@@ -29,6 +29,10 @@ export class BlogListComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly platformId = inject(PLATFORM_ID);
 
+  /** Whether the first card is an above-the-fold LCP candidate. Homepage
+   * previews explicitly pass false; the standalone archive defaults to true. */
+  @Input() firstImagePriority?: boolean;
+
   allPosts: BlogPost[] = [];
   displayedPosts: BlogPost[] = [];
   allCategories: string[] = [];
@@ -49,6 +53,10 @@ export class BlogListComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   protected readonly imageUrl = blogImageUrl;
+
+  get shouldPrioritizeFirstImage(): boolean {
+    return this.firstImagePriority ?? this.router.url.startsWith('/blog');
+  }
 
   ngOnInit(): void {
     if (this.router.url.includes('/blog')) {

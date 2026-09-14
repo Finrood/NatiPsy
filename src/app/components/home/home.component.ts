@@ -28,7 +28,7 @@ import { SITE_URL } from '../../config/contact';
         <app-approach id="abordagem"></app-approach>
         <app-advantages id="vantagens"></app-advantages>
         <app-about-me id="sobre-mim"></app-about-me>
-        <app-blog-list id="blog"></app-blog-list>
+        <app-blog-list id="blog" [firstImagePriority]="false"></app-blog-list>
       </div>
     </div>
   `
