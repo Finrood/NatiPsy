@@ -22,10 +22,23 @@ const NO_INDEX_META =
 const HASHED_ASSET = /-[A-Za-z0-9_-]{8}(\.[cm]?js|\.css)$/;
 
 const configuredOrigin = process.env['PUBLIC_ORIGIN'] || 'https://psicologanataliaferreira.com';
-const publicOrigin = new URL(configuredOrigin);
-if (!['http:', 'https:'].includes(publicOrigin.protocol) || publicOrigin.pathname !== '/') {
-  throw new Error('PUBLIC_ORIGIN must be an absolute http(s) origin without a path.');
+
+export function validatePublicOrigin(value: string): URL {
+  const origin = new URL(value);
+  if (
+    !['http:', 'https:'].includes(origin.protocol)
+    || origin.username
+    || origin.password
+    || origin.pathname !== '/'
+    || origin.search
+    || origin.hash
+  ) {
+    throw new Error('PUBLIC_ORIGIN must be an absolute http(s) origin without credentials, path, query, or fragment.');
+  }
+  return origin;
 }
+
+const publicOrigin = validatePublicOrigin(configuredOrigin);
 
 export function isPathInsideRoot(root: string, target: string): boolean {
   const child = relative(root, target);
@@ -33,23 +46,33 @@ export function isPathInsideRoot(root: string, target: string): boolean {
 }
 
 export function buildRenderUrl(origin: URL, requestUrl: string): string {
+  if (!requestUrl.startsWith('/') || isProtocolRelativeRequest(requestUrl)) {
+    throw new Error('Request URL must be an absolute-path reference.');
+  }
   return new URL(requestUrl, origin).toString();
+}
+
+export function isProtocolRelativeRequest(requestUrl: string): boolean {
+  return requestUrl.startsWith('//');
 }
 
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', false);
 const commonEngine = new CommonEngine({
-  allowedHosts: [
-    'localhost',
-    '127.0.0.1',
-    'psicologanataliaferreira.com',
-    'www.psicologanataliaferreira.com',
-  ],
+  allowedHosts: [...new Set(['localhost', '127.0.0.1', publicOrigin.hostname])],
 });
 
 app.get('/healthz', (_req, res) => {
   res.type('text/plain').status(200).send('ok');
+});
+
+app.use((req, res, next) => {
+  if (isProtocolRelativeRequest(req.originalUrl)) {
+    res.status(400).type('text/plain').send('Invalid request URL');
+    return;
+  }
+  next();
 });
 
 /**
@@ -134,13 +157,21 @@ app.use((req, res, next) => {
 
   const { originalUrl, baseUrl } = req;
 
+  let renderUrl: string;
+  try {
+    renderUrl = buildRenderUrl(publicOrigin, originalUrl);
+  } catch {
+    res.status(400).type('text/plain').send('Invalid request URL');
+    return;
+  }
+
   commonEngine
     .render({
       bootstrap,
       documentFilePath: indexHtml,
       // Never derive canonical rendering URLs from Host or forwarded headers.
       // PUBLIC_ORIGIN is deployment configuration, not request-controlled data.
-      url: buildRenderUrl(publicOrigin, originalUrl),
+      url: renderUrl,
       publicPath: browserDistFolder,
       providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
     })
@@ -171,9 +202,20 @@ if (isMainModule(import.meta.url)) {
   const server = app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
+  let shuttingDown = false;
   const shutdown = (signal: string) => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
     console.log(`${signal} received; draining SSR server.`);
+    const forceExitTimer = setTimeout(() => {
+      console.error('SSR server shutdown timed out; forcing exit.');
+      process.exit(1);
+    }, 10_000);
+    forceExitTimer.unref();
     server.close(error => {
+      clearTimeout(forceExitTimer);
       if (error) {
         console.error('SSR server shutdown failed:', error.message);
         process.exitCode = 1;
