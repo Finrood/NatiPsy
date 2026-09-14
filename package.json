@@ -6,7 +6,6 @@
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
     "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
-    "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "build": "npm run build:blog-index && ng build --stats-json && npm run report:bundle-size",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
