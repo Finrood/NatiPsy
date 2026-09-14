@@ -1,7 +1,7 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
+import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
 
 @Component({
   selector: 'app-blog-card',
@@ -28,7 +28,7 @@ import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="2" />
           </svg>
-          <time [attr.datetime]="post.date.toISOString()">{{ post.date | date:'dd MMM yyyy' }}</time>
+          <time [attr.datetime]="dateOnly(post)">{{ formatDate(dateOnly(post)) }}</time>
         </div>
         @if (headingLevel === 'h2') {
           <h2 class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors">
@@ -57,4 +57,6 @@ export class BlogCardComponent {
   @Input() headingLevel: 'h2' | 'h3' = 'h3';
 
   protected readonly imageUrl = blogImageUrl;
+  protected readonly dateOnly = blogDateOnly;
+  protected readonly formatDate = formatBlogDate;
 }
