@@ -7,6 +7,7 @@
     "build:stats": "npm run build:blog-index && ng build --configuration production --stats-json",
     "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
+    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "build:favicon": "node ./scripts/generate-favicon.mjs",
     "build": "npm run build:blog-index && ng build",
