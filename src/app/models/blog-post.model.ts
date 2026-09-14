@@ -7,6 +7,12 @@ export interface BlogPostAuthor {
   avatar?: string;
 }
 
+export interface BlogHeading {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -20,6 +26,7 @@ export interface BlogPost {
   categories: string[];
   content: string | SafeHtml;
   readTime: number | null;
+  headings?: BlogHeading[];
 
   author?: BlogPostAuthor;
 }

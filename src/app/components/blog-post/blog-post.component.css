@@ -6,6 +6,20 @@ app-blog-post .prose h4 {
   color: var(--color-primary-blue);
 }
 
+app-blog-post .prose h2[id],
+app-blog-post .prose h3[id] {
+  scroll-margin-top: 6rem;
+}
+
+app-blog-post .breadcrumb-title {
+  display: inline-block;
+  max-width: min(70vw, 32rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 app-blog-post .prose p,
 app-blog-post .prose li {
   line-height: 1.8;

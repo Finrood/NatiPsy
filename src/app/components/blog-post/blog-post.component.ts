@@ -1,8 +1,28 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation, PLATFORM_ID, SecurityContext, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  ViewEncapsulation,
+  PLATFORM_ID,
+  SecurityContext,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogAbsoluteImageUrl, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
+import {
+  BlogPost,
+  blogAbsoluteImageUrl,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
+import {
+  CommonModule,
+  NgOptimizedImage,
+  isPlatformBrowser,
+} from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
@@ -13,11 +33,7 @@ import { SITE_URL } from '../../config/contact';
 @Component({
   selector: 'app-blog-post',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    NgOptimizedImage
-  ],
+  imports: [CommonModule, RouterLink, NgOptimizedImage],
   templateUrl: './blog-post.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -39,29 +55,34 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   safeContent: SafeHtml | string | null = null;
 
   private readonly destroy$ = new Subject<void>();
+  private fragmentObserver: MutationObserver | null = null;
+  private readonly onHashChange = () => this.resolveFragment();
   protected readonly imageUrl = blogImageUrl;
   protected readonly dateOnly = blogDateOnly;
   protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
-    this.route.paramMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const slug = params.get('slug');
-        if (slug) {
-          this.loadPost(slug);
-        } else {
-          // Render the 404 state in place: navigating away mid-render makes SSR
-          // unstable, and the noindex meta (set by handleErrorState) is mapped
-          // to an HTTP 404 status by the server.
-          this.handleErrorState('Post slug not found in URL.');
-        }
-      });
+    if (this.isBrowser)
+      window.addEventListener('hashchange', this.onHashChange);
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const slug = params.get('slug');
+      if (slug) {
+        this.loadPost(slug);
+      } else {
+        // Render the 404 state in place: navigating away mid-render makes SSR
+        // unstable, and the noindex meta (set by handleErrorState) is mapped
+        // to an HTTP 404 status by the server.
+        this.handleErrorState('Post slug not found in URL.');
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.fragmentObserver?.disconnect();
+    if (this.isBrowser)
+      window.removeEventListener('hashchange', this.onHashChange);
     if (this.post) {
       this.seoService.removeStructuredData(`blog-post-${this.post.slug}`);
     }
@@ -75,7 +96,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.relatedPosts = [];
     this.cdr.markForCheck();
 
-    this.blogService.getPostBySlug(slug)
+    this.blogService
+      .getPostBySlug(slug)
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -86,11 +108,11 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           // before first render, making this a harmless no-op there.
           this.cdr.detectChanges();
         }),
-        catchError(err => {
+        catchError((err) => {
           this.handleErrorState(err.message || 'Erro ao carregar o post.');
           return of(null);
         }),
-        tap(post => {
+        tap((post) => {
           if (post) {
             this.post = post;
             this.safeContent = this.toSafeHtml(post.content as string);
@@ -104,16 +126,46 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             this.handleErrorState('Post não encontrado.');
           }
           this.cdr.detectChanges();
+          // The article and its generated headings exist only after the view
+          // has rendered the async post response. Resolve the fragment after
+          // that render so direct loads and client navigations share the same
+          // deterministic observer path.
+          if (post) this.resolveFragment();
         }),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe();
   }
 
+  private resolveFragment(): void {
+    if (!this.isBrowser || !window.location.hash) return;
+
+    this.fragmentObserver?.disconnect();
+    const targetId = decodeURIComponent(window.location.hash.slice(1));
+    const article = document.querySelector('article');
+    if (!article) return;
+
+    const scrollToTarget = () => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      this.fragmentObserver?.disconnect();
+      target.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (!target.hasAttribute('tabindex'))
+        target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+
+    this.fragmentObserver = new MutationObserver(scrollToTarget);
+    this.fragmentObserver.observe(article, { childList: true, subtree: true });
+    scrollToTarget();
+  }
+
   loadRelatedPosts(slug: string, categories?: string[]): void {
-    this.blogService.getRelatedPosts(slug, categories, 3)
+    this.blogService
+      .getRelatedPosts(slug, categories, 3)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(posts => {
+      .subscribe((posts) => {
         this.relatedPosts = posts;
         this.cdr.detectChanges();
       });
@@ -143,7 +195,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       title: 'Erro | Psicóloga Natalia Ferreira',
       description: 'Página não encontrada ou erro ao carregar o artigo.',
       url: `${SITE_URL}/404`,
-      robots: 'noindex'
+      robots: 'noindex',
     });
     this.cdr.detectChanges();
   }
@@ -154,7 +206,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.seoService.updateMetaTags({
       title: `${post.title} | Blog Natália Ferreira`,
       description: post.description,
-      keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
+      keywords:
+        post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       imageWidth: post.imageWidth,
       imageHeight: post.imageHeight,
@@ -164,7 +217,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
       author: post.author?.name || 'Natalia Ferreira',
-      tags: post.categories
+      tags: post.categories,
     });
 
     this.seoService.setStructuredData(`blog-post-${post.slug}`, {
@@ -178,22 +231,22 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       author: {
         '@type': 'Person',
         name: post.author?.name || 'Natalia Ferreira',
-        url: SITE_URL
+        url: SITE_URL,
       },
       publisher: {
         '@type': 'Person',
         name: 'Natalia Ferreira Psicóloga',
         logo: {
           '@type': 'ImageObject',
-          url: `${SITE_URL}/assets/logo.png`
-        }
+          url: `${SITE_URL}/assets/logo.png`,
+        },
       },
       url: `${SITE_URL}/blog/${post.slug}`,
       mainEntityOfPage: {
         '@type': 'WebPage',
-        '@id': `${SITE_URL}/blog/${post.slug}`
+        '@id': `${SITE_URL}/blog/${post.slug}`,
       },
-      keywords: post.categories.join(', ')
+      keywords: post.categories.join(', '),
     });
   }
 }
