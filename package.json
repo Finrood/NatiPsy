@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "test:fonts": "node ./scripts/fonts-contract.test.mjs",
     "test:nginx-security": "node ./scripts/nginx-security-headers.test.mjs",
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
