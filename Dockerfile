@@ -19,6 +19,7 @@ FROM nginx:1.27-alpine
 
 # Copy built static files to Nginx's default directory
 COPY --from=build /app/dist/nati-psy/browser/ /usr/share/nginx/html/
+COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 
 # Copy custom Nginx config for Angular routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
