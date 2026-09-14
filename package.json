@@ -4,7 +4,6 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
-    "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
     "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "build:favicon": "node ./scripts/generate-favicon.mjs",
