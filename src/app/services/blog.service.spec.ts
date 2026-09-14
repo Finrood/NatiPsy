@@ -62,12 +62,30 @@ describe('BlogService', () => {
 
     firstResult[0].title = 'mutated';
     firstResult[0].categories.push('subscriber mutation');
+    firstResult[0].date.setFullYear(2030);
 
     let secondResult: BlogPost[] = [];
     service.getPostsList().subscribe(posts => { secondResult = posts; });
     expect(secondResult.map(post => post.slug)).toEqual(['alpha', 'zeta']);
     expect(secondResult[0].title).toBe('Alpha');
     expect(secondResult[0].categories).toEqual(['A']);
+    expect(secondResult[0].date.getTime()).toBe(new Date('2025-01-01').getTime());
+  });
+
+  it('does not expose mutable dates through related-post results', () => {
+    const index = [
+      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
+      { slug: 'related', title: 'Related', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
+    ];
+
+    let firstResult: BlogPost[] = [];
+    service.getRelatedPosts('current', ['A']).subscribe(posts => { firstResult = posts; });
+    httpMock.expectOne('/assets/content/blog/index.json').flush(index);
+    firstResult[0].date.setFullYear(2030);
+
+    let secondResult: BlogPost[] = [];
+    service.getRelatedPosts('current', ['A']).subscribe(posts => { secondResult = posts; });
+    expect(secondResult[0].date.getTime()).toBe(new Date('2025-02-01').getTime());
   });
 
   it('ranks related posts by shared categories, date, then slug', () => {

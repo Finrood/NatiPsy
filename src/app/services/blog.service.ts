@@ -47,6 +47,7 @@ export class BlogService {
   private clonePost(post: BlogPost): BlogPost {
     return {
       ...post,
+      date: new Date(post.date.getTime()),
       categories: [...post.categories],
       author: post.author ? { ...post.author } : post.author,
     };
