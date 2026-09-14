@@ -1,75 +1,75 @@
-const fs = require('fs');
-const path = require('path');
-const matter = require('gray-matter');
-const { marked } = require('marked');
+const fs = require("fs");
+const path = require("path");
+const matter = require("gray-matter");
+const { marked } = require("marked");
 
-const projectRoot = path.join(__dirname, '../..');
-const contentDir = path.join(projectRoot, 'content/blog');
-const publicContentDir = path.join(projectRoot, 'public/assets/content/blog');
-const outputIndexPath = path.join(publicContentDir, 'index.json');
-const postsDir = path.join(publicContentDir, 'posts');
-const imagesDir = path.join(publicContentDir, 'images');
-const routesPath = path.join(projectRoot, 'src/routes.txt');
-const sitemapPath = path.join(projectRoot, 'public/sitemap.xml');
+const projectRoot =
+  process.env.BLOG_PROJECT_ROOT || path.join(__dirname, "../..");
+const contentDir = path.join(projectRoot, "content/blog");
+const sourceImagesDir = path.join(contentDir, "images");
+const publicContentDir = path.join(projectRoot, "public/assets/content/blog");
+const routesPath = path.join(projectRoot, "src/routes.txt");
+const sitemapPath = path.join(projectRoot, "public/sitemap.xml");
 
-const SITE_URL = 'https://psicologanataliaferreira.com';
+const SITE_URL = "https://psicologanataliaferreira.com";
 
-// Simple function to estimate reading time from text content
 function calculateReadingTime(content) {
   if (!content) return 0;
   const wordsPerMinute = 200;
-  // Basic word count (doesn't need full markdown parsing for estimate)
-  const textOnly = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  const words = textOnly.split(' ').length;
+  const textOnly = content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = textOnly ? textOnly.split(" ").length : 0;
   return Math.ceil(words / wordsPerMinute);
 }
 
 function escapeXml(value) {
-  return String(value).replace(/[<>&'"]/g, (char) => ({
-    '<': '&lt;',
-    '>': '&gt;',
-    '&': '&amp;',
-    "'": '&apos;',
-    '"': '&quot;'
-  }[char]));
+  return String(value).replace(
+    /[<>&'"]/g,
+    (char) =>
+      ({
+        "<": "&lt;",
+        ">": "&gt;",
+        "&": "&amp;",
+        "'": "&apos;",
+        '"': "&quot;",
+      })[char],
+  );
 }
 
-function pageUrl(path) {
-  return `${SITE_URL}${path}`;
-}
-
-function generateRoutesFile(posts) {
-  const lines = ['/', '/blog', ...posts.map((post) => `/blog/${post.slug}`)];
-  fs.writeFileSync(routesPath, lines.join('\n') + '\n');
-  console.log(`[Blog Index Generator] Wrote ${lines.length} routes to ${routesPath}`);
+function pageUrl(route) {
+  return `${SITE_URL}${route}`;
 }
 
 function imageUrl(post) {
-  return post.image ? `${SITE_URL}/assets/content/blog/images/${post.image}` : null;
+  return post.image
+    ? `${SITE_URL}/assets/content/blog/images/${post.image}`
+    : null;
 }
 
 function generateSitemap(posts) {
-  // posts are sorted by date descending; the newest post date is the site's last modification
-  const lastSiteUpdate = posts.length ? posts[0].date.slice(0, 10) : new Date().toISOString().slice(0, 10);
-
+  const lastSiteUpdate = posts.length
+    ? posts[0].date.slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
   const urls = [
     `  <url>
-    <loc>${escapeXml(pageUrl('/'))}</loc>
+    <loc>${escapeXml(pageUrl("/"))}</loc>
     <lastmod>${lastSiteUpdate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>${escapeXml(pageUrl('/assets/NatiHero.webp'))}</image:loc>
+      <image:loc>${escapeXml(pageUrl("/assets/NatiHero.webp"))}</image:loc>
       <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
       <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
     </image:image>
   </url>`,
     `  <url>
-    <loc>${escapeXml(pageUrl('/blog'))}</loc>
+    <loc>${escapeXml(pageUrl("/blog"))}</loc>
     <lastmod>${lastSiteUpdate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`
+  </url>`,
   ];
 
   for (const post of posts) {
@@ -78,137 +78,212 @@ function generateSitemap(posts) {
     <loc>${escapeXml(pageUrl(`/blog/${post.slug}`))}</loc>
     <lastmod>${post.date.slice(0, 10)}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>${postImageUrl ? `
+    <priority>0.7</priority>${
+      postImageUrl
+        ? `
     <image:image>
       <image:loc>${escapeXml(postImageUrl)}</image:loc>
       <image:title>${escapeXml(post.title)}</image:title>
       <image:caption>${escapeXml(post.description)}</image:caption>
-    </image:image>` : ''}
+    </image:image>`
+        : ""
+    }
   </url>`);
   }
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls.join('\n')}
+${urls.join("\n")}
 </urlset>
 `;
-  fs.writeFileSync(sitemapPath, xml);
-  console.log(`[Blog Index Generator] Wrote sitemap with ${urls.length} URLs to ${sitemapPath}`);
+}
+
+function safeSourcePath(reference) {
+  if (typeof reference !== "string" || reference.trim() === "") return null;
+  const normalized = path.normalize(reference);
+  const source = path.resolve(sourceImagesDir, normalized);
+  const sourceRoot = `${path.resolve(sourceImagesDir)}${path.sep}`;
+  return source.startsWith(sourceRoot) ? { normalized, source } : null;
+}
+
+function copyReferencedImage(reference, stagingImages, context) {
+  const safePath = safeSourcePath(reference);
+  if (
+    !safePath ||
+    !fs.existsSync(safePath.source) ||
+    !fs.statSync(safePath.source).isFile()
+  ) {
+    console.warn(
+      `[Blog Index Generator] Warning for ${context}: image '${reference}' is not available in authored content.`,
+    );
+    return null;
+  }
+
+  const destination = path.join(stagingImages, safePath.normalized);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.copyFileSync(safePath.source, destination);
+  return safePath.normalized;
+}
+
+function replaceDirectory(stagedPath, destinationPath) {
+  const backupPath = `${destinationPath}.backup-${process.pid}`;
+  fs.rmSync(backupPath, { recursive: true, force: true });
+  if (fs.existsSync(destinationPath))
+    fs.renameSync(destinationPath, backupPath);
+  try {
+    fs.renameSync(stagedPath, destinationPath);
+    fs.rmSync(backupPath, { recursive: true, force: true });
+  } catch (error) {
+    if (!fs.existsSync(destinationPath) && fs.existsSync(backupPath))
+      fs.renameSync(backupPath, destinationPath);
+    throw error;
+  }
+}
+
+function replaceFile(stagedPath, destinationPath) {
+  const backupPath = `${destinationPath}.backup-${process.pid}`;
+  fs.rmSync(backupPath, { force: true });
+  if (fs.existsSync(destinationPath))
+    fs.renameSync(destinationPath, backupPath);
+  try {
+    fs.renameSync(stagedPath, destinationPath);
+    fs.rmSync(backupPath, { force: true });
+  } catch (error) {
+    if (!fs.existsSync(destinationPath) && fs.existsSync(backupPath))
+      fs.renameSync(backupPath, destinationPath);
+    throw error;
+  }
 }
 
 function generateIndex() {
   const posts = [];
+  const stagingRoot = fs.mkdtempSync(path.join(projectRoot, ".blog-staging-"));
+  const stagingBlogDir = path.join(stagingRoot, "blog");
+  const stagingPostsDir = path.join(stagingBlogDir, "posts");
+  const stagingImagesDir = path.join(stagingBlogDir, "images");
+  const stagingRoutesPath = path.join(stagingRoot, "routes.txt");
+  const stagingSitemapPath = path.join(stagingRoot, "sitemap.xml");
+
   try {
-    const files = fs.readdirSync(contentDir);
-    fs.mkdirSync(publicContentDir, { recursive: true });
-    fs.mkdirSync(postsDir, { recursive: true });
+    fs.mkdirSync(stagingPostsDir, { recursive: true });
+    fs.mkdirSync(stagingImagesDir, { recursive: true });
+    const files = fs.readdirSync(contentDir, { withFileTypes: true });
 
-    for (const file of files) {
-      if (path.extname(file) === '.md') {
-        const slug = path.basename(file, '.md');
-        const filePath = path.join(contentDir, file);
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
+    for (const entry of files) {
+      if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== ".md")
+        continue;
 
-        try {
-          const { data, content } = matter(fileContent);
-
-          if (data.draft === true || data.published === false) {
-            console.log(`[Blog Index Generator] Excluding unpublished post ${file}`);
-            continue;
-          }
-
-          if (!data.title || !data.date || !data.description) {
-            console.warn(`\n[Blog Index Generator] Skipping ${file}: Missing required front matter (title, date, description).`);
-            continue;
-          }
-
-          // Process categories safely
-          let categories = [];
-          if (Array.isArray(data.categories)) {
-            categories = data.categories;
-          } else if (typeof data.categories === 'string' && data.categories.trim() !== '') {
-            categories = data.categories.split(',').map(c => c.trim()).filter(c => c);
-          } else {
-            console.warn(`\n[Blog Index Generator] Warning for ${file}: 'categories' field is missing or invalid. Defaulting to empty.`);
-          }
-
-          // Process author safely
-          let author = null;
-          if (data.author) {
-            if (typeof data.author === 'string') {
-              author = { name: data.author };
-            } else if (typeof data.author === 'object' && data.author.name) {
-              author = {
-                name: data.author.name,
-                bio: data.author.bio || undefined,
-                avatar: data.author.avatar || undefined
-              };
-            } else {
-              console.warn(`\n[Blog Index Generator] Warning for ${file}: 'author' field is invalid. Ignoring.`);
-            }
-          }
-
-          // Validate image path if provided
-          let image = data.image || null;
-          if (image && typeof image === 'string') {
-            const imagePath = path.join(imagesDir, image);
-            if (!fs.existsSync(imagePath)) {
-              console.warn(`\n[Blog Index Generator] Warning for ${file}: Image file not found at 'assets/content/blog/images/${image}'. Setting image to null.`);
-              image = null;
-            }
-          } else if (image) {
-            console.warn(`\n[Blog Index Generator] Warning for ${file}: 'image' field is not a string. Setting image to null.`);
-            image = null;
-          }
-
-
-          const postData = {
-            slug: slug,
-            title: data.title,
-            date: new Date(data.date).toISOString(), // Store as ISO string
-            description: data.description,
-            image: image,
-            categories: categories,
-            author: author, // Include author info
-            readTime: calculateReadingTime(content) // Calculate read time
-            // DO NOT include full 'content' in the index file
-          };
-          posts.push(postData);
-
-          // Pre-render Markdown to HTML at build time so the browser never
-          // ships a Markdown engine: per-post JSON with ready-to-bind HTML.
-          const htmlContent = marked.parse(content);
-          const postJson = { ...postData, content: htmlContent };
-          fs.writeFileSync(path.join(postsDir, `${slug}.json`), JSON.stringify(postJson, null, 2));
-
-        } catch (parseError) {
-          console.error(`\n[Blog Index Generator] Error parsing front matter for ${file}:`, parseError.message);
+      const slug = path.basename(entry.name, ".md");
+      const filePath = path.join(contentDir, entry.name);
+      try {
+        const { data, content } = matter(fs.readFileSync(filePath, "utf-8"));
+        if (data.draft === true || data.published === false) {
+          console.log(
+            `[Blog Index Generator] Excluding unpublished post ${entry.name}`,
+          );
+          continue;
         }
+        if (!data.title || !data.date || !data.description) {
+          console.warn(
+            `[Blog Index Generator] Skipping ${entry.name}: missing required front matter.`,
+          );
+          continue;
+        }
+
+        const categories = Array.isArray(data.categories)
+          ? data.categories
+          : typeof data.categories === "string"
+            ? data.categories
+                .split(",")
+                .map((category) => category.trim())
+                .filter(Boolean)
+            : [];
+        const sourceAuthor = data.author;
+        let author = null;
+        if (sourceAuthor) {
+          if (typeof sourceAuthor === "string") {
+            author = { name: sourceAuthor };
+          } else if (typeof sourceAuthor === "object" && sourceAuthor.name) {
+            const avatar = sourceAuthor.avatar
+              ? copyReferencedImage(
+                  sourceAuthor.avatar,
+                  stagingImagesDir,
+                  entry.name,
+                )
+              : undefined;
+            author = {
+              name: sourceAuthor.name,
+              bio: sourceAuthor.bio || undefined,
+              avatar: avatar || undefined,
+            };
+          }
+        }
+
+        const image = data.image
+          ? copyReferencedImage(data.image, stagingImagesDir, entry.name)
+          : null;
+        const postData = {
+          slug,
+          title: data.title,
+          date: new Date(data.date).toISOString(),
+          description: data.description,
+          image,
+          categories,
+          author,
+          readTime: calculateReadingTime(content),
+        };
+        posts.push(postData);
+        fs.writeFileSync(
+          path.join(stagingPostsDir, `${slug}.json`),
+          JSON.stringify(
+            { ...postData, content: marked.parse(content) },
+            null,
+            2,
+          ),
+        );
+      } catch (error) {
+        console.error(
+          `[Blog Index Generator] Skipping ${entry.name}: ${error.message}`,
+        );
       }
     }
 
-    // Sort posts by date descending before writing
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || a.slug.localeCompare(b.slug));
+    posts.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+    fs.writeFileSync(
+      path.join(stagingBlogDir, "index.json"),
+      JSON.stringify(posts, null, 2),
+    );
+    fs.writeFileSync(
+      stagingRoutesPath,
+      ["/", "/blog", ...posts.map((post) => `/blog/${post.slug}`)].join("\n") +
+        "\n",
+    );
+    fs.writeFileSync(stagingSitemapPath, generateSitemap(posts));
 
-    fs.writeFileSync(outputIndexPath, JSON.stringify(posts, null, 2)); // Pretty print JSON
-    console.log(`\n[Blog Index Generator] Successfully generated ${outputIndexPath} with ${posts.length} posts.`);
-
-    // Prune JSON files for posts that no longer exist.
-    for (const file of fs.readdirSync(postsDir)) {
-      if (path.extname(file) === '.json' && !posts.some((post) => `${post.slug}.json` === file)) {
-        fs.unlinkSync(path.join(postsDir, file));
-        console.log(`[Blog Index Generator] Removed stale ${path.join(postsDir, file)}`);
-      }
-    }
-
-    generateRoutesFile(posts);
-    generateSitemap(posts);
-
-  } catch (err) {
-    console.error("\n[Blog Index Generator] Error reading content directory or writing index file:", err);
-    process.exit(1); // Exit with error code
+    fs.mkdirSync(path.dirname(publicContentDir), { recursive: true });
+    fs.mkdirSync(path.dirname(routesPath), { recursive: true });
+    fs.mkdirSync(path.dirname(sitemapPath), { recursive: true });
+    replaceDirectory(stagingBlogDir, publicContentDir);
+    replaceFile(stagingRoutesPath, routesPath);
+    replaceFile(stagingSitemapPath, sitemapPath);
+    console.log(
+      `[Blog Index Generator] Generated ${posts.length} publishable posts atomically.`,
+    );
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
   }
 }
 
-generateIndex();
+if (require.main === module) {
+  try {
+    generateIndex();
+  } catch (error) {
+    console.error(`[Blog Index Generator] Failed: ${error.message}`);
+    process.exitCode = 1;
+  }
+}
+
+module.exports = { calculateReadingTime, generateIndex, generateSitemap };
