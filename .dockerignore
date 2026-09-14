@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.github
+.codex
+.agents
+.vscode
+coverage
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+tmp
+.tmp
+playwright-report
+test-results

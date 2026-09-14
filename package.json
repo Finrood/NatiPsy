@@ -1,6 +1,7 @@
 {
   "name": "nati-psy",
   "version": "0.0.0",
+  "packageManager": "npm@10.9.8",
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",

@@ -1,0 +1,21 @@
+name: Container reproducibility
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build twice without cache
+        run: |
+          docker build --no-cache --tag natipsy:repro-1 .
+          docker build --no-cache --tag natipsy:repro-2 .
+      - name: Validate runtime contract
+        run: npm run test:container
