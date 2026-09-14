@@ -90,6 +90,9 @@ app.use(
     setHeaders: (res, filePath) => {
       if (HASHED_ASSET.test(filePath)) {
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (filePath.endsWith('/feed.xml')) {
+        res.setHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
+        res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
       } else if (/\.(txt|xml)$/.test(filePath)) {
         res.setHeader('Cache-Control', 'public, max-age=3600');
       } else {

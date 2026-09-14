@@ -3,12 +3,14 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 
-const contentDir = path.join(__dirname, '../../public/assets/content/blog');
-const outputIndexPath = path.join(contentDir, 'index.json');
-const postsDir = path.join(contentDir, 'posts');
-const imagesDir = path.join(contentDir, 'images');
-const routesPath = path.join(__dirname, '../../src/routes.txt');
-const sitemapPath = path.join(__dirname, '../../public/sitemap.xml');
+const configuredPath = (name, fallback) => process.env[name] ? path.resolve(process.env[name]) : fallback;
+const contentDir = configuredPath('BLOG_CONTENT_DIR', path.join(__dirname, '../../public/assets/content/blog'));
+const outputIndexPath = configuredPath('BLOG_INDEX_PATH', path.join(contentDir, 'index.json'));
+const postsDir = configuredPath('BLOG_POSTS_DIR', path.join(contentDir, 'posts'));
+const imagesDir = configuredPath('BLOG_IMAGES_DIR', path.join(contentDir, 'images'));
+const routesPath = configuredPath('BLOG_ROUTES_PATH', path.join(__dirname, '../../src/routes.txt'));
+const sitemapPath = configuredPath('BLOG_SITEMAP_PATH', path.join(__dirname, '../../public/sitemap.xml'));
+const feedPath = configuredPath('BLOG_FEED_PATH', path.join(__dirname, '../../public/feed.xml'));
 
 const SITE_URL = 'https://psicologanataliaferreira.com';
 
@@ -44,6 +46,35 @@ function generateRoutesFile(posts) {
 
 function imageUrl(post) {
   return post.image ? `${SITE_URL}/assets/content/blog/images/${post.image}` : null;
+}
+
+function generateFeed(posts) {
+  const feedItems = posts.slice(0, 20).map(post => {
+    const postUrl = pageUrl(`/blog/${post.slug}`);
+    const author = post.author?.name ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>` : '';
+    return `    <item>
+      <title>${escapeXml(post.title)}</title>
+      <link>${escapeXml(postUrl)}</link>
+      <guid isPermaLink="true">${escapeXml(postUrl)}</guid>${author}
+      <pubDate>${new Date(post.date).toUTCString()}</pubDate>
+      <description>${escapeXml(post.description)}</description>
+    </item>`;
+  }).join('\n');
+  const latestDate = posts[0]?.date ? new Date(posts[0].date).toUTCString() : new Date(0).toUTCString();
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Natalia Ferreira | Psicóloga Clínica</title>
+    <link>${escapeXml(SITE_URL)}/</link>
+    <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
+    <language>pt-BR</language>
+    <lastBuildDate>${latestDate}</lastBuildDate>
+    <atom:link href="${escapeXml(pageUrl('/feed.xml'))}" rel="self" type="application/rss+xml" />
+${feedItems}
+  </channel>
+</rss>
+`;
+  fs.writeFileSync(feedPath, xml);
 }
 
 function generateSitemap(posts) {
@@ -109,6 +140,10 @@ function generateIndex() {
 
         try {
           const { data, content } = matter(fileContent);
+
+          if (data.draft === true || data.published === false) {
+            continue;
+          }
 
           if (!data.title || !data.date || !data.description) {
             console.warn(`\n[Blog Index Generator] Skipping ${file}: Missing required front matter (title, date, description).`);
@@ -201,6 +236,7 @@ function generateIndex() {
 
     generateRoutesFile(posts);
     generateSitemap(posts);
+    generateFeed(posts);
 
   } catch (err) {
     console.error("\n[Blog Index Generator] Error reading content directory or writing index file:", err);
