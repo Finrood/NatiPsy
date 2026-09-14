@@ -1,32 +1,62 @@
-const fs = require('fs');
-const path = require('path');
-const { spawnSync } = require('child_process');
-const { defaultContentDir } = require('./validate-blog-content');
+const fs = require("fs");
+const path = require("path");
+const { spawnSync } = require("child_process");
+const { defaultContentDir } = require("./validate-blog-content");
 
 const contentDir = defaultContentDir();
-const validator = path.join(__dirname, 'validate-blog-content.js');
-const generator = path.join(__dirname, 'generate-blog-index.js');
-let timer;
+const generator = path.join(__dirname, "generate-blog-index.js");
 
-function generate() {
-  const validation = spawnSync(process.execPath, [validator], { stdio: 'inherit' });
-  if (validation.status !== 0) {
-    console.error('[Blog Watch] Validation failed; waiting for the next source change.');
-    return;
-  }
-  const result = spawnSync(process.execPath, [generator], { stdio: 'inherit' });
-  if (result.status !== 0) console.error('[Blog Watch] Generation failed; waiting for the next source change.');
+function createDebouncedGenerator(generate, delay = 100) {
+  let pending;
+  return {
+    trigger() {
+      clearTimeout(pending);
+      pending = setTimeout(() => {
+        pending = undefined;
+        generate();
+      }, delay);
+    },
+    close() {
+      clearTimeout(pending);
+    },
+  };
 }
 
-generate();
-const watcher = fs.watch(contentDir, (_event, filename) => {
-  if (!filename || path.extname(filename) !== '.md') return;
-  clearTimeout(timer);
-  timer = setTimeout(generate, 100);
-});
+function generate() {
+  const result = spawnSync(process.execPath, [generator], { stdio: "inherit" });
+  if (result.status !== 0)
+    console.error(
+      "[Blog Watch] Validation or generation failed; waiting for the next source change.",
+    );
+}
 
-process.on('SIGINT', () => {
-  watcher.close();
-  clearTimeout(timer);
-  process.exit(0);
-});
+function startWatcher() {
+  generate();
+  const debouncedGenerate = createDebouncedGenerator(generate);
+  const watcher = fs.watch(
+    contentDir,
+    { recursive: true },
+    (_event, filename) => {
+      if (
+        !filename ||
+        ![".md", ".avif", ".gif", ".jpeg", ".jpg", ".png", ".webp"].includes(
+          path.extname(filename).toLowerCase(),
+        )
+      )
+        return;
+      debouncedGenerate.trigger();
+    },
+  );
+
+  const stop = () => {
+    watcher.close();
+    debouncedGenerate.close();
+    process.exit(0);
+  };
+  process.once("SIGINT", stop);
+  process.once("SIGTERM", stop);
+}
+
+if (require.main === module) startWatcher();
+
+module.exports = { createDebouncedGenerator };

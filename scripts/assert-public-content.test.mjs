@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { access, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -46,7 +53,6 @@ async function createFixture() {
     join(root, "content/blog/images/unpublished.webp"),
     "unpublished",
   );
-  await writeFile(join(root, "content/blog/images/invalid.webp"), "invalid");
   await writeFile(
     join(root, "content/blog/keep.md"),
     "---\ntitle: Keep this post\ndate: 2026-01-01\ndescription: A published fixture\nimage: keep.webp\ncategories:\n  - Test\n---\nPublished content.\n",
@@ -58,10 +64,6 @@ async function createFixture() {
   await writeFile(
     join(root, "content/blog/unpublished.md"),
     "---\ntitle: Unpublished post\ndate: 2026-01-03\ndescription: An unpublished fixture\npublished: false\nimage: unpublished.webp\n---\nUnpublished content.\n",
-  );
-  await writeFile(
-    join(root, "content/blog/invalid.md"),
-    "---\ndate: 2026-01-04\ndescription: Missing title\nimage: invalid.webp\n---\nInvalid content.\n",
   );
   return root;
 }
@@ -107,6 +109,19 @@ test("publishes only validated content and cleans stale generated artifacts", as
     false,
   );
   assert.deepEqual(await findPrivateContent(publicBlog), []);
+
+  await writeFile(
+    join(root, "content/blog/invalid.md"),
+    "---\ndate: 2026-01-04\ndescription: Missing title\n---\nInvalid content.\n",
+  );
+  assert.throws(() => runGenerator(root));
+  assert.deepEqual(
+    JSON.parse(await readFile(join(publicBlog, "index.json"), "utf8")).map(
+      (post) => post.slug,
+    ),
+    ["keep"],
+  );
+  await unlink(join(root, "content/blog/invalid.md"));
 
   await writeFile(
     join(root, "content/blog/keep.md"),

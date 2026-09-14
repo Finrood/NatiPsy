@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const matter = require("gray-matter");
 const { marked } = require("marked");
+const { validateContentDirectory } = require("./validate-blog-content");
 
 const projectRoot =
   process.env.BLOG_PROJECT_ROOT || path.join(__dirname, "../..");
@@ -157,6 +158,13 @@ function replaceFile(stagedPath, destinationPath) {
 }
 
 function generateIndex() {
+  const validation = validateContentDirectory(contentDir, sourceImagesDir);
+  if (validation.errors.length > 0) {
+    throw new Error(
+      `[Blog Content Validator] ${validation.errors.length} error(s):\n- ${validation.errors.join("\n- ")}`,
+    );
+  }
+
   const posts = [];
   const stagingRoot = fs.mkdtempSync(path.join(projectRoot, ".blog-staging-"));
   const stagingBlogDir = path.join(stagingRoot, "blog");
