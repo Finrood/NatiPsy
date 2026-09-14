@@ -74,6 +74,7 @@ export class BlogService {
       .map(post => ({
         ...post,
         date: new Date(post.date),
+        dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
         content: '',
         readTime: null as number | null,
       }))
@@ -109,6 +110,7 @@ export class BlogService {
       map(posts => posts.map(post => ({
         ...post,
         date: new Date(post.date),
+        dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
         content: '',
         readTime: null
       }))),
@@ -186,7 +188,7 @@ export class BlogService {
       if (!raw) {
         return of(null);
       }
-      return of({ ...raw, date: new Date(raw.date) });
+      return of({ ...raw, date: new Date(raw.date), dateOnly: raw.dateOnly ?? new Date(raw.date).toISOString().slice(0, 10) });
     }
     // Check the post index first: unknown slugs return `null` immediately,
     // avoiding a pointless markdown request (and nested SSR fetches for
@@ -222,6 +224,7 @@ export class BlogService {
         map((post) => ({
           ...post,
           date: new Date(post.date),
+          dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
         })),
         catchError(error => {
           if (error instanceof HttpErrorResponse && error.status === 404) {
