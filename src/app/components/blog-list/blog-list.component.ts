@@ -55,6 +55,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
   private invalidPage = false;
 
   protected readonly imageUrl = blogImageUrl;
+  protected readonly dateOnly = blogDateOnly;
+  protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
     combineLatest([this.route.paramMap, this.route.queryParams])
