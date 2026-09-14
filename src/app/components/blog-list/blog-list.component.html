@@ -16,8 +16,8 @@
           </label>
           <div class="relative">
             <select id="category-filter" name="category"
-              [(ngModel)]="selectedCategory"
-              (ngModelChange)="onFilterChange()"
+              [ngModel]="selectedCategory"
+              (ngModelChange)="onCategoryChange($event)"
               class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
               <option value="">Todas as Categorias</option>
               @for (category of allCategories; track category) {
@@ -40,8 +40,8 @@
           <div class="flex items-center space-x-2">
             <div class="relative">
               <select id="sort-by" name="sortBy"
-                [(ngModel)]="sortBy"
-                (ngModelChange)="onSortChange()"
+                [ngModel]="sortBy"
+                (ngModelChange)="onSortChange($event)"
                 class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
                 <option value="date">Mais Recentes</option>
                 <option value="title">Título (A-Z)</option>
@@ -52,7 +52,7 @@
             </div>
 
             <!-- Sort Direction Button (Icon Style) -->
-            <button (click)="sortDirection = (sortDirection === 'desc' ? 'asc' : 'desc'); onSortChange()"
+            <button (click)="onSortDirectionToggle()"
               type="button"
               class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-blue focus:ring-offset-0 transition"
               [attr.aria-label]="'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')"
@@ -99,7 +99,7 @@
           {{ selectedCategory ? 'Nenhum post encontrado nesta categoria.' : 'Nenhum post encontrado.' }}
         </p>
         @if (selectedCategory) {
-          <button (click)="selectedCategory = ''; onFilterChange()"
+          <button type="button" (click)="onCategoryChange('')"
             class="mt-4 text-primary-blue hover:underline">
             Mostrar todas as categorias
           </button>
