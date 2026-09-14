@@ -22,13 +22,24 @@ export async function runRobotsSmokeCheck(baseUrl = process.env.SMOKE_BASE_URL) 
     throw new Error('SMOKE_BASE_URL is required, for example https://example.com');
   }
 
-  const url = new URL('/robots.txt', baseUrl);
-  const response = await fetch(url, { redirect: 'manual' });
-  if (response.status !== 200) {
-    throw new Error(`/robots.txt returned HTTP ${response.status}; expected 200`);
+  const origin = new URL(baseUrl);
+  const url = new URL('/robots.txt', origin);
+  try {
+    const response = await fetch(url, {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (response.status !== 200) {
+      throw new Error(`/robots.txt returned HTTP ${response.status}; expected 200`);
+    }
+    validateRobots(await response.text(), new URL('/sitemap.xml', origin).href);
+    console.log(`PASS ${response.status} ${url}`);
+  } catch (error) {
+    if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+      throw new Error(`/robots.txt timed out after 10000ms`);
+    }
+    throw error;
   }
-  validateRobots(await response.text());
-  console.log(`PASS ${response.status} ${url}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

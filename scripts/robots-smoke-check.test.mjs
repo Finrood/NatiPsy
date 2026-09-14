@@ -17,3 +17,16 @@ test('rejects an edge policy that omits the sitemap directive', () => {
     /exactly one Sitemap/
   );
 });
+
+test('rejects duplicate canonical directives', () => {
+  assert.throws(
+    () => validateRobots([
+      'User-agent: *',
+      'Allow: /',
+      'Disallow: /404',
+      'Sitemap: https://psicologanataliaferreira.com/sitemap.xml',
+      'Sitemap: https://psicologanataliaferreira.com/sitemap.xml',
+    ].join('\n')),
+    /exactly one Sitemap/,
+  );
+});

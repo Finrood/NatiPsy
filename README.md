@@ -34,6 +34,14 @@ To build the project run:
 ng build
 ```
 
+## Production robots monitoring
+
+`npm run smoke:robots` checks the live `/robots.txt` policy, including one
+canonical `Sitemap` directive. The same bounded assertion runs daily through
+GitHub Actions and can be run manually after deployment. Configure the
+repository secret `SMOKE_BASE_URL`; a failure should be routed to the
+deployment/on-call notification destination.
+
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
 ## Running unit tests
