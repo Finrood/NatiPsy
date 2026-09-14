@@ -45,6 +45,10 @@ entry point is not the production serving contract.
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+## Optional SSR server
+
+The Angular SSR server is optional; the production Docker image serves the prerendered browser output with Nginx. When running the Node server, set `PUBLIC_ORIGIN` to the canonical absolute `http(s)` origin (for example `https://psicologanataliaferreira.com`). It is deliberately not derived from request `Host` or forwarded headers. `/healthz` is the liveness endpoint, and SIGTERM/SIGINT drain the listener before exit.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:

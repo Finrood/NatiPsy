@@ -1,7 +1,7 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine, isMainModule } from '@angular/ssr/node';
 import express from 'express';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import bootstrap from './main.server';
@@ -21,14 +21,58 @@ const NO_INDEX_META =
 /** Angular/esbuild output hashes aren't hex-only (e.g. main-TARQSBXP.js). */
 const HASHED_ASSET = /-[A-Za-z0-9_-]{8}(\.[cm]?js|\.css)$/;
 
+const configuredOrigin = process.env['PUBLIC_ORIGIN'] || 'https://psicologanataliaferreira.com';
+
+export function validatePublicOrigin(value: string): URL {
+  const origin = new URL(value);
+  if (
+    !['http:', 'https:'].includes(origin.protocol)
+    || origin.username
+    || origin.password
+    || origin.pathname !== '/'
+    || origin.search
+    || origin.hash
+  ) {
+    throw new Error('PUBLIC_ORIGIN must be an absolute http(s) origin without credentials, path, query, or fragment.');
+  }
+  return origin;
+}
+
+const publicOrigin = validatePublicOrigin(configuredOrigin);
+
+export function isPathInsideRoot(root: string, target: string): boolean {
+  const child = relative(root, target);
+  return child === '' || (!child.startsWith('..') && !isAbsolute(child));
+}
+
+export function buildRenderUrl(origin: URL, requestUrl: string): string {
+  if (!requestUrl.startsWith('/') || isProtocolRelativeRequest(requestUrl)) {
+    throw new Error('Request URL must be an absolute-path reference.');
+  }
+  return new URL(requestUrl, origin).toString();
+}
+
+export function isProtocolRelativeRequest(requestUrl: string): boolean {
+  return requestUrl.startsWith('//');
+}
+
 const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', false);
 const commonEngine = new CommonEngine({
-  allowedHosts: [
-    'localhost',
-    '127.0.0.1',
-    'psicologanataliaferreira.com',
-    'www.psicologanataliaferreira.com',
-  ],
+  allowedHosts: [...new Set(['localhost', '127.0.0.1', publicOrigin.hostname])],
+});
+
+app.get('/healthz', (_req, res) => {
+  res.type('text/plain').status(200).send('ok');
+});
+
+app.use((req, res, next) => {
+  if (isProtocolRelativeRequest(req.originalUrl)) {
+    res.status(400).type('text/plain').send('Invalid request URL');
+    return;
+  }
+  next();
 });
 
 /**
@@ -59,8 +103,9 @@ app.use((req, res, next) => {
     const decodedPath = decodeURIComponent(req.path).replace(/\/+$/, '') || '/';
     const routeDir = resolve(browserDistFolder, `.${decodedPath}`);
 
-    // Traversal guard: anything escaping the browser folder is ignored.
-    if (!routeDir.startsWith(browserDistFolder)) {
+    // Traversal guard: compare path components, not string prefixes. A path
+    // such as /browser-evil must never count as inside /browser.
+    if (!isPathInsideRoot(browserDistFolder, routeDir)) {
       next();
       return;
     }
@@ -110,13 +155,23 @@ app.use((req, res, next) => {
     return;
   }
 
-  const { protocol, originalUrl, baseUrl, headers } = req;
+  const { originalUrl, baseUrl } = req;
+
+  let renderUrl: string;
+  try {
+    renderUrl = buildRenderUrl(publicOrigin, originalUrl);
+  } catch {
+    res.status(400).type('text/plain').send('Invalid request URL');
+    return;
+  }
 
   commonEngine
     .render({
       bootstrap,
       documentFilePath: indexHtml,
-      url: `${protocol}://${headers.host}${originalUrl}`,
+      // Never derive canonical rendering URLs from Host or forwarded headers.
+      // PUBLIC_ORIGIN is deployment configuration, not request-controlled data.
+      url: renderUrl,
       publicPath: browserDistFolder,
       providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
     })
@@ -129,15 +184,46 @@ app.use((req, res, next) => {
     .catch((err) => next(err));
 });
 
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+  console.error('SSR request failed:', err instanceof Error ? err.message : 'unknown error');
+  res.status(500).type('text/plain').send('Internal Server Error');
+});
+
 /**
  * Start the server if this module is the main entry point.
  * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
+  let shuttingDown = false;
+  const shutdown = (signal: string) => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    console.log(`${signal} received; draining SSR server.`);
+    const forceExitTimer = setTimeout(() => {
+      console.error('SSR server shutdown timed out; forcing exit.');
+      process.exit(1);
+    }, 10_000);
+    forceExitTimer.unref();
+    server.close(error => {
+      clearTimeout(forceExitTimer);
+      if (error) {
+        console.error('SSR server shutdown failed:', error.message);
+        process.exitCode = 1;
+      }
+    });
+  };
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
 }
 
 export default app;
