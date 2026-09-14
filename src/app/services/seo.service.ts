@@ -14,6 +14,10 @@ export interface SeoConfig {
   author?: string;
   publishedTime?: string;
   robots?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageType?: string;
+  imageAlt?: string;
   /** Open Graph `article:tag` entries; cleaned up automatically when omitted. */
   tags?: string[];
 }
@@ -38,6 +42,10 @@ export class SeoService {
     const targetUrl =
       rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
+    const targetImageWidth = config.imageWidth ?? (usingDefaultImage ? 853 : undefined);
+    const targetImageHeight = config.imageHeight ?? (usingDefaultImage ? 1280 : undefined);
+    const targetImageType = config.imageType ?? (usingDefaultImage ? 'image/webp' : undefined);
+    const targetImageAlt = config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
 
     this.title.setTitle(config.title);
 
@@ -83,6 +91,15 @@ export class SeoService {
       this.document.head.appendChild(link);
     }
     link.setAttribute('href', targetUrl);
+  }
+
+  private setMeta(selector: { name?: string; property?: string }, content: string | undefined): void {
+    const attribute = selector.name ? `name="${selector.name}"` : `property="${selector.property}"`;
+    if (content === undefined) {
+      this.meta.getTag(attribute) && this.meta.removeTag(attribute);
+      return;
+    }
+    this.meta.updateTag({ ...selector, content });
   }
 
   /**

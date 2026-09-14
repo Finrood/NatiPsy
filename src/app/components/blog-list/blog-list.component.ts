@@ -8,7 +8,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogImageUrl } from '../../models/blog-post.model';
+import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
@@ -52,6 +52,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   protected readonly imageUrl = blogImageUrl;
+  protected readonly dateOnly = blogDateOnly;
+  protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
     if (this.router.url.includes('/blog')) {
