@@ -4,9 +4,11 @@
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
+    "test:fonts": "node ./scripts/fonts-contract.test.mjs",
     "build": "npm run build:blog-index && ng build",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
+    "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test": "ng test",
     "test:ci-config": "node --test scripts/ci-config.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
