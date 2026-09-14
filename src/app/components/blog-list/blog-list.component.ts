@@ -143,9 +143,16 @@ export class BlogListComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       const element = document.getElementById('blog-list-start');
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.scrollIntoView({ behavior: this.getPaginationScrollBehavior(), block: 'start' });
       }
     }
+  }
+
+  getPaginationScrollBehavior(): ScrollBehavior {
+    if (!isPlatformBrowser(this.platformId) || typeof window.matchMedia !== 'function') {
+      return 'auto';
+    }
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
 
   onFilterChange(): void {
