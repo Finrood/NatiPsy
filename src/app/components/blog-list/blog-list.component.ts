@@ -140,6 +140,8 @@ export class BlogListComponent implements OnInit {
 
   readonly itemsPerPage = 6;
   protected readonly imageUrl = blogImageUrl;
+  protected readonly dateOnly = blogDateOnly;
+  protected readonly formatDate = formatBlogDate;
 
   private readonly rawQueryParams$ = this.route.queryParams.pipe(
     shareReplay({ bufferSize: 1, refCount: true }),
