@@ -1,0 +1,6 @@
+{
+  "initialBytes": 492257,
+  "measuredBy": "scripts/report-bundle-size.mjs",
+  "configuration": "production",
+  "notes": "Measured from the complete initial browser graph: polyfills, main, styles, and the static chunk imported by main."
+}
