@@ -16,6 +16,10 @@ export interface SeoConfig {
   author?: string;
   publishedTime?: string;
   robots?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageType?: string;
+  imageAlt?: string;
   /** Open Graph `article:tag` entries; cleaned up automatically when omitted. */
   tags?: string[];
 }
@@ -40,22 +44,18 @@ export class SeoService {
     const targetUrl = rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/')
       ? rawUrl.slice(0, -1)
       : rawUrl;
+    const usingDefaultImage = !config.image;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
+    const targetImageWidth = config.imageWidth ?? (usingDefaultImage ? 853 : undefined);
+    const targetImageHeight = config.imageHeight ?? (usingDefaultImage ? 1280 : undefined);
+    const targetImageType = config.imageType ?? (usingDefaultImage ? 'image/webp' : undefined);
+    const targetImageAlt = config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
 
     this.title.setTitle(config.title);
     
-    this.meta.updateTag({ name: 'description', content: config.description });
-    if (config.keywords) {
-      this.meta.updateTag({ name: 'keywords', content: config.keywords });
-    }
-    if (config.robots) {
-      this.meta.updateTag({ name: 'robots', content: config.robots });
-    } else {
-      const existingRobots = this.meta.getTag('name="robots"');
-      if (existingRobots) {
-        this.meta.removeTag('name="robots"');
-      }
-    }
+    this.setMeta({ name: 'description' }, config.description);
+    this.setMeta({ name: 'keywords' }, config.keywords);
+    this.setMeta({ name: 'robots' }, config.robots);
     
     // Open Graph
     this.updateArticleTags(config.tags);
@@ -86,6 +86,15 @@ export class SeoService {
       this.document.head.appendChild(link);
     }
     link.setAttribute('href', targetUrl);
+  }
+
+  private setMeta(selector: { name?: string; property?: string }, content: string | undefined): void {
+    const attribute = selector.name ? `name="${selector.name}"` : `property="${selector.property}"`;
+    if (content === undefined) {
+      this.meta.getTag(attribute) && this.meta.removeTag(attribute);
+      return;
+    }
+    this.meta.updateTag({ ...selector, content });
   }
 
   /**
