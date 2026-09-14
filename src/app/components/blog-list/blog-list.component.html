@@ -73,7 +73,7 @@
     @if (categoryError && !loading) {
       <div class="mb-6 rounded-md bg-amber-50 p-4 text-amber-800" role="status" aria-live="polite">
         <span>{{ categoryError }}</span>
-        <button type="button" class="ml-3 font-semibold underline" (click)="retryCategories()">Tentar novamente</button>
+        <button type="button" class="ml-3 font-semibold underline" [disabled]="retryingCategories" (click)="retryCategories()">Tentar novamente</button>
       </div>
     }
 
@@ -93,7 +93,7 @@
         </svg>
         <p class="text-xl text-red-700 font-semibold">Ocorreu um Erro</p>
         <p class="text-red-600">{{ error }}</p>
-        <button type="button" class="mt-5 rounded-md bg-primary-blue px-5 py-2 font-semibold text-white hover:bg-blue-700" (click)="retry()">
+        <button type="button" class="mt-5 rounded-md bg-primary-blue px-5 py-2 font-semibold text-white hover:bg-blue-700" [disabled]="retryingList" (click)="retry()">
           Tentar novamente
         </button>
       </div>

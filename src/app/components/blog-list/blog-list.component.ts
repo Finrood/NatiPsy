@@ -36,6 +36,8 @@ export class BlogListComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   categoryError: string | null = null;
+  retryingList = false;
+  retryingCategories = false;
 
   // Pagination
   currentPage = 1;
@@ -88,6 +90,7 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .pipe(
         finalize(() => {
           this.loading = false;
+          this.retryingList = false;
           this.cdr.markForCheck();
         }),
         takeUntil(this.destroy$)
@@ -118,22 +121,31 @@ export class BlogListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (categories) => {
           this.allCategories = categories;
+          this.retryingCategories = false;
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.categoryError = this.messageForError(err);
+          this.retryingCategories = false;
           this.cdr.markForCheck();
         }
       });
   }
 
   retry(): void {
+    if (this.retryingList) {
+      return;
+    }
+    this.retryingList = true;
     this.loadInitialData();
-    this.loadCategories();
   }
 
   retryCategories(): void {
+    if (this.retryingCategories) {
+      return;
+    }
     this.categoryError = null;
+    this.retryingCategories = true;
     this.loadCategories();
   }
 

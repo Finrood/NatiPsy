@@ -10,11 +10,15 @@ const postTemplate = readFileSync(new URL('../src/app/components/blog-post/blog-
 assert.match(service, /export type BlogErrorKind = 'not-found' \| 'offline' \| 'server' \| 'invalid-content'/);
 assert.match(service, /status === 0/);
 assert.match(service, /status >= 500/);
-assert.match(service, /console\.error\(`BlogService Error/);
+assert.match(service, /BlogService request failed/);
+assert.match(service, /shareReplay/);
+assert.doesNotMatch(service, /console\.error\([^\n]*error/);
 assert.doesNotMatch(service, /Failed to|Please try again later|errorMessage =/);
 assert.match(list, /BLOG_ERROR_MESSAGES\[error\.kind\]/);
 assert.match(list, /retry\(\): void/);
 assert.match(list, /retryCategories\(\): void/);
+assert.match(list, /retryingList/);
+assert.match(list, /retryingCategories/);
 assert.doesNotMatch(list, /err\.message/);
 assert.match(listTemplate, /Tentar novamente/);
 assert.match(post, /retryable = false/);

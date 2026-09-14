@@ -2,7 +2,7 @@ import { Injectable, PLATFORM_ID, TransferState, inject, makeStateKey } from '@a
 import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
 
 export type BlogErrorKind = 'not-found' | 'offline' | 'server' | 'invalid-content';
@@ -33,6 +33,7 @@ const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
 })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
+  private postsIndexRequest$: Observable<BlogPost[]> | null = null;
   private postsIndexUrl = '/assets/content/blog/index.json';
 
   private readonly transferState = inject(TransferState);
@@ -43,7 +44,10 @@ export class BlogService {
 
   private handleError(error: unknown, context: string) {
     const blogError = this.toBlogError(error, context);
-    console.error(`BlogService Error (${context}):`, error);
+    if (!(error instanceof BlogServiceError)) {
+      const status = error instanceof HttpErrorResponse ? error.status : undefined;
+      console.error('BlogService request failed', { context, kind: blogError.kind, status });
+    }
     return throwError(() => blogError);
   }
 
@@ -92,7 +96,10 @@ export class BlogService {
       }
       return of(this.postsCache);
     }
-    return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
+    if (this.postsIndexRequest$) {
+      return this.postsIndexRequest$;
+    }
+    const request$ = this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
       map(posts => {
         if (!Array.isArray(posts)) {
           throw new Error('Blog index must be an array.');
@@ -112,8 +119,12 @@ export class BlogService {
           this.transferState.set(POSTS_INDEX_KEY, posts);
         }
       }),
-      catchError(err => this.handleError(err, 'load posts list'))
+      catchError(err => this.handleError(err, 'load posts list')),
+      tap({ error: () => { this.postsIndexRequest$ = null; } }),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
+    this.postsIndexRequest$ = request$;
+    return request$;
   }
 
   getPostsList(
@@ -214,7 +225,6 @@ export class BlogService {
         })),
         catchError(error => {
           if (error instanceof HttpErrorResponse && error.status === 404) {
-            console.warn(`Blog post not found: ${slug}`);
             return of(null);
           }
           return this.handleError(error, `load post ${slug}`);
@@ -243,10 +253,7 @@ export class BlogService {
 
     return this.getPostBySlug(currentSlug).pipe(
       switchMap(currentPost => findRelated(currentPost?.categories || [])),
-      catchError(err => {
-        console.error("Error fetching related posts:", err);
-        return of([]);
-      })
+      catchError(() => of([]))
     );
   }
 }
