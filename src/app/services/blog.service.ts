@@ -1,34 +1,21 @@
-import { Injectable, PLATFORM_ID, TransferState, inject, makeStateKey } from '@angular/core';
-import { isPlatformServer } from '@angular/common';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { defer, Observable, of, throwError } from 'rxjs';
-import { catchError, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
 
-const POSTS_INDEX_KEY = makeStateKey<Omit<BlogPost, 'content' | 'readTime'>[]>('blog-posts-index');
-const postKey = (slug: string) => makeStateKey<BlogPost>(`blog-post-${slug}`);
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
-  private postsIndex$: Observable<BlogPost[]> | null = null;
+  private postsIndexRequest$: Observable<BlogPost[]> | null = null;
   private postsIndexUrl = '/assets/content/blog/index.json';
-
-  private readonly transferState = inject(TransferState);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly isServer = isPlatformServer(this.platformId);
 
   constructor(private http: HttpClient) {}
 
   private handleError(error: HttpErrorResponse, context: string) {
-    let errorMessage = 'An unknown error occurred!';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
+    const errorMessage = error.error instanceof ErrorEvent
+      ? `Error: ${error.error.message}`
+      : `Error Code: ${error.status}\nMessage: ${error.message}`;
     console.error(`BlogService Error (${context}):`, error);
     console.error(`BlogService Error Message (${context}):`, errorMessage);
     return throwError(() => new Error(`Failed to ${context}. Please try again later.`));
@@ -43,7 +30,7 @@ export class BlogService {
         content: '',
         readTime: null as number | null,
       }))
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
+      .sort((a, b) => b.date.getTime() - a.date.getTime() || a.slug.localeCompare(b.slug));
   }
 
   private clonePost(post: BlogPost): BlogPost {
@@ -56,196 +43,112 @@ export class BlogService {
   }
 
   private fetchPostsIndex(): Observable<BlogPost[]> {
-    if (this.postsIndex$) {
-      return this.postsIndex$;
-    }
+    if (this.postsCache) return of(this.postsCache);
+    if (this.postsIndexRequest$) return this.postsIndexRequest$;
 
-    // Keep the first request shared across concurrent consumers. This covers
-    // BlogList's posts/categories subscriptions as well as any other first
-    // render consumer without duplicating the index request.
-    const source$ = defer(() => {
-      // Client hydration: reuse the index rendered on the server synchronously,
-      // so the first paint already matches the SSR DOM (no loading flash, no
-      // change-detection race with hydration).
-      if (this.transferState.hasKey(POSTS_INDEX_KEY)) {
-        const raw = this.transferState.get(POSTS_INDEX_KEY, []);
-        this.transferState.remove(POSTS_INDEX_KEY);
-        return of(this.reviveIndex(raw));
-      }
-      if (this.postsCache) {
-        if (this.isServer) {
-          this.transferState.set(POSTS_INDEX_KEY, this.postsCache);
-        }
-        return of(this.postsCache);
-      }
-      return this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
+    // Angular's default HTTP transfer cache owns SSR-to-client hydration;
+    // this service only owns the in-memory request sharing and retry state.
+    this.postsIndexRequest$ = this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
         map(posts => this.reviveIndex(posts)),
+        map(posts => {
+          this.postsCache = posts;
+          return posts;
+        }),
+        catchError(error => this.handleError(error, 'load posts list')),
+        finalize(() => {
+          this.postsIndexRequest$ = null;
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
-    }).pipe(
-      tap(posts => {
-        this.postsCache = posts;
-        if (this.isServer) {
-          this.transferState.set(POSTS_INDEX_KEY, posts);
-        }
-      }),
-      catchError(err => {
-        // A failed shared observable must not permanently poison future retry
-        // attempts. Existing subscribers still receive the same error.
-        this.postsIndex$ = null;
-        return this.handleError(err, 'load posts list');
-      }),
-      shareReplay({ bufferSize: 1, refCount: false }),
-    );
-
-    this.postsIndex$ = source$;
-    return source$;
+    return this.postsIndexRequest$;
   }
 
   getPostsList(
     filterCategory?: string,
     sortBy: keyof Pick<BlogPost, 'date' | 'title'> = 'date',
-    sortDirection: 'asc' | 'desc' = 'desc'
+    sortDirection: 'asc' | 'desc' = 'desc',
   ): Observable<BlogPost[]> {
     return this.fetchPostsIndex().pipe(
       map(posts => {
         let filteredPosts = [...posts];
-
-        if (filterCategory) {
-          filteredPosts = filteredPosts.filter(post =>
-            post.categories.includes(filterCategory)
-          );
-        }
-
+        if (filterCategory) filteredPosts = filteredPosts.filter(post => post.categories.includes(filterCategory));
         filteredPosts.sort((a, b) => {
-          let comparison = 0;
           const valA = a[sortBy];
           const valB = b[sortBy];
-
-          if (valA instanceof Date && valB instanceof Date) {
-            comparison = valA.getTime() - valB.getTime();
-          } else if (typeof valA === 'string' && typeof valB === 'string') {
-            comparison = valA.localeCompare(valB);
-          } else if (valA < valB) {
-            comparison = -1;
-          } else if (valA > valB) {
-            comparison = 1;
-          }
-
+          let comparison = 0;
+          if (valA instanceof Date && valB instanceof Date) comparison = valA.getTime() - valB.getTime();
+          else if (typeof valA === 'string' && typeof valB === 'string') comparison = valA.localeCompare(valB);
+          else if (valA < valB) comparison = -1;
+          else if (valA > valB) comparison = 1;
           const directionComparison = sortDirection === 'desc' ? comparison * -1 : comparison;
           return directionComparison || a.slug.localeCompare(b.slug);
         });
-
         return filteredPosts.map(post => this.clonePost(post));
       }),
-      catchError(err => this.handleError(err, 'filter or sort posts')) // Already handled in fetchPostsIndex, but good practice
+      catchError(error => this.handleError(error, 'filter or sort posts')),
     );
   }
 
   getAllCategories(): Observable<string[]> {
     return this.fetchPostsIndex().pipe(
-      map(posts => {
-        const categories = new Set<string>();
-        posts.forEach(post => post.categories.forEach(cat => categories.add(cat)));
-        return Array.from(categories).sort();
-      }),
-      catchError(err => this.handleError(err, 'load categories'))
+      map(posts => Array.from(new Set(posts.flatMap(post => post.categories))).sort()),
+      catchError(error => this.handleError(error, 'load categories')),
     );
   }
-
 
   getPostBySlug(slug: string): Observable<BlogPost | null> {
-    // Client hydration: the server already fetched + rendered this post, so
-    // reuse it synchronously instead of refetching (avoids wiping the SSR DOM
-    // with a loading state that never recovers due to hydration timing).
-    if (this.transferState.hasKey(postKey(slug))) {
-      const raw = this.transferState.get(postKey(slug), null);
-      this.transferState.remove(postKey(slug));
-      if (!raw) {
-        return of(null);
-      }
-      return of({ ...raw, date: new Date(raw.date), dateOnly: raw.dateOnly ?? new Date(raw.date).toISOString().slice(0, 10) });
-    }
-    // Check the post index first: unknown slugs return `null` immediately,
-    // avoiding a pointless markdown request (and nested SSR fetches for
-    // routes that don't exist).
     return this.fetchPostsIndex().pipe(
-      switchMap(index =>
-        index.some(post => post.slug === slug)
-          ? this.fetchPostJson(slug)
-          : of(null)
-      ),
-      tap(post => {
-        if (this.isServer && post) {
-          this.transferState.set(postKey(slug), post);
-        }
-      }),
-      catchError(err => {
-        console.error(`Failed to load blog post ${slug}:`, err.message || err);
+      switchMap(index => index.some(post => post.slug === slug) ? this.fetchPostJson(slug) : of(null)),
+      catchError(error => {
+        console.error(`Failed to load blog post ${slug}:`, error.message || error);
         return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
-      })
+      }),
     );
   }
 
-  /**
-   * Post bodies are pre-rendered to HTML at build time
-   * (see `src/scripts/generate-blog-index.js`), so the client fetches a
-   * small JSON document instead of parsing Markdown in the browser. This
-   * keeps `marked`, `gray-matter` and the Node `buffer` polyfill out of
-   * the client bundle entirely.
-   */
   private fetchPostJson(slug: string): Observable<BlogPost | null> {
     const postUrl = `/assets/content/blog/posts/${slug}.json`;
-    return this.http.get<BlogPost>(postUrl)
-      .pipe(
-        map((post) => ({
-          ...post,
-          date: new Date(post.date),
-          dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
-        })),
-        catchError(error => {
-          if (error instanceof HttpErrorResponse && error.status === 404) {
-            console.warn(`Blog post not found: ${slug}`);
-            return of(null);
-          }
-          console.error(`Failed to load or process blog post ${slug}:`, error.message || error);
-          return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
-        })
-      );
+    return this.http.get<BlogPost>(postUrl).pipe(
+      map(post => ({
+        ...post,
+        date: new Date(post.date),
+        dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
+      })),
+      catchError(error => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          console.warn(`Blog post not found: ${slug}`);
+          return of(null);
+        }
+        console.error(`Failed to load or process blog post ${slug}:`, error.message || error);
+        return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
+      }),
+    );
   }
 
   getRelatedPosts(currentSlug: string, categories?: string[], maxPosts: number = 3): Observable<BlogPost[]> {
     const findRelated = (cats: string[]) => {
-      if (!cats || cats.length === 0) {
-        return of([]);
-      }
+      if (!cats || cats.length === 0) return of([]);
       return this.fetchPostsIndex().pipe(
-        map(allPosts => {
-          return allPosts
-            .filter(post => post.slug !== currentSlug)
-            .filter(post => post.categories.some(cat => cats.includes(cat)))
-            .map(post => ({
-              post,
-              sharedCategories: post.categories.filter(cat => cats.includes(cat)).length,
-            }))
-            .sort((a, b) => b.sharedCategories - a.sharedCategories
-              || b.post.date.getTime() - a.post.date.getTime()
-              || a.post.slug.localeCompare(b.post.slug))
-            .slice(0, maxPosts)
-            .map(({ post }) => this.clonePost(post));
-        })
+        map(allPosts => allPosts
+          .filter(post => post.slug !== currentSlug)
+          .filter(post => post.categories.some(category => cats.includes(category)))
+          .map(post => ({
+            post,
+            sharedCategories: post.categories.filter(category => cats.includes(category)).length,
+          }))
+          .sort((a, b) => b.sharedCategories - a.sharedCategories ||
+            b.post.date.getTime() - a.post.date.getTime() || a.post.slug.localeCompare(b.post.slug))
+          .slice(0, maxPosts)
+          .map(({ post }) => this.clonePost(post))),
       );
     };
-
-    if (categories && categories.length > 0) {
-      return findRelated(categories);
-    }
-
+    if (categories && categories.length > 0) return findRelated(categories);
     return this.getPostBySlug(currentSlug).pipe(
       switchMap(currentPost => findRelated(currentPost?.categories || [])),
-      catchError(err => {
-        console.error("Error fetching related posts:", err);
+      catchError(error => {
+        console.error('Error fetching related posts:', error);
         return of([]);
-      })
+      }),
     );
   }
 }
