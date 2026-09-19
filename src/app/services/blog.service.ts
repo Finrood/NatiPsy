@@ -46,9 +46,9 @@ export class BlogService {
     if (this.postsCache) return of(this.postsCache);
     if (this.postsIndexRequest$) return this.postsIndexRequest$;
 
-    this.postsIndexRequest$ = this.http
-      .get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl)
-      .pipe(
+    // Angular's default HTTP transfer cache owns SSR-to-client hydration;
+    // this service only owns the in-memory request sharing and retry state.
+    this.postsIndexRequest$ = this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
         map(posts => this.reviveIndex(posts)),
         map(posts => {
           this.postsCache = posts;
@@ -107,7 +107,8 @@ export class BlogService {
   }
 
   private fetchPostJson(slug: string): Observable<BlogPost | null> {
-    return this.http.get<BlogPost>(`/assets/content/blog/posts/${slug}.json`).pipe(
+    const postUrl = `/assets/content/blog/posts/${slug}.json`;
+    return this.http.get<BlogPost>(postUrl).pipe(
       map(post => ({
         ...post,
         date: new Date(post.date),
