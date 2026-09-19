@@ -12,6 +12,8 @@
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
     "test": "ng test",
+    "test:robots": "node --test scripts/robots-smoke-check.test.mjs",
+    "smoke:robots": "node scripts/robots-smoke-check.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
