@@ -20,4 +20,9 @@ jobs:
         with:
           node-version: 22.22.3
       - name: Verify live robots policy
-        run: node scripts/robots-smoke-check.mjs
+        run: |
+          if node scripts/robots-smoke-check.mjs; then
+            exit 0
+          fi
+          echo 'First robots attempt failed; retrying once to require two consecutive failures.' >&2
+          node scripts/robots-smoke-check.mjs
