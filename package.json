@@ -6,6 +6,7 @@
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
     "audit:security": "npm audit --audit-level=high && npm audit --omit=dev --audit-level=moderate",
     "test:fonts": "node ./scripts/fonts-contract.test.mjs",
+    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test:blog-generator": "node --test src/scripts/validate-blog-content.test.js scripts/assert-public-content.test.mjs src/scripts/watch-blog-index.test.js",
     "test:public-content": "node --test scripts/assert-public-content.test.mjs",
@@ -14,7 +15,6 @@
     "start": "npm run build:blog-index && node ./src/scripts/dev-watch.js --serve",
     "watch": "npm run build:blog-index && node ./src/scripts/dev-watch.js",
     "test": "ng test",
-    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
