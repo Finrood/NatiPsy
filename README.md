@@ -34,16 +34,27 @@ To build the project run:
 ng build
 ```
 
-## Production serving model
+Blog Markdown and authored blog images live under `content/blog`, outside the
+public asset tree. The blog generator stages a clean publish set, copies only
+assets referenced by validated publishable posts, atomically replaces generated
+outputs, and the production build fails if Markdown sources enter `dist`.
 
-The production image serves Angular's prerendered browser output as static files
-with Nginx. The build generates `index.html` for `/`, `/blog`, and each article;
-Nginx resolves those extensionless paths internally, redirects trailing-slash
-variants to their canonical no-slash URLs, and returns the branded
-`/404/index.html` with HTTP 404 and `noindex` for unknown paths. The Express SSR
-entry point is not the production serving contract.
+## Production robots monitoring
+
+`npm run smoke:robots` checks the live `/robots.txt` policy, including one
+canonical `Sitemap` directive. The same bounded assertion runs daily through
+GitHub Actions and can be run manually after deployment. Configure the
+repository secret `SMOKE_BASE_URL`; a failure should be routed to the
+deployment/on-call notification destination. The workflow retries once after a
+failed probe; treat two consecutive failures as an alert and record the DNS or
+origin change, origin logs, and two-network results in the deployment log.
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+`npm start` and `npm run watch` run the content watcher alongside Angular. Edit
+Markdown or authored blog images under `content/blog`; changes are debounced
+into one validated, atomic regeneration and never watch the generated `public`
+tree.
 
 ## Running unit tests
 

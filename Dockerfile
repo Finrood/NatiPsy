@@ -23,6 +23,7 @@ COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 
 # Copy custom Nginx config for Angular routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-security-headers.conf /etc/nginx/snippets/natipsy-security-headers.conf
 
 EXPOSE 80
 
