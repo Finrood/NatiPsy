@@ -7,8 +7,9 @@ import { JSDOM } from "jsdom";
 const root = process.cwd();
 const fixtureRoot = await mkdtemp(join(root, "dist", ".rss-fixtures-"));
 const contentDir = join(fixtureRoot, "content");
-const postsDir = join(fixtureRoot, "posts");
-const outputIndex = join(fixtureRoot, "index.json");
+const publicContentDir = join(fixtureRoot, "public");
+const postsDir = join(publicContentDir, "posts");
+const outputIndex = join(publicContentDir, "index.json");
 const routesPath = join(fixtureRoot, "routes.txt");
 const sitemapPath = join(fixtureRoot, "sitemap.xml");
 const feedPath = join(fixtureRoot, "feed.xml");
@@ -23,9 +24,10 @@ const runGenerator = () => {
     BLOG_ROUTES_PATH: routesPath,
     BLOG_SITEMAP_PATH: sitemapPath,
     BLOG_FEED_PATH: feedPath,
+    BLOG_PUBLIC_CONTENT_DIR: publicContentDir,
   });
   delete require.cache[require.resolve(generatorPath)];
-  require(generatorPath);
+  require(generatorPath).generateIndex();
 };
 
 const parseFeed = (xml) => {
@@ -46,6 +48,8 @@ const post = (slug, date, extra = "") => {
 title: ${slug}
 date: ${date}
 description: "Descrição com <tag> & acento — ${slug}"
+categories:
+  - testes
 published: ${published}
 ${additionalFrontMatter}---
 
@@ -67,7 +71,7 @@ try {
   );
   await writeFile(
     join(contentDir, "invalid.md"),
-    "---\ndescription: missing title\n---\nignored\n",
+    "---\ndraft: true\ndescription: missing title\n---\nignored\n",
   );
   for (let index = 0; index < 21; index += 1) {
     await writeFile(

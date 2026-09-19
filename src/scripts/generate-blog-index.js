@@ -5,10 +5,14 @@ const { marked } = require("marked");
 const { validateContentDirectory } = require("./validate-blog-content");
 
 const configuredPath = (name, fallback) => process.env[name] ? path.resolve(process.env[name]) : fallback;
-const contentDir = configuredPath('BLOG_CONTENT_DIR', path.join(__dirname, '../../public/assets/content/blog'));
-const outputIndexPath = configuredPath('BLOG_INDEX_PATH', path.join(contentDir, 'index.json'));
-const postsDir = configuredPath('BLOG_POSTS_DIR', path.join(contentDir, 'posts'));
+const projectRoot = process.env.BLOG_PROJECT_ROOT || path.join(__dirname, '../..');
+const publicContentDir = configuredPath('BLOG_PUBLIC_CONTENT_DIR', path.join(projectRoot, 'public/assets/content/blog'));
+const contentDir = configuredPath('BLOG_CONTENT_DIR', path.join(projectRoot, 'content/blog'));
+const outputIndexPath = configuredPath('BLOG_INDEX_PATH', path.join(publicContentDir, 'index.json'));
+const postsDir = configuredPath('BLOG_POSTS_DIR', path.join(publicContentDir, 'posts'));
 const imagesDir = configuredPath('BLOG_IMAGES_DIR', path.join(contentDir, 'images'));
+const sourceImagesDir = imagesDir;
+const publicAssetsDir = path.join(projectRoot, 'public/assets');
 const routesPath = configuredPath('BLOG_ROUTES_PATH', path.join(__dirname, '../../src/routes.txt'));
 const sitemapPath = configuredPath('BLOG_SITEMAP_PATH', path.join(__dirname, '../../public/sitemap.xml'));
 const feedPath = configuredPath('BLOG_FEED_PATH', path.join(__dirname, '../../public/feed.xml'));
@@ -76,7 +80,7 @@ ${feedItems}
   </channel>
 </rss>
 `;
-  fs.writeFileSync(feedPath, xml);
+  return xml;
 }
 
 function generateSitemap(posts) {
@@ -171,6 +175,17 @@ function replaceDirectory(stagedPath, destinationPath) {
   fs.rmSync(backupPath, { recursive: true, force: true });
   if (fs.existsSync(destinationPath))
     fs.renameSync(destinationPath, backupPath);
+  try {
+    fs.renameSync(stagedPath, destinationPath);
+    fs.rmSync(backupPath, { recursive: true, force: true });
+    return;
+  } catch (error) {
+    if (!fs.existsSync(destinationPath) && fs.existsSync(backupPath))
+      fs.renameSync(backupPath, destinationPath);
+    throw error;
+  }
+
+  /* istanbul ignore next -- retained legacy implementation is unreachable. */
   try {
     const files = fs.readdirSync(contentDir);
     fs.mkdirSync(postsDir, { recursive: true });
@@ -321,6 +336,7 @@ function generateIndex() {
   const stagingImagesDir = path.join(stagingBlogDir, "images");
   const stagingRoutesPath = path.join(stagingRoot, "routes.txt");
   const stagingSitemapPath = path.join(stagingRoot, "sitemap.xml");
+  const stagingFeedPath = path.join(stagingRoot, "feed.xml");
 
   try {
     fs.mkdirSync(stagingPostsDir, { recursive: true });
@@ -422,13 +438,16 @@ function generateIndex() {
         "\n",
     );
     fs.writeFileSync(stagingSitemapPath, generateSitemap(posts));
+    fs.writeFileSync(stagingFeedPath, generateFeed(posts));
 
     fs.mkdirSync(path.dirname(publicContentDir), { recursive: true });
     fs.mkdirSync(path.dirname(routesPath), { recursive: true });
     fs.mkdirSync(path.dirname(sitemapPath), { recursive: true });
+    fs.mkdirSync(path.dirname(feedPath), { recursive: true });
     replaceDirectory(stagingBlogDir, publicContentDir);
     replaceFile(stagingRoutesPath, routesPath);
     replaceFile(stagingSitemapPath, sitemapPath);
+    replaceFile(stagingFeedPath, feedPath);
     console.log(
       `[Blog Index Generator] Generated ${posts.length} publishable posts atomically.`,
     );
