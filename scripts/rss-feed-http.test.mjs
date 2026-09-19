@@ -79,6 +79,8 @@ if (process.env.RUN_NGINX_HTTP_TESTS === "1") {
       `${resolve(root, "nginx.conf")}:/etc/nginx/conf.d/default.conf:ro`,
       "-v",
       `${resolve(root, "nginx-security-headers.conf")}:/etc/nginx/security-headers.conf:ro`,
+      "-v",
+      `${resolve(root, "nginx-security-headers.conf")}:/etc/nginx/snippets/natipsy-security-headers.conf:ro`,
       "nginx:alpine",
     ],
     { cwd: root, stdio: "ignore" },
