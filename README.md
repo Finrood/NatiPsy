@@ -41,6 +41,11 @@ outputs, and the production build fails if Markdown sources enter `dist`.
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+`npm start` and `npm run watch` run the content watcher alongside Angular. Edit
+Markdown or authored blog images under `content/blog`; changes are debounced
+into one validated, atomic regeneration and never watch the generated `public`
+tree.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
