@@ -55,6 +55,7 @@ test('exercises the production Nginx routing and header contract', async (t) => 
   const containerRoot = join(fixture, 'html');
   const config = join(fixture, 'default.conf');
   const securityHeaders = join(fixture, 'security-headers.conf');
+  const snippets = join(fixture, 'snippets');
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
   let containerId;
@@ -68,13 +69,17 @@ test('exercises the production Nginx routing and header contract', async (t) => 
     writeFileSync(join(containerRoot, '404/index.html'), '<h1>Not found</h1>');
     writeFileSync(join(containerRoot, 'app-12345678.js'), 'console.log(1);');
     writeFileSync(config, readFileSync(new URL('../nginx.conf', import.meta.url)));
-    writeFileSync(securityHeaders, readFileSync(new URL('../nginx-security-headers.conf', import.meta.url)));
+    const securityHeaderContents = readFileSync(new URL('../nginx-security-headers.conf', import.meta.url));
+    writeFileSync(securityHeaders, securityHeaderContents);
+    mkdirSync(snippets, { recursive: true });
+    writeFileSync(join(snippets, 'natipsy-security-headers.conf'), securityHeaderContents);
 
     containerId = execFileSync('docker', [
       'run', '--detach', '--rm', '--publish', `127.0.0.1:${port}:80`,
       '--volume', `${containerRoot}:/usr/share/nginx/html:ro`,
       '--volume', `${config}:/etc/nginx/conf.d/default.conf:ro`,
       '--volume', `${securityHeaders}:/etc/nginx/security-headers.conf:ro`,
+      '--volume', `${snippets}:/etc/nginx/snippets:ro`,
       'nginx:1.27-alpine',
     ], { encoding: 'utf8' }).trim();
     await waitForServer(`${baseUrl}/`);
@@ -118,7 +123,13 @@ test('exercises the production Nginx routing and header contract', async (t) => 
     const malformed = await fetch(`${baseUrl}/blog/%2`);
     assert.ok([400, 404].includes(malformed.status));
   } finally {
-    if (containerId) execFileSync('docker', ['stop', containerId], { stdio: 'ignore' });
+    if (containerId) {
+      try {
+        execFileSync('docker', ['rm', '--force', containerId], { stdio: 'ignore' });
+      } catch {
+        // The --rm container may already have exited and been removed.
+      }
+    }
     rmSync(fixture, { recursive: true, force: true });
   }
 }, { timeout: 120_000 });

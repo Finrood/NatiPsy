@@ -7,6 +7,14 @@ import { SeoService } from '../../services/seo.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
+import { BlogService } from '../../services/blog.service';
+import {
+  BlogPost,
+  blogDateOnly,
+  blogImageUrl,
+  formatBlogDate,
+} from '../../models/blog-post.model';
+import { SeoService } from '../../services/seo.service';
 import { SITE_URL } from '../../config/contact';
 
 export type BlogSortBy = keyof Pick<BlogPost, 'date' | 'title'>;
@@ -19,8 +27,35 @@ export interface BlogQueryState {
   sortDirection: BlogSortDirection;
 }
 
+interface BlogContentState {
+  posts: BlogPost[];
+  categories: string[];
+  loading: boolean;
+  error: string | null;
+}
+
+interface BlogListViewModel extends BlogContentState, BlogQueryState {
+  displayedPosts: BlogPost[];
+  totalItems: number;
+  totalPages: number;
+}
+
 const validSortFields = new Set<BlogSortBy>(['date', 'title']);
 const validSortDirections = new Set<BlogSortDirection>(['asc', 'desc']);
+
+const initialQueryState: BlogQueryState = {
+  page: 1,
+  category: '',
+  sortBy: 'date',
+  sortDirection: 'desc',
+};
+
+const initialContentState: BlogContentState = {
+  posts: [],
+  categories: [],
+  loading: true,
+  error: null,
+};
 
 function firstQueryValue(value: unknown): unknown {
   return Array.isArray(value) ? value[0] : value;
@@ -28,10 +63,7 @@ function firstQueryValue(value: unknown): unknown {
 
 function parsePositivePage(value: unknown): number {
   const raw = firstQueryValue(value);
-  if (typeof raw !== 'string' || !/^[1-9]\d*$/.test(raw)) {
-    return 1;
-  }
-
+  if (typeof raw !== 'string' || !/^[1-9]\d*$/.test(raw)) return 1;
   const page = Number(raw);
   return Number.isSafeInteger(page) && page > 0 ? page : 1;
 }
@@ -39,22 +71,27 @@ function parsePositivePage(value: unknown): number {
 export function parseBlogQueryParams(params: Params): BlogQueryState {
   const sortByValue = firstQueryValue(params['sortBy']);
   const sortDirectionValue = firstQueryValue(params['sortDir']);
-
   return {
     page: parsePositivePage(params['page']),
-    category: typeof firstQueryValue(params['category']) === 'string'
-      ? firstQueryValue(params['category']) as string
-      : '',
-    sortBy: typeof sortByValue === 'string' && validSortFields.has(sortByValue as BlogSortBy)
-      ? sortByValue as BlogSortBy
-      : 'date',
-    sortDirection: typeof sortDirectionValue === 'string' && validSortDirections.has(sortDirectionValue as BlogSortDirection)
-      ? sortDirectionValue as BlogSortDirection
-      : 'desc',
+    category:
+      typeof firstQueryValue(params['category']) === 'string'
+        ? (firstQueryValue(params['category']) as string)
+        : '',
+    sortBy:
+      typeof sortByValue === 'string' && validSortFields.has(sortByValue as BlogSortBy)
+        ? (sortByValue as BlogSortBy)
+        : 'date',
+    sortDirection:
+      typeof sortDirectionValue === 'string' &&
+      validSortDirections.has(sortDirectionValue as BlogSortDirection)
+        ? (sortDirectionValue as BlogSortDirection)
+        : 'desc',
   };
 }
 
-export function blogQueryParams(state: BlogQueryState): Record<string, string | number | null> {
+export function blogQueryParams(
+  state: BlogQueryState,
+): Record<string, string | number | null> {
   return {
     page: state.page > 1 ? state.page : null,
     category: state.category || null,
@@ -81,24 +118,32 @@ function sameQueryValue(rawValue: unknown, normalizedValue: string | number | nu
   return String(value) === String(normalizedValue);
 }
 
+function sameQuery(a: BlogQueryState, b: BlogQueryState): boolean {
+  return a.page === b.page && a.category === b.category &&
+    a.sortBy === b.sortBy && a.sortDirection === b.sortDirection;
+}
+
+function queryIsCanonical(
+  params: Params,
+  serialized: Record<string, string | number | null>,
+): boolean {
+  const keys = new Set(Object.keys(serialized));
+  return Object.keys(params).every((key) => keys.has(key)) &&
+    Object.entries(serialized).every(([key, value]) => sameQueryValue(params[key], value));
+}
+
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    FormsModule,
-    NgOptimizedImage,
-  ],
+  imports: [CommonModule, RouterLink, FormsModule, NgOptimizedImage],
   templateUrl: './blog-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BlogListComponent implements OnInit, OnDestroy {
+export class BlogListComponent implements OnInit {
   private readonly blogService = inject(BlogService);
   private readonly seoService = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly platformId = inject(PLATFORM_ID);
 
   /** Whether the first card is an above-the-fold LCP candidate. Homepage
@@ -142,163 +187,36 @@ export class BlogListComponent implements OnInit, OnDestroy {
         title: 'Blog | Psicóloga Natalia Ferreira',
         description: 'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
         keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-        url: `${SITE_URL}/blog`
+        url: `${SITE_URL}/blog`,
       });
     }
-
-    this.route.queryParams
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        this.rawQueryParams = params;
-        this.postsLoaded = false;
-        this.canonicalizationPending = false;
-        const state = parseBlogQueryParams(params);
-        this.currentPage = state.page;
-        this.selectedCategory = state.category;
-        this.sortBy = state.sortBy;
-        this.sortDirection = state.sortDirection;
-        this.loadInitialData();
-      });
-
-    this.loadCategories();
   }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  loadInitialData(): void {
-    this.loading = true;
-    this.error = null;
-    this.cdr.markForCheck();
-
-    this.blogService.getPostsList(this.selectedCategory, this.sortBy, this.sortDirection)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (posts) => {
-          this.allPosts = posts;
-          this.totalItems = this.allPosts.length;
-          this.postsLoaded = true;
-          this.normalizeLoadedState();
-          this.updateDisplayedPosts();
-          if (this.allPosts.length === 0 && !this.loading) {
-            this.error = 'Nenhum post encontrado com os filtros selecionados.';
-          }
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          console.error('Error fetching blog posts:', err);
-          this.error = err.message || 'Não foi possível carregar os posts. Tente novamente mais tarde.';
-          this.allPosts = [];
-          this.displayedPosts = [];
-          this.totalItems = 0;
-          this.cdr.markForCheck();
-        }
-      });
-  }
-
-  loadCategories(): void {
-    this.blogService.getAllCategories()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (categories) => {
-          this.allCategories = categories;
-          this.categoriesLoaded = true;
-          this.normalizeLoadedState();
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          console.error('Error fetching categories:', err);
-        }
-      });
-  }
-
-  updateDisplayedPosts(): void {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.displayedPosts = this.allPosts.slice(startIndex, endIndex);
-    this.cdr.markForCheck();
-  }
-
-  // --- Event Handlers ---
-
   onPageChange(page: number): void {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.updateQueryParams();
-    this.updateDisplayedPosts();
+    if (page < 1 || (this.totalPages > 0 && page > this.totalPages)) return;
+    this.navigate({ page });
     if (isPlatformBrowser(this.platformId)) {
-      const element = document.getElementById('blog-list-start');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      document.getElementById('blog-list-start')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
-
-  onFilterChange(): void {
-    this.currentPage = 1;
-    this.updateQueryParams();
+  onCategoryChange(category: string): void { this.navigate({ category, page: 1 }); }
+  onSortChange(sortBy: string): void { this.navigate({ sortBy: sortBy === 'title' ? 'title' : 'date', page: 1 }); }
+  onSortDirectionToggle(): void {
+    this.navigate({ sortDirection: this.sortDirection === 'desc' ? 'asc' : 'desc', page: 1 });
   }
+  get pages(): number[] { return Array.from({ length: this.totalPages }, (_, index) => index + 1); }
 
-  onSortChange(): void {
-    this.currentPage = 1;
-    this.updateQueryParams();
-  }
-
-  updateQueryParams(): void {
+  private navigate(changes: Partial<BlogQueryState>): void {
+    const current = this.viewModel();
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: blogQueryParams({
-        page: this.currentPage,
-        category: this.selectedCategory,
-        sortBy: this.sortBy,
-        sortDirection: this.sortDirection,
+        page: current.page,
+        category: current.category,
+        sortBy: current.sortBy,
+        sortDirection: current.sortDirection,
+        ...changes,
       }),
-      replaceUrl: true
+      replaceUrl: true,
     });
-  }
-
-  private normalizeLoadedState(): void {
-    if (!this.postsLoaded || !this.categoriesLoaded || this.canonicalizationPending) return;
-
-    const normalizedState = normalizeBlogQueryState({
-      page: this.currentPage,
-      category: this.selectedCategory,
-      sortBy: this.sortBy,
-      sortDirection: this.sortDirection,
-    }, this.totalPages, this.allCategories);
-    const normalizedParams = blogQueryParams(normalizedState);
-    const canonicalKeys = new Set(Object.keys(normalizedParams));
-    const queryIsCanonical = Object.keys(this.rawQueryParams).every((key) => canonicalKeys.has(key))
-      && Object.entries(normalizedParams)
-        .every(([key, value]) => sameQueryValue(this.rawQueryParams[key], value));
-
-    if (!queryIsCanonical) {
-      this.currentPage = normalizedState.page;
-      this.selectedCategory = normalizedState.category;
-      this.canonicalizationPending = true;
-      this.updateQueryParams();
-    }
-  }
-
-  // --- Template Helpers ---
-
-  get totalPages(): number {
-    return Math.ceil(this.totalItems / this.itemsPerPage);
-  }
-
-  get pages(): number[] {
-    const pagesArray: number[] = [];
-    for (let i = 1; i <= this.totalPages; i++) {
-      pagesArray.push(i);
-    }
-    return pagesArray;
   }
 }
