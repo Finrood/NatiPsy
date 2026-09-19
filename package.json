@@ -11,9 +11,7 @@
     "build": "npm run build:blog-index && ng build && npm run assert:public-content",
     "start": "npm run build:blog-index && ng serve",
     "watch": "npm run build:blog-index && ng build --watch --configuration development",
-    "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
     "test": "ng test",
-    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
