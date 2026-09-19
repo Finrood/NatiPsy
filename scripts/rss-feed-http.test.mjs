@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { access } from "node:fs/promises";
-import { spawn } from "node:child_process";
 import { join, resolve } from "node:path";
 
 const root = process.cwd();
@@ -48,35 +47,28 @@ const assertFeedResponse = async (response, label) => {
   );
 };
 
-const stopProcess = async (child) => {
-  child.kill("SIGTERM");
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
-};
-
 assert.equal(
   await exists(serverEntry),
   true,
   "build the SSR server before the HTTP contract",
 );
-const expressServer = spawn(process.execPath, [serverEntry], {
-  cwd: root,
-  env: { ...process.env, PORT: String(port) },
-  stdio: "ignore",
-});
+const { default: expressApp } = await import(serverEntry);
+const expressServer = expressApp.listen(port, "127.0.0.1");
 try {
   await assertFeedResponse(
     await waitForFeed(`http://127.0.0.1:${port}/feed.xml`),
     "Express",
   );
 } finally {
-  await stopProcess(expressServer);
+  await new Promise((resolvePromise, reject) =>
+    expressServer.close((error) => (error ? reject(error) : resolvePromise())),
+  );
 }
 
 if (process.env.RUN_NGINX_HTTP_TESTS === "1") {
   const nginxPort = 4318;
-  const nginx = spawn(
-    "docker",
-    [
+  const nginx = (await import("node:child_process")).spawn(
+    "docker", [
       "run",
       "--rm",
       "-p",
@@ -84,7 +76,9 @@ if (process.env.RUN_NGINX_HTTP_TESTS === "1") {
       "-v",
       `${join(browserRoot)}:/usr/share/nginx/html:ro`,
       "-v",
-      `${resolve(root, "nginx.conf")}:/etc/nginx/nginx.conf:ro`,
+      `${resolve(root, "nginx.conf")}:/etc/nginx/conf.d/default.conf:ro`,
+      "-v",
+      `${resolve(root, "nginx-security-headers.conf")}:/etc/nginx/security-headers.conf:ro`,
       "nginx:alpine",
     ],
     { cwd: root, stdio: "ignore" },
@@ -95,7 +89,8 @@ if (process.env.RUN_NGINX_HTTP_TESTS === "1") {
       "Nginx",
     );
   } finally {
-    await stopProcess(nginx);
+    nginx.kill("SIGTERM");
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
   }
 } else {
   console.log(
