@@ -23,7 +23,7 @@ jobs:
       - name: Set up supported Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24.15.0
+          node-version: 22.22.3
           cache: npm
 
       - name: Install locked dependencies
@@ -51,25 +51,26 @@ jobs:
           run_if_present lint
           run_if_present format:check
 
+      - name: Build production output
+        run: npm run build -- --configuration=production
+
       - name: Run finding contracts
         run: |
           set -eu
           for contract in scripts/*contract.test.mjs; do
             node --test "$contract"
           done
-          for script in test:fonts test:mobile-home test:blog-images test:public-content test:blog-generator test:nginx-security test:lazy-bundle test:rss-feed test:rss-feed:fixtures test:rss-feed:http test:bundle-budget test:toolchain test:ci-config test:container; do
-            if node -e "const p=require('./package.json'); process.exit(p.scripts?.[process.argv[1]] ? 0 : 1)" "$script"; then
-              npm run "$script"
+          mapfile -t test_scripts < <(node -e "const p=require('./package.json'); for (const name of Object.keys(p.scripts ?? {}).filter((name) => name.startsWith('test:')).sort()) console.log(name)")
+          for script in "${test_scripts[@]}"; do
+            if [ "$script" = "test:rss-feed:http" ]; then
+              RUN_NGINX_HTTP_TESTS=1 npm run "$script"
             else
-              echo "Skipping unavailable script: $script"
+              npm run "$script"
             fi
           done
 
       - name: Run unit tests
         run: npm test -- --watch=false
-
-      - name: Build production output
-        run: npm run build -- --configuration=production
 
       - name: Report bundle regression when stats are available
         run: |

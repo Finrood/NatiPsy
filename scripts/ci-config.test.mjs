@@ -26,3 +26,14 @@ test('quality workflow protects generation, audit, tests, build, contracts, and 
     assert.match(workflow, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });
+
+test('quality workflow builds before discovering every package test script', () => {
+  assert.match(workflow, /node-version: 22\.22\.3/);
+  assert.match(workflow, /mapfile -t test_scripts/);
+  assert.match(workflow, /name\.startsWith\('test:'\)/);
+  assert.match(workflow, /RUN_NGINX_HTTP_TESTS=1 npm run "\$script"/);
+  assert.ok(
+    workflow.indexOf('name: Build production output') <
+      workflow.indexOf('name: Run finding contracts'),
+  );
+});

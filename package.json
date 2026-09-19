@@ -15,7 +15,6 @@
     "test:rss-feed:fixtures": "node ./scripts/rss-feed-fixtures.test.mjs",
     "test:rss-feed:http": "node ./scripts/rss-feed-http.test.mjs",
     "test": "ng test",
-    "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "test:ci-config": "node --test scripts/ci-config.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
