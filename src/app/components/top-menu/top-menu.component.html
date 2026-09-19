@@ -1,7 +1,7 @@
-<header class="fixed w-full z-50 transition-[transform,background-color] duration-300 focus-within:translate-y-0"
+<header class="fixed w-full z-50 backdrop-blur-md transition-[transform,background-color] duration-300 focus-within:translate-y-0"
         [ngClass]="{
-          'bg-white/95 backdrop-blur-md': !isScrolled() && !isMenuOpen(),
-          'bg-white/95 backdrop-blur-md shadow-lg': isScrolled() && !isMenuOpen(),
+          'bg-white/95': !isMenuOpen(),
+          'shadow-lg': isScrolled() && !isMenuOpen(),
           'bg-primary-pink-dark/90': isMenuOpen(),
           'transform -translate-y-full': isHidden() && !isMenuOpen()
         }"
@@ -13,7 +13,6 @@
       (click)="refreshPage($event)"
       aria-label="Página Inicial">
       <picture>
-        <source srcset="/assets/logo.webp" type="image/webp">
         <source srcset="/assets/logo.png" type="image/png">
         <img src="/assets/logo.png"
           alt="Logotipo Natalia Ferreira Psicóloga"
@@ -23,7 +22,6 @@
           fetchpriority="high">
       </picture>
       <picture aria-hidden="true">
-        <source srcset="/assets/logo_signature.webp" type="image/webp">
         <source srcset="/assets/logo_signature.png" type="image/png">
         <img src="/assets/logo_signature.png"
           alt=""
