@@ -12,9 +12,11 @@ async function fixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "natipsy-blog-"));
   const contentDir = path.join(root, "content");
   const imagesDir = path.join(root, "images");
+  const publicAssetsDir = path.join(root, "public/assets");
   await fs.mkdir(imagesDir, { recursive: true });
+  await fs.mkdir(publicAssetsDir, { recursive: true });
   await fs.writeFile(path.join(imagesDir, "hero.webp"), "fixture");
-  return { contentDir, imagesDir };
+  return { contentDir, imagesDir, publicAssetsDir };
 }
 
 test("validates a publishable post and deterministic date/slug ordering", async () => {
@@ -50,6 +52,30 @@ test("validates an author avatar and detects duplicate case-insensitive slugs", 
   assert.equal(
     errors.some((error) => error.includes("author.avatar")),
     false,
+  );
+});
+
+test("accepts an existing shared public avatar and rejects missing or escaping ones", async () => {
+  const { contentDir, imagesDir, publicAssetsDir } = await fixture();
+  await fs.writeFile(path.join(publicAssetsDir, "shared-avatar.webp"), "avatar");
+  await fs.mkdir(contentDir);
+  await fs.writeFile(
+    path.join(contentDir, "shared.md"),
+    "---\ntitle: Shared\ndescription: d\ndate: 2025-01-01\ncategories: [A]\nauthor:\n  name: Author\n  avatar: /assets/shared-avatar.webp\n---\nbody",
+  );
+
+  assert.deepEqual(
+    validateContentDirectory(contentDir, imagesDir, publicAssetsDir).errors,
+    [],
+  );
+
+  await fs.writeFile(
+    path.join(contentDir, "shared.md"),
+    "---\ntitle: Shared\ndescription: d\ndate: 2025-01-01\ncategories: [A]\nauthor:\n  name: Author\n  avatar: /assets/../secret.webp\n---\nbody",
+  );
+  assert.match(
+    validateContentDirectory(contentDir, imagesDir, publicAssetsDir).errors.join("\n"),
+    /existing public asset/,
   );
 });
 

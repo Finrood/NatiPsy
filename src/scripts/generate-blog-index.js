@@ -9,6 +9,7 @@ const projectRoot =
 const contentDir = path.join(projectRoot, "content/blog");
 const sourceImagesDir = path.join(contentDir, "images");
 const publicContentDir = path.join(projectRoot, "public/assets/content/blog");
+const publicAssetsDir = path.join(projectRoot, "public/assets");
 const routesPath = path.join(projectRoot, "src/routes.txt");
 const sitemapPath = path.join(projectRoot, "public/sitemap.xml");
 
@@ -127,6 +128,15 @@ function copyReferencedImage(reference, stagingImages, context) {
   return safePath.normalized;
 }
 
+function resolveAuthorAvatar(reference, stagingImages, context) {
+  if (typeof reference === "string" && reference.startsWith('/assets/')) {
+    // Shared site assets are authored against the public asset root and must
+    // remain absolute; they are not content-local blog images to be copied.
+    return reference;
+  }
+  return copyReferencedImage(reference, stagingImages, context);
+}
+
 function replaceDirectory(stagedPath, destinationPath) {
   const backupPath = `${destinationPath}.backup-${process.pid}`;
   fs.rmSync(backupPath, { recursive: true, force: true });
@@ -158,7 +168,11 @@ function replaceFile(stagedPath, destinationPath) {
 }
 
 function generateIndex() {
-  const validation = validateContentDirectory(contentDir, sourceImagesDir);
+  const validation = validateContentDirectory(
+    contentDir,
+    sourceImagesDir,
+    publicAssetsDir,
+  );
   if (validation.errors.length > 0) {
     throw new Error(
       `[Blog Content Validator] ${validation.errors.length} error(s):\n- ${validation.errors.join("\n- ")}`,
@@ -214,7 +228,7 @@ function generateIndex() {
             author = { name: sourceAuthor };
           } else if (typeof sourceAuthor === "object" && sourceAuthor.name) {
             const avatar = sourceAuthor.avatar
-              ? copyReferencedImage(
+              ? resolveAuthorAvatar(
                   sourceAuthor.avatar,
                   stagingImagesDir,
                   entry.name,
@@ -234,9 +248,12 @@ function generateIndex() {
         const postData = {
           slug,
           title: data.title,
+          dateOnly: new Date(data.date).toISOString().slice(0, 10),
           date: new Date(data.date).toISOString(),
           description: data.description,
           image,
+          imageWidth: data.imageWidth,
+          imageHeight: data.imageHeight,
           categories,
           author,
           readTime: calculateReadingTime(content),

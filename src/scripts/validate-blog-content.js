@@ -43,6 +43,20 @@ function validateRelativeAsset(value, baseDir, label, errors, file) {
   }
 }
 
+function validateSharedPublicAsset(value, publicAssetsDir, label, errors, file) {
+  const publicRoot = path.resolve(publicAssetsDir);
+  const relativeReference = value.slice('/assets/'.length);
+  const candidate = path.resolve(publicRoot, relativeReference);
+  if (
+    !relativeReference ||
+    !isContained(publicRoot, candidate) ||
+    !fs.existsSync(candidate) ||
+    !fs.statSync(candidate).isFile()
+  ) {
+    errors.push(`${file}: ${label} must reference an existing public asset (${value})`);
+  }
+}
+
 function validDateOnly(value) {
   const dateOnly =
     value instanceof Date ? value.toISOString().slice(0, 10) : value;
@@ -55,6 +69,7 @@ function validDateOnly(value) {
 function validateContentDirectory(
   contentDir = defaultContentDir(),
   imagesDir = path.join(contentDir, "images"),
+  publicAssetsDir = path.join(__dirname, "../../public/assets"),
 ) {
   const errors = [];
   const slugs = new Set();
@@ -123,13 +138,23 @@ function validateContentDirectory(
     ) {
       errors.push(`${file}: author must be an object with a nonempty name`);
     } else if (data.author?.avatar) {
-      validateRelativeAsset(
-        data.author.avatar,
-        imagesDir,
-        "author.avatar",
-        errors,
-        file,
-      );
+      if (typeof data.author.avatar === "string" && data.author.avatar.startsWith('/assets/')) {
+        validateSharedPublicAsset(
+          data.author.avatar,
+          publicAssetsDir,
+          "author.avatar",
+          errors,
+          file,
+        );
+      } else {
+        validateRelativeAsset(
+          data.author.avatar,
+          imagesDir,
+          "author.avatar",
+          errors,
+          file,
+        );
+      }
     }
 
     for (const field of [
