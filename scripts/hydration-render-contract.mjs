@@ -18,8 +18,15 @@ const postUrl = /assets(?:\/|\\u002F)content(?:\/|\\u002F)blog(?:\/|\\u002F)post
 assert.equal((homeState.match(indexUrl) ?? []).length, 1);
 assert.equal((articleState.match(indexUrl) ?? []).length, 1);
 assert.equal((articleState.match(postUrl) ?? []).length, 1);
-assert.doesNotMatch(`${homeState}${articleState}`, /blog-post-/);
+assert.doesNotMatch(`${homeState}${articleState}`, /blog-post-[a-z0-9-]+/);
 assert.match(article, /<article[\s\S]*<h1/);
-assert.equal((article.match(/id="json-ld-blog-post-/g) ?? []).length, 1);
+const structuredData = article.match(
+  /<script id="json-ld-blog-post"[^>]*>([\s\S]*?)<\/script>/,
+);
+assert.ok(structuredData, 'article must contain one stable blog-post JSON-LD script');
+const schema = JSON.parse(structuredData[1]);
+assert.equal((article.match(/id="json-ld-blog-post"/g) ?? []).length, 1);
+assert.equal(schema['@graph'].filter(({ '@type': type }) => type === 'BlogPosting').length, 1);
+assert.equal(schema['@graph'].filter(({ '@type': type }) => type === 'BreadcrumbList').length, 1);
 
 console.log('Rendered SSR hydration contract passed.');
