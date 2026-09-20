@@ -1,7 +1,7 @@
 import process from 'node:process';
 
 export const smokePaths = [
-  { path: '/', markers: ['data-smoke-marker="home-heading"', '<h1 id="site-home-heading"'] },
+  { path: '/', markers: ['Terapia Online | Psicoterapia'] },
   { path: '/blog', markers: ['<section id="blog-list-start"', 'Blog'] },
   { path: '/sitemap.xml', markers: ['<urlset', '<loc>'] },
   {

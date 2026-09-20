@@ -10,7 +10,7 @@ test('rejects a Cloudflare 523 instead of treating the origin as healthy', () =>
 });
 
 test('accepts a successful HTML response with the expected marker', () => {
-  assert.doesNotThrow(() => validateSmokeResponse('/', 200, '<h1 id="site-home-heading" data-smoke-marker="home-heading">Terapia</h1>'));
+  assert.doesNotThrow(() => validateSmokeResponse('/', 200, '<h1>Terapia Online | Psicoterapia e Orientação Profissional</h1>'));
 });
 
 test('rejects generic HTML that is not the expected page', () => {
