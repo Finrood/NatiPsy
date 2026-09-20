@@ -4,18 +4,20 @@ const matter = require("gray-matter");
 const { marked } = require("marked");
 const { validateContentDirectory } = require("./validate-blog-content");
 
-const configuredPath = (name, fallback) => process.env[name] ? path.resolve(process.env[name]) : fallback;
-const projectRoot = process.env.BLOG_PROJECT_ROOT || path.join(__dirname, '../..');
-const publicContentDir = configuredPath('BLOG_PUBLIC_CONTENT_DIR', path.join(projectRoot, 'public/assets/content/blog'));
-const contentDir = configuredPath('BLOG_CONTENT_DIR', path.join(projectRoot, 'content/blog'));
-const outputIndexPath = configuredPath('BLOG_INDEX_PATH', path.join(publicContentDir, 'index.json'));
-const postsDir = configuredPath('BLOG_POSTS_DIR', path.join(publicContentDir, 'posts'));
-const imagesDir = configuredPath('BLOG_IMAGES_DIR', path.join(contentDir, 'images'));
-const sourceImagesDir = imagesDir;
-const publicAssetsDir = path.join(projectRoot, 'public/assets');
-const routesPath = configuredPath('BLOG_ROUTES_PATH', path.join(__dirname, '../../src/routes.txt'));
-const sitemapPath = configuredPath('BLOG_SITEMAP_PATH', path.join(__dirname, '../../public/sitemap.xml'));
-const feedPath = configuredPath('BLOG_FEED_PATH', path.join(__dirname, '../../public/feed.xml'));
+const projectRoot =
+  process.env.BLOG_PROJECT_ROOT || path.join(__dirname, "../..");
+const configuredPath = (name, fallback) =>
+  process.env[name] ? path.resolve(process.env[name]) : fallback;
+const contentDir = configuredPath("BLOG_CONTENT_DIR", path.join(projectRoot, "content/blog"));
+const sourceImagesDir = configuredPath("BLOG_IMAGES_DIR", path.join(contentDir, "images"));
+const publicContentDir = configuredPath(
+  "BLOG_PUBLIC_CONTENT_DIR",
+  path.join(projectRoot, "public/assets/content/blog"),
+);
+const publicAssetsDir = path.join(projectRoot, "public/assets");
+const routesPath = configuredPath("BLOG_ROUTES_PATH", path.join(projectRoot, "src/routes.txt"));
+const sitemapPath = configuredPath("BLOG_SITEMAP_PATH", path.join(projectRoot, "public/sitemap.xml"));
+const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public/feed.xml"));
 
 const SITE_URL = "https://psicologanataliaferreira.com";
 
@@ -55,9 +57,11 @@ function imageUrl(post) {
 }
 
 function generateFeed(posts) {
-  const feedItems = posts.slice(0, 20).map(post => {
+  const items = posts.slice(0, 20).map((post) => {
     const postUrl = pageUrl(`/blog/${post.slug}`);
-    const author = post.author?.name ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>` : '';
+    const author = post.author?.name
+      ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>`
+      : "";
     return `    <item>
       <title>${escapeXml(post.title)}</title>
       <link>${escapeXml(postUrl)}</link>
@@ -65,9 +69,11 @@ function generateFeed(posts) {
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <description>${escapeXml(post.description)}</description>
     </item>`;
-  }).join('\n');
-  const latestDate = posts[0]?.date ? new Date(posts[0].date).toUTCString() : new Date(0).toUTCString();
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  }).join("\n");
+  const latestDate = posts[0]?.date
+    ? new Date(posts[0].date).toUTCString()
+    : new Date(0).toUTCString();
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Natalia Ferreira | Psicóloga Clínica</title>
@@ -75,12 +81,11 @@ function generateFeed(posts) {
     <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
     <language>pt-BR</language>
     <lastBuildDate>${latestDate}</lastBuildDate>
-    <atom:link href="${escapeXml(pageUrl('/feed.xml'))}" rel="self" type="application/rss+xml" />
-${feedItems}
+    <atom:link href="${escapeXml(pageUrl("/feed.xml"))}" rel="self" type="application/rss+xml" />
+${items}
   </channel>
 </rss>
 `;
-  return xml;
 }
 
 function generateSitemap(posts) {
@@ -178,127 +183,10 @@ function replaceDirectory(stagedPath, destinationPath) {
   try {
     fs.renameSync(stagedPath, destinationPath);
     fs.rmSync(backupPath, { recursive: true, force: true });
-    return;
   } catch (error) {
     if (!fs.existsSync(destinationPath) && fs.existsSync(backupPath))
       fs.renameSync(backupPath, destinationPath);
     throw error;
-  }
-
-  /* istanbul ignore next -- retained legacy implementation is unreachable. */
-  try {
-    const files = fs.readdirSync(contentDir);
-    fs.mkdirSync(postsDir, { recursive: true });
-
-    for (const file of files) {
-      if (path.extname(file) === '.md') {
-        const slug = path.basename(file, '.md');
-        const filePath = path.join(contentDir, file);
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-
-        try {
-          const { data, content } = matter(fileContent);
-
-          if (data.draft === true || data.published === false) {
-            continue;
-          }
-
-          if (!data.title || !data.date || !data.description) {
-            console.warn(`\n[Blog Index Generator] Skipping ${file}: Missing required front matter (title, date, description).`);
-            continue;
-          }
-
-          // Process categories safely
-          let categories = [];
-          if (Array.isArray(data.categories)) {
-            categories = data.categories;
-          } else if (typeof data.categories === 'string' && data.categories.trim() !== '') {
-            categories = data.categories.split(',').map(c => c.trim()).filter(c => c);
-          } else {
-            console.warn(`\n[Blog Index Generator] Warning for ${file}: 'categories' field is missing or invalid. Defaulting to empty.`);
-          }
-
-          // Process author safely
-          let author = null;
-          if (data.author) {
-            if (typeof data.author === 'string') {
-              author = { name: data.author };
-            } else if (typeof data.author === 'object' && data.author.name) {
-              author = {
-                name: data.author.name,
-                bio: data.author.bio || undefined,
-                avatar: data.author.avatar || undefined
-              };
-            } else {
-              console.warn(`\n[Blog Index Generator] Warning for ${file}: 'author' field is invalid. Ignoring.`);
-            }
-          }
-
-          // Validate image path if provided
-          let image = data.image || null;
-          if (image && typeof image === 'string') {
-            const imagePath = path.join(imagesDir, image);
-            if (!fs.existsSync(imagePath)) {
-              console.warn(`\n[Blog Index Generator] Warning for ${file}: Image file not found at 'assets/content/blog/images/${image}'. Setting image to null.`);
-              image = null;
-            }
-          } else if (image) {
-            console.warn(`\n[Blog Index Generator] Warning for ${file}: 'image' field is not a string. Setting image to null.`);
-            image = null;
-          }
-
-
-          const postData = {
-            slug: slug,
-            title: data.title,
-            dateOnly: data.date instanceof Date
-              ? data.date.toISOString().slice(0, 10)
-              : String(data.date).slice(0, 10),
-            date: new Date(data.date).toISOString(), // Store as ISO string
-            description: data.description,
-            image: image,
-            imageWidth: data.imageWidth,
-            imageHeight: data.imageHeight,
-            categories: categories,
-            author: author, // Include author info
-            readTime: calculateReadingTime(content) // Calculate read time
-            // DO NOT include full 'content' in the index file
-          };
-          posts.push(postData);
-
-          // Pre-render Markdown to HTML at build time so the browser never
-          // ships a Markdown engine: per-post JSON with ready-to-bind HTML.
-          const htmlContent = marked.parse(content);
-          const postJson = { ...postData, content: htmlContent };
-          fs.writeFileSync(path.join(postsDir, `${slug}.json`), JSON.stringify(postJson, null, 2));
-
-        } catch (parseError) {
-          console.error(`\n[Blog Index Generator] Error parsing front matter for ${file}:`, parseError.message);
-        }
-      }
-    }
-
-    // Sort posts by date descending before writing
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    fs.writeFileSync(outputIndexPath, JSON.stringify(posts, null, 2)); // Pretty print JSON
-    console.log(`\n[Blog Index Generator] Successfully generated ${outputIndexPath} with ${posts.length} posts.`);
-
-    // Prune JSON files for posts that no longer exist.
-    for (const file of fs.readdirSync(postsDir)) {
-      if (path.extname(file) === '.json' && !posts.some((post) => `${post.slug}.json` === file)) {
-        fs.unlinkSync(path.join(postsDir, file));
-        console.log(`[Blog Index Generator] Removed stale ${path.join(postsDir, file)}`);
-      }
-    }
-
-    generateRoutesFile(posts);
-    generateSitemap(posts);
-    generateFeed(posts);
-
-  } catch (err) {
-    console.error("\n[Blog Index Generator] Error reading content directory or writing index file:", err);
-    process.exit(1); // Exit with error code
   }
 }
 
@@ -465,4 +353,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { calculateReadingTime, generateIndex, generateSitemap };
+module.exports = { calculateReadingTime, generateFeed, generateIndex, generateSitemap };

@@ -7,7 +7,7 @@ import { JSDOM } from "jsdom";
 const root = process.cwd();
 const fixtureRoot = await mkdtemp(join(root, "dist", ".rss-fixtures-"));
 const contentDir = join(fixtureRoot, "content");
-const publicContentDir = join(fixtureRoot, "public");
+const publicContentDir = join(fixtureRoot, "public-content");
 const postsDir = join(publicContentDir, "posts");
 const outputIndex = join(publicContentDir, "index.json");
 const routesPath = join(fixtureRoot, "routes.txt");
@@ -19,12 +19,10 @@ const generatorPath = join(root, "src/scripts/generate-blog-index.js");
 const runGenerator = () => {
   Object.assign(process.env, {
     BLOG_CONTENT_DIR: contentDir,
-    BLOG_POSTS_DIR: postsDir,
-    BLOG_INDEX_PATH: outputIndex,
+    BLOG_PUBLIC_CONTENT_DIR: publicContentDir,
     BLOG_ROUTES_PATH: routesPath,
     BLOG_SITEMAP_PATH: sitemapPath,
     BLOG_FEED_PATH: feedPath,
-    BLOG_PUBLIC_CONTENT_DIR: publicContentDir,
   });
   delete require.cache[require.resolve(generatorPath)];
   require(generatorPath).generateIndex();
@@ -48,8 +46,7 @@ const post = (slug, date, extra = "") => {
 title: ${slug}
 date: ${date}
 description: "Descrição com <tag> & acento — ${slug}"
-categories:
-  - testes
+categories: [Teste]
 published: ${published}
 ${additionalFrontMatter}---
 
@@ -68,10 +65,6 @@ try {
   await writeFile(
     join(contentDir, "unpublished.md"),
     post("unpublished", "2026-01-05", "published: false\n"),
-  );
-  await writeFile(
-    join(contentDir, "invalid.md"),
-    "---\ndraft: true\ndescription: missing title\n---\nignored\n",
   );
   for (let index = 0; index < 21; index += 1) {
     await writeFile(
