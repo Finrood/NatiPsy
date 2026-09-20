@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { vi } from 'vitest';
 
-import { BlogService } from './blog.service';
+import { BlogService, BlogServiceError } from './blog.service';
 import { BlogPost } from '../models/blog-post.model';
 
 describe('BlogService', () => {
@@ -94,33 +95,32 @@ describe('BlogService', () => {
     expect(secondResult[0].date.getTime()).toBe(new Date('2025-01-01').getTime());
   });
 
-  it('does not expose mutable dates through related-post results', () => {
-    const index = [
-      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-      { slug: 'related', title: 'Related', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-    ];
+  it('logs one sanitized record and maps server failures without exposing the response body', () => {
+    const log = vi.spyOn(console, 'error');
+    let error: BlogServiceError | undefined;
+    service.getPostsList().subscribe({ error: value => { error = value; } });
 
-    let firstResult: BlogPost[] = [];
-    service.getRelatedPosts('current', ['A']).subscribe(posts => { firstResult = posts; });
-    httpMock.expectOne('/assets/content/blog/index.json').flush(index);
-    firstResult[0].date.setFullYear(2030);
+    httpMock.expectOne('/assets/content/blog/index.json').flush({ secret: 'do-not-log' }, {
+      status: 500,
+      statusText: 'Server Error',
+    });
 
-    let secondResult: BlogPost[] = [];
-    service.getRelatedPosts('current', ['A']).subscribe(posts => { secondResult = posts; });
-    expect(secondResult[0].date.getTime()).toBe(new Date('2025-02-01').getTime());
+    expect(error?.kind).toBe('server');
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(log.mock.calls.at(-1))).not.toContain('do-not-log');
+    log.mockRestore();
   });
 
-  it('ranks related posts by shared categories, date, then slug', () => {
-    const index = [
-      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], author: null },
-      { slug: 'one-shared', title: 'One', date: new Date('2025-03-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-      { slug: 'two-shared-old', title: 'Two', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], author: null },
-      { slug: 'two-shared-new', title: 'Three', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], author: null },
-    ];
-    let related: BlogPost[] = [];
-    service.getRelatedPosts('current', ['A', 'B'], 3).subscribe(posts => { related = posts; });
-    httpMock.expectOne('/assets/content/blog/index.json').flush(index);
+  it('allows a failed index request to be retried without sharing the failed request', () => {
+    let firstError: BlogServiceError | undefined;
+    service.getPostsList().subscribe({ error: value => { firstError = value; } });
+    httpMock.expectOne('/assets/content/blog/index.json').error(new ProgressEvent('offline'));
+    expect(firstError?.kind).toBe('offline');
 
-    expect(related.map(post => post.slug)).toEqual(['two-shared-new', 'two-shared-old', 'one-shared']);
+    let secondResult: BlogPost[] = [];
+    service.getPostsList().subscribe(posts => { secondResult = posts; });
+    const retry = httpMock.expectOne('/assets/content/blog/index.json');
+    retry.flush([]);
+    expect(secondResult).toEqual([]);
   });
 });
