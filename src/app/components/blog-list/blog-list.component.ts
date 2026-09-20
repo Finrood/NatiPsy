@@ -2,13 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
-  ElementRef,
-  NgZone,
   OnInit,
-  OnDestroy,
-  AfterViewInit,
   PLATFORM_ID,
-  ViewChild,
   inject,
 } from '@angular/core';
 import {
@@ -27,6 +22,7 @@ import {
   startWith,
   switchMap,
 } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
 import { BlogService } from '../../services/blog.service';
 import {
   BlogPost,
@@ -200,24 +196,16 @@ function queryIsCanonical(
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, FormsModule, NgOptimizedImage],
   templateUrl: './blog-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BlogListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class BlogListComponent implements OnInit {
   private readonly blogService = inject(BlogService);
   private readonly seoService = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly ngZone = inject(NgZone);
-
-  @ViewChild('categoryFilter', { static: true })
-  private readonly categoryFilter?: ElementRef<HTMLSelectElement>;
-  @ViewChild('sortFilter', { static: true })
-  private readonly sortFilter?: ElementRef<HTMLSelectElement>;
-  private categoryChangeHandler?: (event: Event) => void;
-  private sortChangeHandler?: (event: Event) => void;
 
   /** Whether the first archive card is an above-the-fold LCP candidate. */
   @Input() firstImagePriority?: boolean;
@@ -312,6 +300,11 @@ export class BlogListComponent implements OnInit, AfterViewInit, OnDestroy {
       content: this.contentState$,
     }).pipe(
       map(({ rawParams, rawPage, query, content }): BlogListViewModel => {
+        const rawQuery = parseBlogQueryParams(rawParams);
+        const queryParamsSettled =
+          rawQuery.category === query.category &&
+          rawQuery.sortBy === query.sortBy &&
+          rawQuery.sortDirection === query.sortDirection;
         const totalItems = content.posts.length;
         const totalPages = Math.ceil(totalItems / this.itemsPerPage);
         const routePage = parseBlogPage(rawPage);
@@ -339,7 +332,12 @@ export class BlogListComponent implements OnInit, AfterViewInit, OnDestroy {
           ...normalizedQuery,
           page: 1,
         });
-        if (!content.loading && rawPage === null && query.page > 1) {
+        if (
+          queryParamsSettled &&
+          !content.loading &&
+          rawPage === null &&
+          query.page > 1
+        ) {
           if (this.route.paramMap) {
             this.router.navigate(
               normalizedQuery.page > 1
@@ -354,7 +352,7 @@ export class BlogListComponent implements OnInit, AfterViewInit, OnDestroy {
               replaceUrl: true,
             });
           }
-        } else if (!content.loading && !invalidPage) {
+        } else if (queryParamsSettled && !content.loading && !invalidPage) {
           const normalizedParams =
             rawPage !== null
               ? serializedQuery
@@ -453,33 +451,6 @@ export class BlogListComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
   }
-
-  ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    this.categoryChangeHandler = (event) => {
-      const category = (event.currentTarget as HTMLSelectElement).value;
-      setTimeout(() => this.ngZone.run(() => this.onCategoryChange(category)), 0);
-    };
-    this.sortChangeHandler = (event) => {
-      const sortBy = (event.currentTarget as HTMLSelectElement).value;
-      setTimeout(() => this.ngZone.run(() => this.onSortChange(sortBy)), 0);
-    };
-
-    this.ngZone.runOutsideAngular(() => {
-      this.categoryFilter?.nativeElement.addEventListener('change', this.categoryChangeHandler!);
-      this.sortFilter?.nativeElement.addEventListener('change', this.sortChangeHandler!);
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.categoryChangeHandler) {
-      this.categoryFilter?.nativeElement.removeEventListener('change', this.categoryChangeHandler);
-    }
-    if (this.sortChangeHandler) {
-      this.sortFilter?.nativeElement.removeEventListener('change', this.sortChangeHandler);
-    }
-  }
   onPageChange(page: number): void {
     if (page < 1 || (this.totalPages > 0 && page > this.totalPages)) return;
     this.navigate({ page });
@@ -526,31 +497,16 @@ export class BlogListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private navigate(changes: Partial<BlogQueryState>): void {
     const current = this.viewModel();
-    const queryParams = blogQueryParams({
-      page: current.page,
-      category: current.category,
-      sortBy: current.sortBy,
-      sortDirection: current.sortDirection,
-      ...changes,
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: blogQueryParams({
+        page: current.page,
+        category: current.category,
+        sortBy: current.sortBy,
+        sortDirection: current.sortDirection,
+        ...changes,
+      }),
+      replaceUrl: true,
     });
-    if (!isPlatformBrowser(this.platformId)) {
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams,
-        replaceUrl: true,
-      });
-      return;
-    }
-
-    // The current SSR/hydration router can deadlock when a native select
-    // change starts a same-component query navigation. A real URL transition
-    // lets the server and the hydrated component consume the canonical query
-    // together, while keeping the filter state shareable and refresh-safe.
-    const url = new URL(window.location.href);
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value === null) url.searchParams.delete(key);
-      else url.searchParams.set(key, String(value));
-    }
-    window.location.assign(`${url.pathname}${url.search}${url.hash}`);
   }
 }

@@ -50,6 +50,7 @@ test("blog filter state can be cleared without a stale category query", async ({
   const category = page.locator("#category-filter");
   const option = category.locator("option").filter({ hasText: "Carreira" });
   await expect(option).toHaveCount(1);
+  await expect(category).toBeEnabled();
   await category.selectOption({ label: "Carreira" });
   await expect(page).toHaveURL(/category=Carreira/);
   await category.selectOption("");
