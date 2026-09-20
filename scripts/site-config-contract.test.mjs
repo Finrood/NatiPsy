@@ -42,6 +42,7 @@ const fixturePostsDir = join(fixtureRoot, 'posts');
 const fixtureIndexPath = join(fixtureRoot, 'index.html');
 const fixtureRoutesPath = join(fixtureRoot, 'routes.txt');
 const fixtureSitemapPath = join(fixtureRoot, 'sitemap.xml');
+const fixtureFeedPath = join(fixtureRoot, 'feed.xml');
 const fixtureRobotsPath = join(fixtureRoot, 'robots.txt');
 const fixtureLlmsPath = join(fixtureRoot, 'llms.txt');
 
@@ -54,6 +55,7 @@ const runGenerator = () => {
     SITE_INDEX_PATH: fixtureIndexPath,
     BLOG_ROUTES_PATH: fixtureRoutesPath,
     BLOG_SITEMAP_PATH: fixtureSitemapPath,
+    BLOG_FEED_PATH: fixtureFeedPath,
     SITE_ROBOTS_PATH: fixtureRobotsPath,
     SITE_LLMS_PATH: fixtureLlmsPath,
   });
