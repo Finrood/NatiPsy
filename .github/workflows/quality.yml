@@ -33,7 +33,7 @@ jobs:
         run: npm run build:blog-index
 
       - name: Reject stale generated artifacts
-        run: git diff --exit-code -- public/assets/content/blog src/routes.txt public/sitemap.xml
+        run: git diff --exit-code -- public/assets/content/blog src/routes.txt public/sitemap.xml public/feed.xml
 
       - name: Run dependency policy
         run: npm run audit:security
