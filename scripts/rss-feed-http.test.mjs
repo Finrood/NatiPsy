@@ -67,12 +67,13 @@ try {
 
 if (process.env.RUN_NGINX_HTTP_TESTS === "1") {
   const nginxPort = 4318;
+  const nginxContainerPort = Number(process.env.NGINX_HTTP_CONTAINER_PORT || 8080);
   const nginx = (await import("node:child_process")).spawn(
     "docker", [
       "run",
       "--rm",
       "-p",
-      `${nginxPort}:80`,
+      `${nginxPort}:${nginxContainerPort}`,
       "-v",
       `${join(browserRoot)}:/usr/share/nginx/html:ro`,
       "-v",
