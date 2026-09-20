@@ -15,8 +15,9 @@
             Filtrar por Categoria:
           </label>
           <div class="relative">
-            <select #categoryFilter id="category-filter" name="category"
-              [value]="selectedCategory"
+            <select id="category-filter" name="category"
+              [ngModel]="selectedCategory"
+              (ngModelChange)="onCategoryChange($event)"
               class="block w-full max-w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
               <option value="">Todas as Categorias</option>
               @for (category of allCategories; track category) {
@@ -36,8 +37,9 @@
           </label>
           <div class="flex items-center space-x-2">
             <div class="relative">
-              <select #sortFilter id="sort-by" name="sortBy"
-                [value]="sortBy"
+              <select id="sort-by" name="sortBy"
+                [ngModel]="sortBy"
+                (ngModelChange)="onSortChange($event)"
                 class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
                 <option value="date">Mais Recentes</option>
                 <option value="title">Título (A-Z)</option>
