@@ -6,12 +6,18 @@ const { validateContentDirectory } = require("./validate-blog-content");
 
 const projectRoot =
   process.env.BLOG_PROJECT_ROOT || path.join(__dirname, "../..");
-const contentDir = path.join(projectRoot, "content/blog");
-const sourceImagesDir = path.join(contentDir, "images");
-const publicContentDir = path.join(projectRoot, "public/assets/content/blog");
+const configuredPath = (name, fallback) =>
+  process.env[name] ? path.resolve(process.env[name]) : fallback;
+const contentDir = configuredPath("BLOG_CONTENT_DIR", path.join(projectRoot, "content/blog"));
+const sourceImagesDir = configuredPath("BLOG_IMAGES_DIR", path.join(contentDir, "images"));
+const publicContentDir = configuredPath(
+  "BLOG_PUBLIC_CONTENT_DIR",
+  path.join(projectRoot, "public/assets/content/blog"),
+);
 const publicAssetsDir = path.join(projectRoot, "public/assets");
-const routesPath = path.join(projectRoot, "src/routes.txt");
-const sitemapPath = path.join(projectRoot, "public/sitemap.xml");
+const routesPath = configuredPath("BLOG_ROUTES_PATH", path.join(projectRoot, "src/routes.txt"));
+const sitemapPath = configuredPath("BLOG_SITEMAP_PATH", path.join(projectRoot, "public/sitemap.xml"));
+const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public/feed.xml"));
 
 const SITE_URL = "https://psicologanataliaferreira.com";
 
@@ -48,6 +54,38 @@ function imageUrl(post) {
   return post.image
     ? `${SITE_URL}/assets/content/blog/images/${post.image}`
     : null;
+}
+
+function generateFeed(posts) {
+  const items = posts.slice(0, 20).map((post) => {
+    const postUrl = pageUrl(`/blog/${post.slug}`);
+    const author = post.author?.name
+      ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>`
+      : "";
+    return `    <item>
+      <title>${escapeXml(post.title)}</title>
+      <link>${escapeXml(postUrl)}</link>
+      <guid isPermaLink="true">${escapeXml(postUrl)}</guid>${author}
+      <pubDate>${new Date(post.date).toUTCString()}</pubDate>
+      <description>${escapeXml(post.description)}</description>
+    </item>`;
+  }).join("\n");
+  const latestDate = posts[0]?.date
+    ? new Date(posts[0].date).toUTCString()
+    : new Date(0).toUTCString();
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Natalia Ferreira | Psicóloga Clínica</title>
+    <link>${escapeXml(SITE_URL)}/</link>
+    <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
+    <language>pt-BR</language>
+    <lastBuildDate>${latestDate}</lastBuildDate>
+    <atom:link href="${escapeXml(pageUrl("/feed.xml"))}" rel="self" type="application/rss+xml" />
+${items}
+  </channel>
+</rss>
+`;
 }
 
 function generateSitemap(posts) {
@@ -186,6 +224,7 @@ function generateIndex() {
   const stagingImagesDir = path.join(stagingBlogDir, "images");
   const stagingRoutesPath = path.join(stagingRoot, "routes.txt");
   const stagingSitemapPath = path.join(stagingRoot, "sitemap.xml");
+  const stagingFeedPath = path.join(stagingRoot, "feed.xml");
 
   try {
     fs.mkdirSync(stagingPostsDir, { recursive: true });
@@ -287,13 +326,16 @@ function generateIndex() {
         "\n",
     );
     fs.writeFileSync(stagingSitemapPath, generateSitemap(posts));
+    fs.writeFileSync(stagingFeedPath, generateFeed(posts));
 
     fs.mkdirSync(path.dirname(publicContentDir), { recursive: true });
     fs.mkdirSync(path.dirname(routesPath), { recursive: true });
     fs.mkdirSync(path.dirname(sitemapPath), { recursive: true });
+    fs.mkdirSync(path.dirname(feedPath), { recursive: true });
     replaceDirectory(stagingBlogDir, publicContentDir);
     replaceFile(stagingRoutesPath, routesPath);
     replaceFile(stagingSitemapPath, sitemapPath);
+    replaceFile(stagingFeedPath, feedPath);
     console.log(
       `[Blog Index Generator] Generated ${posts.length} publishable posts atomically.`,
     );
@@ -311,4 +353,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { calculateReadingTime, generateIndex, generateSitemap };
+module.exports = { calculateReadingTime, generateFeed, generateIndex, generateSitemap };
