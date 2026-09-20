@@ -55,7 +55,9 @@ const llmsPath = configuredPath(
 );
 const siteConfigPath = configuredPath(
   "SITE_CONFIG_PATH",
-  path.join(projectRoot, "src/app/config/site-config.json"),
+  fs.existsSync(path.join(projectRoot, "src/app/config/site-config.json"))
+    ? path.join(projectRoot, "src/app/config/site-config.json")
+    : path.join(__dirname, "../app/config/site-config.json"),
 );
 const SITE_CONFIG = require(siteConfigPath);
 const publicOrigin = new URL(SITE_CONFIG.canonicalOrigin);
@@ -547,7 +549,9 @@ function generateIndex() {
     replaceFile(stagingRoutesPath, routesPath);
     replaceFile(stagingSitemapPath, sitemapPath);
     replaceFile(stagingFeedPath, feedPath);
-    synchronizeStaticMetadata();
+    if (fs.existsSync(indexPath)) {
+      synchronizeStaticMetadata();
+    }
     generateRobots();
     generateLlms();
     console.log(
