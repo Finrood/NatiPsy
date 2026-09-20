@@ -46,9 +46,30 @@ const alternateHostname = canonicalHostname.startsWith('www.')
 const allowedHosts = [
   'localhost',
   '127.0.0.1',
+  '::1',
   canonicalHostname,
   alternateHostname,
 ];
+const allowedHostnames = new Set(allowedHosts);
+
+export function normalizeHostHeader(value: string | undefined): string | null {
+  if (!value || /[\s\\/?#]/.test(value)) {
+    return null;
+  }
+  try {
+    const parsed = new URL(`http://${value}`);
+    if (parsed.username || parsed.password || parsed.pathname !== '/') {
+      return null;
+    }
+    const hostname = parsed.hostname
+      .toLowerCase()
+      .replace(/^\[|\]$/g, '')
+      .replace(/\.$/, '');
+    return hostname || null;
+  } catch {
+    return null;
+  }
+}
 
 export function isPathInsideRoot(root: string, target: string): boolean {
   const child = relative(root, target);
@@ -71,6 +92,19 @@ app.disable('x-powered-by');
 app.set('trust proxy', false);
 const commonEngine = new CommonEngine({
   allowedHosts: [...new Set(allowedHosts)],
+});
+
+app.use((req, res, next) => {
+  const hostname = normalizeHostHeader(req.headers.host);
+  if (!hostname) {
+    res.status(400).type('text/plain').send('Invalid Host header');
+    return;
+  }
+  if (!allowedHostnames.has(hostname)) {
+    res.status(421).type('text/plain').send('Misdirected Request');
+    return;
+  }
+  next();
 });
 
 app.get('/healthz', (_req, res) => {

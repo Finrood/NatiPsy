@@ -12,6 +12,7 @@
     "test:blog-images": "node ./scripts/blog-image-contract.test.mjs",
     "test:ssr-server": "node ./scripts/ssr-server-contract.test.mjs",
     "test:ssr-server-security": "node --test scripts/ssr-server-security.test.mjs",
+    "test:ssr-server:http": "node --test scripts/ssr-built-server-security.test.mjs",
     "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
     "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test:blog-generator": "node --test src/scripts/validate-blog-content.test.js scripts/assert-public-content.test.mjs src/scripts/watch-blog-index.test.js",
