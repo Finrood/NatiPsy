@@ -8,18 +8,96 @@ const projectRoot =
   process.env.BLOG_PROJECT_ROOT || path.join(__dirname, "../..");
 const configuredPath = (name, fallback) =>
   process.env[name] ? path.resolve(process.env[name]) : fallback;
-const contentDir = configuredPath("BLOG_CONTENT_DIR", path.join(projectRoot, "content/blog"));
-const sourceImagesDir = configuredPath("BLOG_IMAGES_DIR", path.join(contentDir, "images"));
+const contentDir = configuredPath(
+  "BLOG_CONTENT_DIR",
+  path.join(projectRoot, "content/blog"),
+);
+const sourceImagesDir = configuredPath(
+  "BLOG_IMAGES_DIR",
+  path.join(contentDir, "images"),
+);
+const configuredPostsDir = process.env.BLOG_POSTS_DIR
+  ? path.resolve(process.env.BLOG_POSTS_DIR)
+  : null;
 const publicContentDir = configuredPath(
   "BLOG_PUBLIC_CONTENT_DIR",
-  path.join(projectRoot, "public/assets/content/blog"),
+  configuredPostsDir
+    ? path.dirname(configuredPostsDir)
+    : path.join(projectRoot, "public/assets/content/blog"),
 );
-const publicAssetsDir = path.join(projectRoot, "public/assets");
-const routesPath = configuredPath("BLOG_ROUTES_PATH", path.join(projectRoot, "src/routes.txt"));
-const sitemapPath = configuredPath("BLOG_SITEMAP_PATH", path.join(projectRoot, "public/sitemap.xml"));
-const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public/feed.xml"));
-
-const SITE_URL = "https://psicologanataliaferreira.com";
+const publicAssetsDir = configuredPath(
+  "BLOG_PUBLIC_ASSETS_DIR",
+  path.join(projectRoot, "public/assets"),
+);
+const routesPath = configuredPath(
+  "BLOG_ROUTES_PATH",
+  path.join(projectRoot, "src/routes.txt"),
+);
+const sitemapPath = configuredPath(
+  "BLOG_SITEMAP_PATH",
+  path.join(projectRoot, "public/sitemap.xml"),
+);
+const feedPath = configuredPath(
+  "BLOG_FEED_PATH",
+  path.join(projectRoot, "public/feed.xml"),
+);
+const indexPath = configuredPath(
+  "SITE_INDEX_PATH",
+  path.join(projectRoot, "src/index.html"),
+);
+const robotsPath = configuredPath(
+  "SITE_ROBOTS_PATH",
+  path.join(projectRoot, "public/robots.txt"),
+);
+const llmsPath = configuredPath(
+  "SITE_LLMS_PATH",
+  path.join(projectRoot, "public/llms.txt"),
+);
+const siteConfigPath = configuredPath(
+  "SITE_CONFIG_PATH",
+  path.join(projectRoot, "src/app/config/site-config.json"),
+);
+const SITE_CONFIG = require(siteConfigPath);
+const publicOrigin = new URL(SITE_CONFIG.canonicalOrigin);
+if (
+  !["http:", "https:"].includes(publicOrigin.protocol) ||
+  publicOrigin.username ||
+  publicOrigin.password ||
+  publicOrigin.pathname !== "/" ||
+  publicOrigin.search ||
+  publicOrigin.hash
+) {
+  throw new Error("canonicalOrigin must be an exact http(s) origin.");
+}
+for (const field of [
+  "locale",
+  "timeZone",
+  "brandName",
+  "professionalName",
+  "credential",
+  "siteDescription",
+  "specialization",
+  "defaultImage",
+  "email",
+  "whatsappNumber",
+  "instagramUrl",
+]) {
+  if (typeof SITE_CONFIG[field] !== "string" || SITE_CONFIG[field].trim() === "") {
+    throw new Error(`Invalid site configuration field: ${field}`);
+  }
+}
+if (
+  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(SITE_CONFIG.email) ||
+  new URL(SITE_CONFIG.instagramUrl).protocol !== "https:"
+) {
+  throw new Error("email and instagramUrl must be valid public contact values.");
+}
+const whatsappDigits = SITE_CONFIG.whatsappNumber.replace(/\D/g, "");
+if (whatsappDigits.length < 10) {
+  throw new Error("whatsappNumber must contain a complete international number.");
+}
+const SITE_URL = publicOrigin.origin;
+const WHATSAPP_URL = `https://wa.me/${whatsappDigits}`;
 const POSTS_PER_PAGE = 6;
 
 const STATIC_PAGES = require("../content/static-pages.json");
@@ -112,10 +190,10 @@ function generateFeed(posts) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
-    <title>Natalia Ferreira | Psicóloga Clínica</title>
+    <title>${escapeXml(SITE_CONFIG.brandName)}</title>
     <link>${escapeXml(SITE_URL)}/</link>
-    <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
-    <language>pt-BR</language>
+    <description>${escapeXml(SITE_CONFIG.siteDescription)}</description>
+    <language>${escapeXml(SITE_CONFIG.locale)}</language>
     <lastBuildDate>${latestDate}</lastBuildDate>
     <atom:link href="${escapeXml(pageUrl("/feed.xml"))}" rel="self" type="application/rss+xml" />
 ${items}
@@ -136,6 +214,67 @@ function optionalDiscoveryText(data, file, field, maxLength) {
   }
   return value;
 }
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) =>
+    ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[char],
+  );
+}
+
+function replaceOnce(html, pattern, replacement) {
+  if (!pattern.test(html)) {
+    throw new Error(`Static metadata marker not found: ${pattern}`);
+  }
+  return html.replace(pattern, replacement);
+}
+
+function synchronizeStaticMetadata() {
+  let html = fs.readFileSync(indexPath, "utf8");
+  const title = `${SITE_CONFIG.brandName} | Psicóloga Clínica - Terapia Online`;
+  const description = `${SITE_CONFIG.siteDescription} ${SITE_CONFIG.credential}`;
+  const image = pageUrl(SITE_CONFIG.defaultImage);
+  html = replaceOnce(html, /<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
+  html = replaceOnce(
+    html,
+    /<meta name="description" content="[^"]*">/,
+    `<meta name="description" content="${escapeHtml(description)}">`,
+  );
+  html = replaceOnce(
+    html,
+    /<meta name="author" content="[^"]*">/,
+    `<meta name="author" content="${escapeHtml(SITE_CONFIG.brandName)}">`,
+  );
+  html = replaceOnce(html, /<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${SITE_URL}/">`);
+  html = replaceOnce(html, /<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escapeHtml(title)}">`);
+  html = replaceOnce(html, /<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escapeHtml(description)}">`);
+  html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${image}">`);
+  html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escapeHtml(title)}">`);
+  html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escapeHtml(description)}">`);
+  html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${image}">`);
+  html = replaceOnce(html, /<meta name="twitter:image:alt" content="[^"]*">/, `<meta name="twitter:image:alt" content="${escapeHtml(SITE_CONFIG.professionalName)}">`);
+  html = replaceOnce(html, /<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${SITE_URL}/">`);
+  fs.writeFileSync(indexPath, html);
+}
+
+function generateRobots() {
+  fs.writeFileSync(
+    robotsPath,
+    `User-agent: *\nAllow: /\nDisallow: /404\n\nSitemap: ${pageUrl("/sitemap.xml")}\n`,
+  );
+}
+
+function generateLlms() {
+  fs.writeFileSync(
+    llmsPath,
+    `# ${SITE_CONFIG.brandName} - Psicóloga Clínica\n\n> ${SITE_CONFIG.siteDescription}\n\n## Páginas Principais\n- [Início](${pageUrl("/")}): Página principal com informações sobre atendimento, serviços e agendamento.\n- [Sobre Mim](${pageUrl("/#sobre-mim")}): Informações profissionais sobre ${SITE_CONFIG.brandName} (${SITE_CONFIG.credential}).\n- [Meus Serviços](${pageUrl("/#meus-servicos")}): Terapia individual, desenvolvimento pessoal, ansiedade e orientação de carreira.\n- [Minha Abordagem](${pageUrl("/#abordagem")}): ${SITE_CONFIG.specialization}.\n- [Vantagens](${pageUrl("/#vantagens")}): Benefícios da terapia online.\n- [Blog](${pageUrl("/blog")}): Artigos sobre psicologia, saúde mental e relacionamentos.\n\n## Contato\n- [WhatsApp](${WHATSAPP_URL}): Agendamento de consultas via WhatsApp.\n`,
+  );
+}
+
 
 function generateSitemap(posts) {
   const urls = STATIC_PAGES.map((page) => `  <url>
@@ -408,6 +547,9 @@ function generateIndex() {
     replaceFile(stagingRoutesPath, routesPath);
     replaceFile(stagingSitemapPath, sitemapPath);
     replaceFile(stagingFeedPath, feedPath);
+    synchronizeStaticMetadata();
+    generateRobots();
+    generateLlms();
     console.log(
       `[Blog Index Generator] Generated ${posts.length} publishable posts atomically.`,
     );

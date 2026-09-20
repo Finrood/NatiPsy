@@ -16,7 +16,7 @@ import {
 import { Subject, takeUntil } from 'rxjs';
 import { FooterComponent } from './components/footer/footer.component';
 import { TopMenuComponent } from './components/top-menu/top-menu.component';
-import { WHATSAPP_LINK } from './config/contact';
+import { PERSON_NAME, WHATSAPP_LINK } from './config/contact';
 
 @Component({
   selector: 'app-root',
@@ -25,7 +25,7 @@ import { WHATSAPP_LINK } from './config/contact';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'NatiPsy';
+  title = PERSON_NAME;
   readonly whatsappLink = WHATSAPP_LINK;
 
   private readonly router = inject(Router);
