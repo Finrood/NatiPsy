@@ -1,6 +1,7 @@
 {
   "name": "nati-psy",
   "version": "0.0.0",
+  "packageManager": "npm@10.9.8",
   "scripts": {
     "ng": "ng",
     "build:blog-index": "node ./src/scripts/generate-blog-index.js",
@@ -19,6 +20,7 @@
     "test:hydration-cache": "node ./scripts/hydration-cache-contract.test.mjs",
     "test:hydration-render": "node scripts/hydration-render-contract.mjs",
     "test:tailwind-source-boundary": "node ./scripts/tailwind-source-boundary.test.mjs",
+    "test:container": "node ./scripts/container-contract.test.mjs",
     "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
     "build": "npm run build:blog-index && ng build && npm run assert:public-content",
     "start": "npm run build:blog-index && node ./src/scripts/dev-watch.js --serve",

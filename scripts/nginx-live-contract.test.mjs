@@ -56,6 +56,8 @@ test('exercises the production Nginx routing and header contract', async (t) => 
   const config = join(fixture, 'default.conf');
   const securityHeaders = join(fixture, 'security-headers.conf');
   const snippets = join(fixture, 'snippets');
+  const containerPort = Number(process.env.NGINX_LIVE_CONTAINER_PORT || 80);
+  const image = process.env.NGINX_LIVE_IMAGE || 'nginx:1.27-alpine';
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
   let containerId;
@@ -75,12 +77,12 @@ test('exercises the production Nginx routing and header contract', async (t) => 
     writeFileSync(join(snippets, 'natipsy-security-headers.conf'), securityHeaderContents);
 
     containerId = execFileSync('docker', [
-      'run', '--detach', '--rm', '--publish', `127.0.0.1:${port}:80`,
+      'run', '--detach', '--rm', '--publish', `127.0.0.1:${port}:${containerPort}`,
       '--volume', `${containerRoot}:/usr/share/nginx/html:ro`,
       '--volume', `${config}:/etc/nginx/conf.d/default.conf:ro`,
       '--volume', `${securityHeaders}:/etc/nginx/security-headers.conf:ro`,
       '--volume', `${snippets}:/etc/nginx/snippets:ro`,
-      'nginx:1.27-alpine',
+      image,
     ], { encoding: 'utf8' }).trim();
     await waitForServer(`${baseUrl}/`);
 

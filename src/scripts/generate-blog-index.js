@@ -178,14 +178,34 @@ function resolveAuthorAvatar(reference, stagingImages, context) {
 function replaceDirectory(stagedPath, destinationPath) {
   const backupPath = `${destinationPath}.backup-${process.pid}`;
   fs.rmSync(backupPath, { recursive: true, force: true });
-  if (fs.existsSync(destinationPath))
-    fs.renameSync(destinationPath, backupPath);
+  if (fs.existsSync(destinationPath)) {
+    try {
+      fs.renameSync(destinationPath, backupPath);
+    } catch (error) {
+      if (error.code !== "EXDEV") throw error;
+      fs.cpSync(destinationPath, backupPath, { recursive: true });
+      fs.rmSync(destinationPath, { recursive: true, force: true });
+    }
+  }
   try {
-    fs.renameSync(stagedPath, destinationPath);
+    try {
+      fs.renameSync(stagedPath, destinationPath);
+    } catch (error) {
+      if (error.code !== "EXDEV") throw error;
+      fs.cpSync(stagedPath, destinationPath, { recursive: true });
+      fs.rmSync(stagedPath, { recursive: true, force: true });
+    }
     fs.rmSync(backupPath, { recursive: true, force: true });
   } catch (error) {
-    if (!fs.existsSync(destinationPath) && fs.existsSync(backupPath))
-      fs.renameSync(backupPath, destinationPath);
+    if (!fs.existsSync(destinationPath) && fs.existsSync(backupPath)) {
+      try {
+        fs.renameSync(backupPath, destinationPath);
+      } catch (restoreError) {
+        if (restoreError.code !== "EXDEV") throw restoreError;
+        fs.cpSync(backupPath, destinationPath, { recursive: true });
+        fs.rmSync(backupPath, { recursive: true, force: true });
+      }
+    }
     throw error;
   }
 }
