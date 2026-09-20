@@ -108,6 +108,24 @@ describe('BlogListComponent reactive state', () => {
     fixture.destroy();
   });
 
+  it('does not prioritize homepage preview images', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    queryParams$.next({});
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    fixture.componentInstance.firstImagePriority = false;
+    expect(fixture.componentInstance.shouldPrioritizeFirstImage).toBe(false);
+    fixture.destroy();
+  });
+
+  it('prioritizes the first image when explicitly enabled', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    queryParams$.next({});
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    fixture.componentInstance.firstImagePriority = true;
+    expect(fixture.componentInstance.shouldPrioritizeFirstImage).toBe(true);
+    fixture.destroy();
+  });
+
   it('normalizes invalid query enums and page values to safe defaults', () => {
     expect(parseBlogQueryParams({ page: '0', sortBy: 'invalid', sortDir: 'sideways', category: ['Carreira'] })).toEqual({
       page: 1, category: 'Carreira', sortBy: 'date', sortDirection: 'desc',

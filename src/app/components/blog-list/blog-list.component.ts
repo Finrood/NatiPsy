@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   OnInit,
   PLATFORM_ID,
   inject,
@@ -161,10 +162,17 @@ export class BlogListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
 
+  /** Whether the first archive card is an above-the-fold LCP candidate. */
+  @Input() firstImagePriority?: boolean;
+
   readonly itemsPerPage = 6;
   protected readonly imageUrl = blogImageUrl;
   protected readonly dateOnly = blogDateOnly;
   protected readonly formatDate = formatBlogDate;
+
+  get shouldPrioritizeFirstImage(): boolean {
+    return this.firstImagePriority ?? this.router.url.startsWith('/blog');
+  }
 
   private readonly rawQueryParams$ = this.route.queryParams.pipe(
     shareReplay({ bufferSize: 1, refCount: true }),
