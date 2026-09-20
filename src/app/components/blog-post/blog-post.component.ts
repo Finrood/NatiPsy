@@ -112,9 +112,6 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.post) {
-      this.seoService.removeStructuredData('blog-post');
-    }
     this.seoService.removeStructuredData('blog-post');
   }
 
@@ -195,53 +192,41 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       tags: post.categories,
     });
 
-    const blogPosting = {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: post.title,
-      name: post.title,
-      description: post.description,
-      image: imageUrl,
-      datePublished: post.date.toISOString(),
-      author: {
-        '@type': 'Person',
-        name: post.author?.name || 'Natalia Ferreira',
-        url: SITE_URL,
-      },
-      publisher: {
-        '@type': 'Person',
-        name: 'Natalia Ferreira Psicóloga',
-        logo: {
-          '@type': 'ImageObject',
-          url: `${SITE_URL}/assets/logo.png`,
-        },
-      },
-      url: `${SITE_URL}/blog/${post.slug}`,
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': `${SITE_URL}/blog/${post.slug}`,
-      },
-      keywords: post.categories.join(', '),
-    };
     this.seoService.setStructuredData('blog-post', {
       '@context': 'https://schema.org',
       '@graph': [
-        blogPosting,
+        {
+          '@type': 'BlogPosting',
+          headline: post.title,
+          name: post.title,
+          description: post.description,
+          image: imageUrl,
+          datePublished: post.date.toISOString(),
+          author: {
+            '@type': 'Person',
+            name: post.author?.name || 'Natalia Ferreira',
+            url: SITE_URL,
+          },
+          publisher: {
+            '@type': 'Person',
+            name: 'Natalia Ferreira Psicóloga',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${SITE_URL}/assets/logo.png`,
+            },
+          },
+          url: `${SITE_URL}/blog/${post.slug}`,
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${SITE_URL}/blog/${post.slug}`,
+          },
+          keywords: post.categories.join(', '),
+        },
         {
           '@type': 'BreadcrumbList',
           itemListElement: [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'Início',
-              item: SITE_URL,
-            },
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: 'Blog',
-              item: `${SITE_URL}/blog`,
-            },
+            { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
             {
               '@type': 'ListItem',
               position: 3,
