@@ -46,7 +46,7 @@ const post = (slug, date, extra = "") => {
 title: ${slug}
 date: ${date}
 description: "Descrição com <tag> & acento — ${slug}"
-categories: [Teste]
+categories: [Carreira]
 published: ${published}
 ${additionalFrontMatter}---
 
