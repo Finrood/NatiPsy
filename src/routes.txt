@@ -1,3 +1,5 @@
 /
 /blog
+/terapia-online
+/orientacao-profissional
 /blog/carreira-mulheres-negras-fadiga-racial

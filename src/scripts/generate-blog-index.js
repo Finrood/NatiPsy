@@ -22,6 +22,13 @@ const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public
 const SITE_URL = "https://psicologanataliaferreira.com";
 const POSTS_PER_PAGE = 6;
 
+const STATIC_PAGES = [
+  { path: '/', lastmod: '2026-09-12', changefreq: 'weekly', priority: '1.0', image: { loc: '/assets/NatiHero.webp', title: 'Natalia Ferreira - Psicóloga Clínica', caption: 'Psicóloga especializada em Terapia Relacional Sistêmica' } },
+  { path: '/blog', lastmod: '2025-04-21', changefreq: 'weekly', priority: '0.8' },
+  { path: '/terapia-online', lastmod: '2026-09-12', changefreq: 'monthly', priority: '0.8' },
+  { path: '/orientacao-profissional', lastmod: '2026-09-12', changefreq: 'monthly', priority: '0.8' },
+];
+
 function calculateReadingTime(content) {
   if (!content) return 0;
   const wordsPerMinute = 200;
@@ -49,6 +56,19 @@ function escapeXml(value) {
 
 function pageUrl(route) {
   return `${SITE_URL}${route}`;
+}
+
+function generateRoutesFile(posts) {
+  const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const pageRoutes = Array.from(
+    { length: Math.max(0, pageCount - 1) },
+    (_, index) => `/blog/page/${index + 2}`,
+  );
+  return [
+    ...STATIC_PAGES.map(page => page.path),
+    ...pageRoutes,
+    ...posts.map(post => `/blog/${post.slug}`),
+  ].join('\n') + '\n';
 }
 
 function imageUrl(post) {
@@ -90,34 +110,24 @@ ${items}
 }
 
 function generateSitemap(posts) {
-  const lastSiteUpdate = posts.length
-    ? posts[0].date.slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
-  const urls = [
-    `  <url>
-    <loc>${escapeXml(pageUrl("/"))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+  const urls = STATIC_PAGES.map((page) => `  <url>
+    <loc>${escapeXml(pageUrl(page.path))}</loc>
+    <lastmod>${page.lastmod}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>${page.image ? `
     <image:image>
-      <image:loc>${escapeXml(pageUrl("/assets/NatiHero.webp"))}</image:loc>
-      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
-      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
-    </image:image>
-  </url>`,
-    `  <url>
-    <loc>${escapeXml(pageUrl("/blog"))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`,
-  ];
+      <image:loc>${escapeXml(pageUrl(page.image.loc))}</image:loc>
+      <image:title>${escapeXml(page.image.title)}</image:title>
+      <image:caption>${escapeXml(page.image.caption)}</image:caption>
+    </image:image>` : ''}
+  </url>`);
 
   const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const paginationLastmod = posts[0]?.date.slice(0, 10) ?? '2025-04-21';
   for (let page = 2; page <= pageCount; page++) {
     urls.push(`  <url>
     <loc>${escapeXml(pageUrl(`/blog/page/${page}`))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
+    <lastmod>${paginationLastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`);
@@ -347,22 +357,13 @@ function generateIndex() {
     posts.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-    const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
     fs.writeFileSync(
       path.join(stagingBlogDir, "index.json"),
       JSON.stringify(posts, null, 2),
     );
     fs.writeFileSync(
       stagingRoutesPath,
-      [
-        "/",
-        "/blog",
-        ...Array.from(
-          { length: Math.max(0, pageCount - 1) },
-          (_, index) => `/blog/page/${index + 2}`,
-        ),
-        ...posts.map((post) => `/blog/${post.slug}`),
-      ].join("\n") + "\n",
+      generateRoutesFile(posts),
     );
     fs.writeFileSync(stagingSitemapPath, generateSitemap(posts));
     fs.writeFileSync(stagingFeedPath, generateFeed(posts));
