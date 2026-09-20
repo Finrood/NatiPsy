@@ -15,6 +15,7 @@
     "test:ssr-server-security": "node --test scripts/ssr-server-security.test.mjs",
     "test:ssr-server:http": "node --test scripts/ssr-built-server-security.test.mjs",
     "test:nginx:live": "node --test scripts/nginx-live-contract.test.mjs",
+    "build": "npm run build:blog-index && ng build --stats-json && npm run assert:public-content && npm run report:bundle-size",
     "test:mobile-home": "node ./scripts/mobile-home-conversion.test.mjs",
     "test:blog-generator": "node --test src/scripts/validate-blog-content.test.js scripts/assert-public-content.test.mjs src/scripts/watch-blog-index.test.js",
     "test:public-content": "node --test scripts/assert-public-content.test.mjs",
@@ -28,7 +29,6 @@
     "test:tailwind-source-boundary": "node ./scripts/tailwind-source-boundary.test.mjs",
     "test:container": "node ./scripts/container-contract.test.mjs",
     "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
-    "build": "npm run build:blog-index && ng build && npm run assert:public-content",
     "start": "npm run build:blog-index && node ./src/scripts/dev-watch.js --serve",
     "watch": "npm run build:blog-index && node ./src/scripts/dev-watch.js",
     "test": "ng test",
@@ -40,6 +40,7 @@
     "test:lazy-bundle": "npm run build:stats && node --test scripts/lazy-blog-bundle.test.mjs",
     "test:smoke": "node --test scripts/deploy-smoke-check.test.mjs",
     "smoke:production": "node scripts/deploy-smoke-check.mjs",
+    "test:bundle-budget": "node ./scripts/bundle-budget-contract.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
