@@ -108,14 +108,22 @@ describe('BlogListComponent reactive state', () => {
     fixture.destroy();
   });
 
-  it('does not prioritize the homepage preview image', () => {
-    component.firstImagePriority = false;
-    expect(component.shouldPrioritizeFirstImage).toBe(false);
+  it('does not prioritize homepage preview images', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    queryParams$.next({});
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    fixture.componentInstance.firstImagePriority = false;
+    expect(fixture.componentInstance.shouldPrioritizeFirstImage).toBe(false);
+    fixture.destroy();
   });
 
-  it('prioritizes the first image only for the archive context', () => {
-    component.firstImagePriority = true;
-    expect(component.shouldPrioritizeFirstImage).toBe(true);
+  it('prioritizes the first image when explicitly enabled', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    queryParams$.next({});
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    fixture.componentInstance.firstImagePriority = true;
+    expect(fixture.componentInstance.shouldPrioritizeFirstImage).toBe(true);
+    fixture.destroy();
   });
 
   it('normalizes invalid query enums and page values to safe defaults', () => {

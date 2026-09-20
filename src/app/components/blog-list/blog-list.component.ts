@@ -1,11 +1,27 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject, PLATFORM_ID, Input } from '@angular/core';
-import { BlogService } from '../../services/blog.service';
-import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
-import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { RouterLink, ActivatedRoute, Router, Params } from '@angular/router';
-import { SeoService } from '../../services/seo.service';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
+import {
+  CommonModule,
+  NgOptimizedImage,
+  isPlatformBrowser,
+} from '@angular/common';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { combineLatest, forkJoin, of } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  map,
+  shareReplay,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { BlogService } from '../../services/blog.service';
 import {
@@ -146,33 +162,10 @@ export class BlogListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
 
-  /** Whether the first card is an above-the-fold LCP candidate. Homepage
-   * previews explicitly pass false; the standalone archive defaults to true. */
+  /** Whether the first archive card is an above-the-fold LCP candidate. */
   @Input() firstImagePriority?: boolean;
 
-  allPosts: BlogPost[] = [];
-  displayedPosts: BlogPost[] = [];
-  allCategories: string[] = [];
-
-  loading = true;
-  error: string | null = null;
-
-  // Pagination
-  currentPage = 1;
-  itemsPerPage = 6;
-  totalItems = 0;
-
-  // Filtering & Sorting
-  selectedCategory: string = '';
-  sortBy: BlogSortBy = 'date';
-  sortDirection: BlogSortDirection = 'desc';
-
-  private readonly destroy$ = new Subject<void>();
-  private rawQueryParams: Params = {};
-  private postsLoaded = false;
-  private categoriesLoaded = false;
-  private canonicalizationPending = false;
-
+  readonly itemsPerPage = 6;
   protected readonly imageUrl = blogImageUrl;
   protected readonly dateOnly = blogDateOnly;
   protected readonly formatDate = formatBlogDate;
@@ -180,6 +173,83 @@ export class BlogListComponent implements OnInit {
   get shouldPrioritizeFirstImage(): boolean {
     return this.firstImagePriority ?? this.router.url.startsWith('/blog');
   }
+
+  private readonly rawQueryParams$ = this.route.queryParams.pipe(
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  private readonly queryState$ = this.rawQueryParams$.pipe(
+    map(parseBlogQueryParams),
+    distinctUntilChanged(sameQuery),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  private readonly filterState$ = this.queryState$.pipe(
+    map(({ category, sortBy, sortDirection }) => ({ category, sortBy, sortDirection })),
+    distinctUntilChanged((a, b) => a.category === b.category &&
+      a.sortBy === b.sortBy && a.sortDirection === b.sortDirection),
+  );
+  private readonly contentState$ = this.filterState$.pipe(
+    switchMap((filters) => forkJoin({
+      posts: this.blogService.getPostsList(filters.category, filters.sortBy, filters.sortDirection),
+      categories: this.blogService.getAllCategories(),
+    }).pipe(
+      map(({ posts, categories }) => ({ posts, categories, loading: false, error: null })),
+      startWith(initialContentState),
+      catchError((error: unknown) => of({
+        posts: [], categories: [], loading: false,
+        error: error instanceof Error ? error.message : 'Não foi possível carregar os posts.',
+      })),
+    )),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  readonly viewModel = toSignal(
+    combineLatest({ rawParams: this.rawQueryParams$, query: this.queryState$, content: this.contentState$ }).pipe(
+      map(({ rawParams, query, content }): BlogListViewModel => {
+        const totalItems = content.posts.length;
+        const totalPages = Math.ceil(totalItems / this.itemsPerPage);
+        const normalizedQuery = content.loading
+          ? query
+          : normalizeBlogQueryState(query, totalPages, content.categories);
+        if (!content.loading) {
+          const normalizedParams = blogQueryParams(normalizedQuery);
+          if (!queryIsCanonical(rawParams, normalizedParams)) {
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: normalizedParams,
+              replaceUrl: true,
+            });
+          }
+        }
+        const startIndex = (normalizedQuery.page - 1) * this.itemsPerPage;
+        return {
+          ...normalizedQuery,
+          ...content,
+          totalItems,
+          totalPages,
+          displayedPosts: content.posts.slice(startIndex, startIndex + this.itemsPerPage),
+        };
+      }),
+    ),
+    {
+      initialValue: {
+        ...initialQueryState,
+        ...initialContentState,
+        displayedPosts: [], totalItems: 0, totalPages: 0,
+      } as BlogListViewModel,
+    },
+  );
+
+  get allPosts(): BlogPost[] { return this.viewModel().posts; }
+  get displayedPosts(): BlogPost[] { return this.viewModel().displayedPosts; }
+  get allCategories(): string[] { return this.viewModel().categories; }
+  get loading(): boolean { return this.viewModel().loading; }
+  get error(): string | null { return this.viewModel().error; }
+  get currentPage(): number { return this.viewModel().page; }
+  get totalItems(): number { return this.viewModel().totalItems; }
+  get totalPages(): number { return this.viewModel().totalPages; }
+  get selectedCategory(): string { return this.viewModel().category; }
+  get sortBy(): BlogSortBy { return this.viewModel().sortBy; }
+  get sortDirection(): BlogSortDirection { return this.viewModel().sortDirection; }
 
   ngOnInit(): void {
     if (this.router.url.includes('/blog')) {
