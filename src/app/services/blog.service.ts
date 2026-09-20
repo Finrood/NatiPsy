@@ -58,6 +58,8 @@ export class BlogService {
         ...post,
         date: new Date(post.date),
         dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
+        tags: [...(post.tags ?? [])],
+        categoryDetails: [...(post.categoryDetails ?? [])],
         content: '',
         readTime: null as number | null,
       }))
@@ -69,6 +71,8 @@ export class BlogService {
       ...post,
       date: new Date(post.date.getTime()),
       categories: [...post.categories],
+      tags: [...(post.tags ?? [])],
+      categoryDetails: (post.categoryDetails ?? []).map(category => ({ ...category })),
       author: post.author ? { ...post.author } : post.author,
     };
   }

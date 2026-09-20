@@ -42,8 +42,8 @@ import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../mode
         }
         <p class="mt-1 text-gray-600 line-clamp-3 flex-grow">{{ post.description }}</p>
         <div class="mt-4 flex flex-wrap gap-2">
-          @for (category of post.categories; track category) {
-            <span class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full">{{ category }}</span>
+          @for (category of post.categoryDetails; track category.slug) {
+            <a [routerLink]="['/blog/categoria', category.slug]" class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full hover:bg-primary-pink focus:outline-none focus:ring-2 focus:ring-primary-blue">{{ category.label }}</a>
           }
         </div>
       </div>

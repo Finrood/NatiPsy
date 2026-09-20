@@ -96,6 +96,11 @@ interface BlogListViewModel extends BlogContentState, BlogQueryState {
 
 const validSortFields = new Set<BlogSortBy>(['date', 'title']);
 const validSortDirections = new Set<BlogSortDirection>(['asc', 'desc']);
+const categoryLabelsBySlug: Record<string, string> = {
+  carreira: 'Carreira',
+  psicologia: 'Psicologia',
+  'orientacao-profissional': 'Orientação Profissional',
+};
 
 const initialQueryState: BlogQueryState = {
   page: 1,
@@ -254,7 +259,13 @@ export class BlogListComponent implements OnInit {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
   private readonly queryState$ = this.rawQueryParams$.pipe(
-    map(parseBlogQueryParams),
+    map((params) => {
+      const state = parseBlogQueryParams(params);
+      const routeCategory = this.categoryRouteSlug
+        ? categoryLabelsBySlug[this.categoryRouteSlug]
+        : undefined;
+      return routeCategory ? { ...state, category: routeCategory } : state;
+    }),
     distinctUntilChanged(sameQuery),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -350,6 +361,10 @@ export class BlogListComponent implements OnInit {
         const routePage = parseBlogPage(rawPage);
         const requestedPage =
           routePage !== null && routePage > 0 ? routePage : query.page;
+        const unknownCategoryRoute = Boolean(
+          this.categoryRouteSlug &&
+            !categoryLabelsBySlug[this.categoryRouteSlug],
+        );
         const invalidPage =
           routePage === -1 ||
           (!content.loading &&
@@ -359,22 +374,26 @@ export class BlogListComponent implements OnInit {
           content.loading || invalidPage
             ? { ...query, page: requestedPage }
             : normalizeBlogQueryState(query, totalPages, content.categories);
-        const pageError = invalidPage
-          ? 'Esta página do blog não foi encontrada.'
-          : null;
+        const pageError =
+          invalidPage || unknownCategoryRoute
+            ? 'Esta página do blog não foi encontrada.'
+            : null;
+        const isCategoryRoute = Boolean(this.categoryRouteSlug);
         const hasAlternateView = Boolean(
           pageError ||
-          query.category ||
+          (!isCategoryRoute && query.category) ||
           query.sortBy !== 'date' ||
           query.sortDirection !== 'desc',
         );
         const serializedQuery = blogQueryParams({
           ...normalizedQuery,
           page: 1,
+          category: isCategoryRoute ? '' : normalizedQuery.category,
         });
         if (
           queryParamsSettled &&
           !content.loading &&
+          !isCategoryRoute &&
           rawPage === null &&
           query.page > 1
         ) {
@@ -396,7 +415,10 @@ export class BlogListComponent implements OnInit {
           const normalizedParams =
             rawPage !== null
               ? serializedQuery
-              : blogQueryParams(normalizedQuery);
+              : blogQueryParams({
+                  ...normalizedQuery,
+                  category: isCategoryRoute ? '' : normalizedQuery.category,
+                });
           if (!queryIsCanonical(rawParams, normalizedParams)) {
             this.router.navigate([], {
               relativeTo: this.route,
@@ -405,17 +427,28 @@ export class BlogListComponent implements OnInit {
             });
           }
         }
+        const categoryLabel = this.categoryRouteSlug
+          ? categoryLabelsBySlug[this.categoryRouteSlug]
+          : undefined;
+        const categoryUrl = this.categoryRouteSlug
+          ? `/blog/category/${this.categoryRouteSlug}`
+          : null;
         this.seoService.updateMetaTags({
           title:
-            requestedPage === 1
+            categoryLabel
+              ? `${categoryLabel} | Blog Natalia Ferreira`
+              : requestedPage === 1
               ? 'Blog | Psicóloga Natalia Ferreira'
               : `Blog — Página ${requestedPage} | Psicóloga Natalia Ferreira`,
           description:
             'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
           keywords:
             'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-          url: `${SITE_URL}${requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog'}`,
-          robots: hasAlternateView ? 'noindex,follow' : undefined,
+          url: `${SITE_URL}${categoryUrl ?? (requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog')}`,
+          // Category landing pages remain crawlable through internal links but
+          // are noindex while the registry has fewer than two posts per page.
+          robots:
+            isCategoryRoute || hasAlternateView ? 'noindex,follow' : undefined,
         });
         const visiblePosts = pageError
           ? []
