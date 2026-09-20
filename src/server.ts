@@ -31,6 +31,32 @@ const commonEngine = new CommonEngine({
   ],
 });
 
+/** Normalize the legacy query-string pagination URL to the crawlable route. */
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    next();
+    return;
+  }
+  const url = new URL(req.originalUrl, 'http://localhost');
+  if (url.pathname !== '/blog') {
+    next();
+    return;
+  }
+  const rawPage = url.searchParams.get('page');
+  if (!rawPage || !/^[1-9]\d*$/.test(rawPage)) {
+    next();
+    return;
+  }
+  const page = Number(rawPage);
+  if (!Number.isSafeInteger(page) || page <= 1) {
+    next();
+    return;
+  }
+  url.pathname = `/blog/page/${page}`;
+  url.searchParams.delete('page');
+  res.redirect(308, `${url.pathname}${url.search}`);
+});
+
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.

@@ -20,6 +20,7 @@ const sitemapPath = configuredPath("BLOG_SITEMAP_PATH", path.join(projectRoot, "
 const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public/feed.xml"));
 
 const SITE_URL = "https://psicologanataliaferreira.com";
+const POSTS_PER_PAGE = 6;
 
 function calculateReadingTime(content) {
   if (!content) return 0;
@@ -112,6 +113,16 @@ function generateSitemap(posts) {
   </url>`,
   ];
 
+  const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  for (let page = 2; page <= pageCount; page++) {
+    urls.push(`  <url>
+    <loc>${escapeXml(pageUrl(`/blog/page/${page}`))}</loc>
+    <lastmod>${lastSiteUpdate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+  }
+
   for (const post of posts) {
     const postImageUrl = imageUrl(post);
     urls.push(`  <url>
@@ -167,7 +178,7 @@ function copyReferencedImage(reference, stagingImages, context) {
 }
 
 function resolveAuthorAvatar(reference, stagingImages, context) {
-  if (typeof reference === "string" && reference.startsWith('/assets/')) {
+  if (typeof reference === "string" && reference.startsWith("/assets/")) {
     // Shared site assets are authored against the public asset root and must
     // remain absolute; they are not content-local blog images to be copied.
     return reference;
@@ -316,14 +327,22 @@ function generateIndex() {
     posts.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
+    const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
     fs.writeFileSync(
       path.join(stagingBlogDir, "index.json"),
       JSON.stringify(posts, null, 2),
     );
     fs.writeFileSync(
       stagingRoutesPath,
-      ["/", "/blog", ...posts.map((post) => `/blog/${post.slug}`)].join("\n") +
-        "\n",
+      [
+        "/",
+        "/blog",
+        ...Array.from(
+          { length: Math.max(0, pageCount - 1) },
+          (_, index) => `/blog/page/${index + 2}`,
+        ),
+        ...posts.map((post) => `/blog/${post.slug}`),
+      ].join("\n") + "\n",
     );
     fs.writeFileSync(stagingSitemapPath, generateSitemap(posts));
     fs.writeFileSync(stagingFeedPath, generateFeed(posts));

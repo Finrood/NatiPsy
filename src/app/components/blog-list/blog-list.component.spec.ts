@@ -7,7 +7,10 @@ import {
   BlogListComponent,
   blogQueryParams,
   normalizeBlogQueryState,
+  paginateItems,
   parseBlogQueryParams,
+  paginationWindow,
+  parseBlogPage,
 } from './blog-list.component';
 import { BlogService } from '../../services/blog.service';
 
@@ -31,7 +34,10 @@ async function createReactiveFixture(
     imports: [BlogListComponent],
     providers: [
       provideRouter([]),
-      { provide: ActivatedRoute, useValue: { queryParams: queryParams$.asObservable() } },
+      {
+        provide: ActivatedRoute,
+        useValue: { queryParams: queryParams$.asObservable() },
+      },
       { provide: BlogService, useValue: { getPostsList, getAllCategories } },
     ],
   }).compileComponents();
@@ -47,9 +53,10 @@ describe('BlogListComponent reactive state', () => {
     try {
       const queryParams$ = new ReplaySubject<Params>(1);
       queryParams$.next({ category: 'older' });
-      const postsFor = (category: string) => category === 'older'
-        ? timer(50).pipe(map(() => [post('older')]))
-        : of([post('newer')]);
+      const postsFor = (category: string) =>
+        category === 'older'
+          ? timer(50).pipe(map(() => [post('older')]))
+          : of([post('newer')]);
       const fixture = await createReactiveFixture(queryParams$, postsFor);
       queryParams$.next({ category: 'newer' });
       await vi.advanceTimersByTimeAsync(0);
@@ -67,13 +74,19 @@ describe('BlogListComponent reactive state', () => {
     queryParams$.next({});
     let postsRequests = 0;
     let categoryRequests = 0;
-    const fixture = await createReactiveFixture(queryParams$, () => {
-      postsRequests += 1;
-      return of(Array.from({ length: 7 }, (_, index) => post(`post-${index}`)));
-    }, () => {
-      categoryRequests += 1;
-      return of(['older', 'newer']);
-    });
+    const fixture = await createReactiveFixture(
+      queryParams$,
+      () => {
+        postsRequests += 1;
+        return of(
+          Array.from({ length: 7 }, (_, index) => post(`post-${index}`)),
+        );
+      },
+      () => {
+        categoryRequests += 1;
+        return of(['older', 'newer']);
+      },
+    );
     queryParams$.next({ page: '2' });
     expect(fixture.componentInstance.currentPage).toBe(2);
     expect(postsRequests).toBe(1);
@@ -96,15 +109,35 @@ describe('BlogListComponent reactive state', () => {
 
   it('rewrites invalid and excessive query state with replaceUrl', async () => {
     const queryParams$ = new ReplaySubject<Params>(1);
-    queryParams$.next({ page: '999', sortBy: 'invalid', sortDir: 'sideways', extra: 'stale' });
-    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    queryParams$.next({
+      page: '999',
+      sortBy: 'invalid',
+      sortDir: 'sideways',
+      extra: 'stale',
+    });
+    const fixture = await createReactiveFixture(queryParams$, () =>
+      of([post('one')]),
+    );
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    queryParams$.next({ page: '999', sortBy: 'invalid', sortDir: 'sideways', extra: 'stale' });
-    expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({
-      queryParams: { page: null, category: null, sortBy: null, sortDir: null },
-      replaceUrl: true,
-    }));
+    queryParams$.next({
+      page: '999',
+      sortBy: 'invalid',
+      sortDir: 'sideways',
+      extra: 'stale',
+    });
+    expect(navigate).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: {
+          page: null,
+          category: null,
+          sortBy: null,
+          sortDir: null,
+        },
+        replaceUrl: true,
+      }),
+    );
     fixture.destroy();
   });
 
@@ -127,23 +160,59 @@ describe('BlogListComponent reactive state', () => {
   });
 
   it('normalizes invalid query enums and page values to safe defaults', () => {
-    expect(parseBlogQueryParams({ page: '0', sortBy: 'invalid', sortDir: 'sideways', category: ['Carreira'] })).toEqual({
-      page: 1, category: 'Carreira', sortBy: 'date', sortDirection: 'desc',
+    expect(
+      parseBlogQueryParams({
+        page: '0',
+        sortBy: 'invalid',
+        sortDir: 'sideways',
+        category: ['Carreira'],
+      }),
+    ).toEqual({
+      page: 1,
+      category: 'Carreira',
+      sortBy: 'date',
+      sortDirection: 'desc',
     });
     expect(parseBlogQueryParams({ page: '-4' }).page).toBe(1);
     expect(parseBlogQueryParams({ page: 'not-a-number' }).page).toBe(1);
-    expect(parseBlogQueryParams({ page: '999999999999999999999' }).page).toBe(1);
+    expect(parseBlogQueryParams({ page: '999999999999999999999' }).page).toBe(
+      1,
+    );
   });
 
   it('clears invalid categories and bounds excessive pages', () => {
-    expect(normalizeBlogQueryState({ page: 99, category: 'missing', sortBy: 'title', sortDirection: 'asc' }, 3, ['Carreira'])).toEqual({
-      page: 3, category: '', sortBy: 'title', sortDirection: 'asc',
+    expect(
+      normalizeBlogQueryState(
+        {
+          page: 99,
+          category: 'missing',
+          sortBy: 'title',
+          sortDirection: 'asc',
+        },
+        3,
+        ['Carreira'],
+      ),
+    ).toEqual({
+      page: 3,
+      category: '',
+      sortBy: 'title',
+      sortDirection: 'asc',
     });
   });
 
   it('serializes default state with nulls so stale query keys are removed', () => {
-    expect(blogQueryParams({ page: 1, category: '', sortBy: 'date', sortDirection: 'desc' })).toEqual({
-      page: null, category: null, sortBy: null, sortDir: null,
+    expect(
+      blogQueryParams({
+        page: 1,
+        category: '',
+        sortBy: 'date',
+        sortDirection: 'desc',
+      }),
+    ).toEqual({
+      page: null,
+      category: null,
+      sortBy: null,
+      sortDir: null,
     });
   });
 });
