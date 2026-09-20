@@ -115,9 +115,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.seoService.removeStructuredData('blog-post');
   }
 
-  private loadPostState(
-    slug: string,
-  ): Observable<{
+  private loadPostState(slug: string): Observable<{
     post: BlogPost | null;
     relatedPosts: BlogPost[];
     error: string | null;
@@ -126,12 +124,11 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       switchMap((post) =>
         post
           ? this.blogService.getRelatedPosts(slug, post.categories, 3).pipe(
-              map((relatedPosts) => ({ post, relatedPosts })),
-              catchError(() => of({ post, relatedPosts: [] })),
+              map((relatedPosts) => ({ post, relatedPosts, error: null })),
+              catchError(() => of({ post, relatedPosts: [], error: null })),
             )
           : of({ post: null, relatedPosts: [], error: 'Post não encontrado.' }),
       ),
-      map((state) => ('error' in state ? state : { ...state, error: null })),
       catchError((error) =>
         of({
           post: null,

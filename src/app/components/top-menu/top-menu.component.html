@@ -1,36 +1,45 @@
-<header class="fixed w-full z-50 backdrop-blur-md transition-[transform,background-color] duration-300 focus-within:translate-y-0"
-        [ngClass]="{
-          'bg-white/95': !isMenuOpen(),
-          'shadow-lg': isScrolled() && !isMenuOpen(),
-          'bg-primary-pink-dark/90': isMenuOpen(),
-          'transform -translate-y-full': isHidden() && !isMenuOpen()
-        }"
-  role="banner">
-  <div class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]">
-
-    <a href="/"
+<header
+  class="fixed w-full z-50 backdrop-blur-md transition-[transform,background-color] duration-300 focus-within:translate-y-0"
+  [ngClass]="{
+    'bg-white/95': !isMenuOpen(),
+    'shadow-lg': isScrolled() && !isMenuOpen(),
+    'bg-primary-pink-dark/90': isMenuOpen(),
+    'transform -translate-y-full': isHidden() && !isMenuOpen(),
+  }"
+  role="banner"
+>
+  <div
+    class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]"
+  >
+    <a
+      href="/"
       class="flex items-center transition-transform duration-300 hover:scale-110 scale-125"
       (click)="refreshPage($event)"
-      aria-label="Página Inicial">
+      aria-label="Página Inicial"
+    >
       <picture>
-        <source srcset="/assets/logo.png" type="image/png">
-        <img src="/assets/logo.png"
+        <source srcset="/assets/logo.png" type="image/png" />
+        <img
+          src="/assets/logo.png"
           alt="Logotipo Natalia Ferreira Psicóloga"
           class="h-16 w-16"
           width="64"
           height="64"
-          fetchpriority="high">
+          fetchpriority="high"
+        />
       </picture>
       <picture aria-hidden="true">
-        <source srcset="/assets/logo_signature.png" type="image/png">
-        <img src="/assets/logo_signature.png"
+        <source srcset="/assets/logo_signature.png" type="image/png" />
+        <img
+          src="/assets/logo_signature.png"
           alt=""
           aria-hidden="true"
           class="h-12 w-auto ml-1"
           width="120"
           height="48"
           loading="eager"
-          fetchpriority="low">
+          fetchpriority="low"
+        />
       </picture>
     </a>
 
@@ -40,34 +49,68 @@
         <a
           [routerLink]="item === 'blog' ? ['/blog'] : ['/']"
           [fragment]="item === 'blog' ? undefined : item"
+          routerLinkActive
+          [routerLinkActiveOptions]="{ exact: item !== 'blog' }"
+          ariaCurrentWhenActive="page"
           class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-[transform,color] duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
-          [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]">
+          [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]"
+        >
           {{ menuDisplayNames[item] }}
         </a>
       }
     </nav>
 
     <!-- Mobile Menu Toggle Button -->
-    <button type="button" class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-md p-1"
+    <button
+      type="button"
+      class="lg:hidden text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-md p-1"
       (click)="toggleMenu()"
       [attr.aria-expanded]="isMenuOpen().toString()"
       aria-controls="mobile-menu"
-      [attr.aria-label]="isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'">
-      <span class="sr-only">{{ isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal' }}</span>
+      [attr.aria-label]="
+        isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'
+      "
+    >
+      <span class="sr-only">{{
+        isMenuOpen() ? "Fechar menu principal" : "Abrir menu principal"
+      }}</span>
       <!-- Conditionally show open/close icon -->
       @if (!isMenuOpen()) {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-8 w-8 text-primary-blue"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 6h16M4 12h16m-7 6h7"
+          />
         </svg>
       }
       @if (isMenuOpen()) {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-8 w-8 text-primary-blue"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       }
     </button>
   </div>
-
 </header>
 
 @if (isMenuOpen()) {
@@ -79,15 +122,23 @@
     aria-modal="true"
     aria-label="Menu de navegação"
     (keydown)="onMenuKeyDown($event)"
-    (click)="onBackdropClick($event)">
-    <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
+    (click)="onBackdropClick($event)"
+  >
+    <nav
+      class="flex flex-col items-center space-y-8 py-16 px-4"
+      aria-label="Navegação Móvel"
+    >
       @for (item of menuItems; track item) {
         <a
           [routerLink]="item === 'blog' ? ['/blog'] : ['/']"
           [fragment]="item === 'blog' ? undefined : item"
+          routerLinkActive
+          [routerLinkActiveOptions]="{ exact: item !== 'blog' }"
+          ariaCurrentWhenActive="page"
           (click)="closeMenu()"
           class="text-2xl sm:text-3xl font-semibold text-white hover:text-pink-100 transition-[transform,color] duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-pink-dark rounded-sm"
-          [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]">
+          [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]"
+        >
           {{ menuDisplayNames[item] }}
         </a>
       }
