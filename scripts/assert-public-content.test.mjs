@@ -55,7 +55,7 @@ async function createFixture() {
   );
   await writeFile(
     join(root, "content/blog/keep.md"),
-    "---\ntitle: Keep this post\ndate: 2026-01-01\ndescription: A published fixture\nimage: keep.webp\ncategories:\n  - Test\n---\nPublished content.\n",
+    "---\ntitle: Keep this post\ndate: 2026-01-01\ndescription: A published fixture\nimage: keep.webp\ncategories:\n  - Carreira\n---\nPublished content.\n",
   );
   await writeFile(
     join(root, "content/blog/draft.md"),
