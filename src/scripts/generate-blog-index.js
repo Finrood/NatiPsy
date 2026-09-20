@@ -89,6 +89,19 @@ ${items}
 `;
 }
 
+function optionalDiscoveryText(data, file, field, maxLength) {
+  if (data[field] === undefined || data[field] === null) return undefined;
+  if (typeof data[field] !== 'string' || data[field].trim() === '') {
+    console.warn(`[Blog Index Generator] Warning for ${file}: '${field}' must be a nonempty string. Ignoring.`);
+    return undefined;
+  }
+  const value = data[field].trim();
+  if (value.length > maxLength) {
+    console.warn(`[Blog Index Generator] Warning for ${file}: '${field}' is ${value.length} characters; consider keeping it under ${maxLength}.`);
+  }
+  return value;
+}
+
 function generateSitemap(posts) {
   const lastSiteUpdate = posts.length
     ? posts[0].date.slice(0, 10)
@@ -321,6 +334,10 @@ function generateIndex() {
           dateOnly: new Date(data.date).toISOString().slice(0, 10),
           date: new Date(data.date).toISOString(),
           description: data.description,
+          seoTitle: optionalDiscoveryText(data, entry.name, 'seoTitle', 60),
+          seoDescription: optionalDiscoveryText(data, entry.name, 'seoDescription', 160),
+          socialTitle: optionalDiscoveryText(data, entry.name, 'socialTitle', 60),
+          socialDescription: optionalDiscoveryText(data, entry.name, 'socialDescription', 160),
           image,
           imageWidth: data.imageWidth,
           imageHeight: data.imageHeight,
