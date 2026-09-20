@@ -112,7 +112,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         {
           provide: BlogService,
@@ -146,7 +146,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         { provide: BlogService, useValue: blogService },
       ],
@@ -175,7 +175,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         {
           provide: BlogService,
@@ -204,7 +204,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         {
           provide: BlogService,

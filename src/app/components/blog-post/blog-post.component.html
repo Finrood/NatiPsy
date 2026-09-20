@@ -14,7 +14,7 @@
         <li class="flex items-center text-primary-blue font-medium" aria-current="page">
           <span class="mx-2" aria-hidden="true">/</span>
           @if (post) {
-            <span>{{ post.title | slice:0:50 }}{{ post.title.length > 50 ? '...' : '' }}</span>
+            <span class="breadcrumb-title" [title]="post.title">{{ post.title }}</span>
           }
           @if (loading && !post) {
             <span>Carregando...</span>
@@ -33,17 +33,12 @@
 
     <!-- Error State -->
     @if (error && !loading) {
-      <div class="text-center py-12 bg-red-50 p-6 rounded-lg shadow-md" role="alert">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
+      <div class="text-center py-12 bg-red-50 p-6 rounded-lg shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <p class="text-xl text-red-700 font-semibold">Erro ao Carregar Post</p>
         <p class="text-red-600 mt-2">{{ error }}</p>
-        @if (retryable) {
-          <button type="button" class="mt-5 inline-flex px-6 py-2 bg-primary-blue text-white rounded-md hover:bg-blue-700" (click)="retryPost()">
-            Tentar novamente
-          </button>
-        }
         <a routerLink="/blog" class="mt-6 inline-block px-6 py-2 bg-primary-blue text-white rounded-md hover:bg-blue-700 transition-colors duration-300">
           Voltar para o blog
         </a>
@@ -53,30 +48,17 @@
     <!-- Post Content Area -->
     @if (post && !loading && !error) {
       <article class="bg-white rounded-lg shadow-xl overflow-hidden">
-        <!-- Featured Image -->
-        @if (post.image) {
-          <div class="relative w-full aspect-[2/1] overflow-hidden bg-gray-100">
-            <img [ngSrc]="imageUrl(post.image)"
-              [alt]="post.title"
-              fill
-              class="object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
-              priority
-              sizes="100vw">
-          </div>
-        }
-        <!-- Article Body -->
-        <div class="p-6 md:p-10">
-          <!-- Post Header -->
-          <header class="mb-8">
+        <!-- Post Header -->
+        <header class="p-6 md:p-10 pb-0 mb-8">
             <div class="flex flex-wrap gap-2 mb-4">
               @for (category of post.categories; track category) {
                 <span
-                  class="text-sm px-3 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full transition-transform motion-safe:hover:scale-105 cursor-default">
+                  class="text-sm px-3 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full transition-transform hover:scale-105 cursor-default">
                   {{ category }}
                 </span>
               }
             </div>
-            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-primary-blue leading-tight">{{ post.title }}</h1>
+            <h1 tabindex="-1" class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-primary-blue leading-tight focus:outline-none">{{ post.title }}</h1>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-600 text-sm">
               <!-- Author Info (Inline) -->
               @if (post.author) {
@@ -111,7 +93,37 @@
                 </div>
               }
             </div>
-          </header>
+        </header>
+
+        <!-- Featured Image -->
+        @if (post.image) {
+          <div class="relative w-full aspect-[2/1] overflow-hidden bg-gray-100">
+            <img [ngSrc]="imageUrl(post.image)"
+              [alt]="post.title"
+              fill
+              class="object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
+              priority
+              sizes="100vw">
+          </div>
+        }
+
+        <!-- Article Body -->
+        <div class="p-6 md:p-10">
+          @if (post.headings && post.headings.length >= 2) {
+            <nav aria-label="Neste artigo" class="mb-8 rounded-lg border border-primary-blue/20 bg-primary-blue/5 p-5">
+              <h2 class="text-lg font-semibold text-primary-blue mb-3">Neste artigo</h2>
+              <ol class="space-y-2 list-none m-0 p-0">
+                @for (heading of post.headings; track heading.id) {
+                  <li [class.ml-5]="heading.level === 3">
+                    <a [routerLink]="['/blog', post.slug]" [fragment]="heading.id" class="text-primary-blue hover:text-primary-pink-dark underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm">
+                      {{ heading.text }}
+                    </a>
+                  </li>
+                }
+              </ol>
+            </nav>
+          }
+
           <!-- Post Content - Using Tailwind Typography -->
           <div class="prose prose-lg max-w-none
                       break-words
@@ -161,7 +173,7 @@
                       }
                       @if (!related.image) {
                         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/10 to-primary-blue/5">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
                       }
                     </div>
@@ -180,7 +192,7 @@
     <!-- Back to blog link -->
     <div class="mt-10 text-center">
       <a routerLink="/blog" class="inline-flex items-center gap-2 text-primary-blue hover:text-primary-pink-dark transition-colors duration-300 font-medium">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
         Voltar para todos os posts

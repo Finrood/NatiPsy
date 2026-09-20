@@ -105,3 +105,19 @@ test("routed pages expose one main landmark", async ({ page }) => {
     await expect(page.locator("main")).toHaveCount(1);
   }
 });
+
+test("article table of contents keeps the article route and focuses the target", async ({
+  page,
+}) => {
+  const article = "/blog/carreira-mulheres-negras-fadiga-racial";
+  await page.goto(article);
+  const toc = page.getByRole("navigation", { name: "Neste artigo" });
+  await expect(toc).toBeVisible();
+  const firstLink = toc.getByRole("link").first();
+  const href = await firstLink.getAttribute("href");
+  expect(href).toMatch(new RegExp(`${article}#[^#]+$`));
+  const targetId = href.split("#")[1];
+  await firstLink.click();
+  await expect(page).toHaveURL(new RegExp(`${article}#${targetId}$`));
+  await expect(page.locator(`#${targetId}`)).toBeFocused();
+});

@@ -77,6 +77,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private readonly retry$ = new Subject<string>();
+  private fragmentObserver: MutationObserver | null = null;
+  private readonly onHashChange = () => this.resolveFragment();
   protected readonly imageUrl = blogImageUrl;
   protected readonly dateOnly = blogDateOnly;
   protected readonly formatDate = formatBlogDate;
@@ -88,6 +90,13 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       tap((slug) => (this.currentSlug = slug)),
     );
 
+    if (this.isBrowser)
+      window.addEventListener('hashchange', this.onHashChange);
+    this.route.fragment
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.isBrowser) setTimeout(() => this.resolveFragment(), 0);
+      });
     merge(routeSlug$, this.retry$)
       .pipe(
         tap((slug) => {
@@ -99,6 +108,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           this.post = null;
           this.safeContent = null;
           this.relatedPosts = [];
+          this.fragmentObserver?.disconnect();
           this.cdr.markForCheck();
         }),
         switchMap((slug) =>
@@ -122,6 +132,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
         if (state.post) {
           this.updateMetaAndStructuredData(state.post);
+          this.resolveFragment();
         } else {
           this.handleErrorState(state.error);
         }
@@ -133,6 +144,9 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.retry$.complete();
+    this.fragmentObserver?.disconnect();
+    if (this.isBrowser)
+      window.removeEventListener('hashchange', this.onHashChange);
     this.seoService.removeStructuredData('blog-post');
   }
 
@@ -165,6 +179,40 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         }),
       ),
     );
+  }
+
+  private resolveFragment(): void {
+    if (!this.isBrowser || !window.location.hash) return;
+
+    this.fragmentObserver?.disconnect();
+    const targetId = decodeURIComponent(window.location.hash.slice(1));
+    const article = document.querySelector('article');
+    if (!article) return;
+
+    const scrollToTarget = () => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      this.fragmentObserver?.disconnect();
+      target.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (!target.hasAttribute('tabindex'))
+        target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+
+    this.fragmentObserver = new MutationObserver(scrollToTarget);
+    this.fragmentObserver.observe(article, { childList: true, subtree: true });
+    scrollToTarget();
+  }
+
+  loadRelatedPosts(slug: string, categories?: string[]): void {
+    this.blogService
+      .getRelatedPosts(slug, categories, 3)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((posts) => {
+        this.relatedPosts = posts;
+        this.cdr.detectChanges();
+      });
   }
 
   /**
