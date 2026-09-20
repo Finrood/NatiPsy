@@ -122,6 +122,7 @@ ${items}
   </channel>
 </rss>
 `;
+}
 
 function slugifyHeading(text, usedIds) {
   const base =

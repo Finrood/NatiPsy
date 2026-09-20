@@ -41,6 +41,8 @@
     "test:structured-data": "node ./scripts/structured-data-prerender-contract.test.mjs",
     "test:article-reading": "node ./scripts/article-reading-contract.test.mjs && node ./scripts/article-heading-fixtures.test.mjs",
     "test:article-headings": "node --test scripts/article-heading-fixtures.test.mjs",
+    "e2e:install": "npx playwright install --with-deps chromium",
+    "e2e": "playwright test",
     "test:assets-favicon": "node ./scripts/assets-favicon.test.mjs",
     "start": "npm run build:blog-index && node ./src/scripts/dev-watch.js --serve",
     "watch": "npm run build:blog-index && node ./src/scripts/dev-watch.js",
