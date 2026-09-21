@@ -59,45 +59,10 @@ const siteConfigPath = configuredPath(
     ? path.join(projectRoot, "src/app/config/site-config.json")
     : path.join(__dirname, "../app/config/site-config.json"),
 );
-const SITE_CONFIG = require(siteConfigPath);
+const { validateSiteConfig } = require("../app/config/site-config-validator.cjs");
+const SITE_CONFIG = validateSiteConfig(require(siteConfigPath));
 const publicOrigin = new URL(SITE_CONFIG.canonicalOrigin);
-if (
-  !["http:", "https:"].includes(publicOrigin.protocol) ||
-  publicOrigin.username ||
-  publicOrigin.password ||
-  publicOrigin.pathname !== "/" ||
-  publicOrigin.search ||
-  publicOrigin.hash
-) {
-  throw new Error("canonicalOrigin must be an exact http(s) origin.");
-}
-for (const field of [
-  "locale",
-  "timeZone",
-  "brandName",
-  "professionalName",
-  "credential",
-  "siteDescription",
-  "specialization",
-  "defaultImage",
-  "email",
-  "whatsappNumber",
-  "instagramUrl",
-]) {
-  if (typeof SITE_CONFIG[field] !== "string" || SITE_CONFIG[field].trim() === "") {
-    throw new Error(`Invalid site configuration field: ${field}`);
-  }
-}
-if (
-  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(SITE_CONFIG.email) ||
-  new URL(SITE_CONFIG.instagramUrl).protocol !== "https:"
-) {
-  throw new Error("email and instagramUrl must be valid public contact values.");
-}
-const whatsappDigits = SITE_CONFIG.whatsappNumber.replace(/\D/g, "");
-if (whatsappDigits.length < 10) {
-  throw new Error("whatsappNumber must contain a complete international number.");
-}
+const whatsappDigits = SITE_CONFIG.whatsappNumber.slice(1);
 const SITE_URL = publicOrigin.origin;
 const WHATSAPP_URL = `https://wa.me/${whatsappDigits}`;
 const POSTS_PER_PAGE = 6;

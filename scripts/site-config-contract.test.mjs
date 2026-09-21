@@ -13,12 +13,15 @@ const index = await readFile(new URL('../src/index.html', import.meta.url), 'utf
 const robots = await readFile(new URL('../public/robots.txt', import.meta.url), 'utf8');
 const sitemap = await readFile(new URL('../public/sitemap.xml', import.meta.url), 'utf8');
 const llms = await readFile(new URL('../public/llms.txt', import.meta.url), 'utf8');
+const require = createRequire(import.meta.url);
+const validatorPath = join(root, 'src/app/config/site-config-validator.cjs');
+const { REQUIRED_KEYS, deriveAllowedHosts, validateSiteConfig } = require(validatorPath);
 
 assert.match(config.canonicalOrigin, /^https:\/\/[^/]+$/);
 assert.equal(config.locale, 'pt-BR');
 assert.equal(config.allowedHosts, undefined, 'allowed hosts must be derived, not duplicated in JSON');
 assert.equal(config.whatsappUrl, undefined, 'contact URLs must be derived from validated primitives');
-assert.match(typedConfig, /canonicalOrigin must be an exact http\(s\) origin/);
+assert.match(typedConfig, /site-config-validator\.cjs/);
 assert.match(typedConfig, /SITE_CONFIG_ALLOWED_HOSTS/);
 assert.doesNotMatch(JSON.stringify(config), /password|secret|token|privateKey/i);
 assert.match(contact, /from ['"]\.\/site-config['"]/);
@@ -27,13 +30,47 @@ assert.match(generator, /synchronizeStaticMetadata\(\)/);
 assert.match(generator, /generateRobots\(\)/);
 assert.match(generator, /generateLlms\(\)/);
 assert.match(server, /SITE_CONFIG_ALLOWED_HOSTS/);
+assert.match(generator, /site-config-validator\.cjs/);
 const escapedOrigin = config.canonicalOrigin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 assert.match(index, new RegExp(escapedOrigin));
 assert.match(robots, new RegExp(`${escapedOrigin}/sitemap\\.xml`));
 assert.match(sitemap, new RegExp(escapedOrigin));
 assert.match(llms, new RegExp(escapedOrigin));
 
-const require = createRequire(import.meta.url);
+const validated = validateSiteConfig(config);
+assert.equal(validated.whatsappUrl, `https://wa.me/${config.whatsappNumber.slice(1)}`);
+
+for (const field of REQUIRED_KEYS) {
+  const missing = { ...config };
+  delete missing[field];
+  assert.throws(() => validateSiteConfig(missing), new RegExp(`Missing site configuration field: ${field}`));
+  assert.throws(
+    () => validateSiteConfig({ ...config, [field]: 42 }),
+    new RegExp(`Invalid site configuration field: ${field}`),
+  );
+}
+
+const invalidShapes = [
+  ['canonicalOrigin credentials/path', { canonicalOrigin: 'https://user:pass@example.test/path' }, /canonicalOrigin/],
+  ['malformed canonicalOrigin', { canonicalOrigin: 'not a URL' }, /canonicalOrigin/],
+  ['locale', { locale: 'not_a_locale' }, /locale/],
+  ['time zone', { timeZone: 'Mars/Olympus' }, /timeZone/],
+  ['short phone', { whatsappNumber: '+55123' }, /E\.164/],
+  ['formatted phone', { whatsappNumber: '+55 (48) 98432-3764' }, /E\.164/],
+  ['unrelated Instagram host', { instagramUrl: 'https://example.test/person' }, /instagram\.com/],
+  ['Instagram credentials', { instagramUrl: 'https://user:pass@instagram.com/person/' }, /credential-free/],
+  ['malformed Instagram URL', { instagramUrl: 'not a URL' }, /instagram\.com/],
+  ['invalid email', { email: 'not-an-email' }, /valid email/],
+  ['absolute image', { defaultImage: 'https://example.test/image.webp' }, /root-relative/],
+  ['traversing image', { defaultImage: '/assets/../secret.webp' }, /root-relative/],
+  ['encoded traversing image', { defaultImage: '/assets/%2e%2e/secret.webp' }, /root-relative/],
+  ['unknown key', { extraPublicValue: 'x' }, /Unknown site configuration field/],
+  ['secret key', { apiToken: 'never-commit-this' }, /Secret-shaped site configuration key/],
+];
+for (const [label, changes, expected] of invalidShapes) {
+  assert.throws(() => validateSiteConfig({ ...config, ...changes }), expected, label);
+}
+
 const generatorPath = join(root, 'src/scripts/generate-blog-index.js');
 const fixtureRoot = await mkdtemp(join(root, 'dist', '.site-config-fixture-'));
 const fixtureConfigPath = join(fixtureRoot, 'site-config.json');
@@ -86,6 +123,7 @@ try {
     readFile(fixtureIndexPath, 'utf8'),
     readFile(fixtureRobotsPath, 'utf8'),
     readFile(fixtureSitemapPath, 'utf8'),
+    readFile(fixtureFeedPath, 'utf8'),
     readFile(fixtureLlmsPath, 'utf8'),
   ]);
   const generated = generatedFiles.join('\n');
@@ -95,6 +133,22 @@ try {
   assert.doesNotMatch(generated, new RegExp(escapedOrigin));
   assert.doesNotMatch(generated, /Natalia Ferreira/);
   assert.doesNotMatch(generated, /5548984323764/);
+  assert.deepEqual(
+    deriveAllowedHosts(replacementConfig.canonicalOrigin),
+    ['localhost', '127.0.0.1', '::1', 'example.test', 'www.example.test'],
+    'SSR hosts must derive from changed identity configuration',
+  );
+
+  const structuredDataConsumers = await Promise.all([
+    readFile(join(root, 'src/app/components/blog-list/blog-list.component.ts'), 'utf8'),
+    readFile(join(root, 'src/app/components/blog-post/blog-post.component.ts'), 'utf8'),
+    readFile(join(root, 'src/app/components/about-me/about-me.component.ts'), 'utf8'),
+  ]);
+  assert.doesNotMatch(
+    structuredDataConsumers.join('\n'),
+    /['"]Natalia Ferreira(?: Psicóloga)?['"]/,
+    'JSON-LD identity must flow through shared configuration instead of stale literals',
+  );
 
   const invalidConfig = { ...replacementConfig, canonicalOrigin: 'https://user:pass@example.test/path' };
   await writeFile(fixtureConfigPath, JSON.stringify(invalidConfig, null, 2));
