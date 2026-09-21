@@ -405,17 +405,19 @@ export class BlogListComponent implements OnInit {
             });
           }
         }
-        this.seoService.updateMetaTags({
-          title:
-            requestedPage === 1
-              ? `Blog | Psicóloga ${PERSON_NAME}`
-              : `Blog — Página ${requestedPage} | Psicóloga ${PERSON_NAME}`,
-          description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
-          keywords:
-            'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-          url: `${SITE_URL}${requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog'}`,
-          robots: hasAlternateView ? 'noindex,follow' : undefined,
-        });
+        if (this.router.url.split(/[?#]/)[0].startsWith('/blog')) {
+          this.seoService.updateMetaTags({
+            title:
+              requestedPage === 1
+                ? `Blog | Psicóloga ${PERSON_NAME}`
+                : `Blog — Página ${requestedPage} | Psicóloga ${PERSON_NAME}`,
+            description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
+            keywords:
+              'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
+            url: `${SITE_URL}${requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog'}`,
+            robots: hasAlternateView ? 'noindex,follow' : undefined,
+          });
+        }
         const visiblePosts = pageError
           ? []
           : paginateItems(
@@ -489,7 +491,7 @@ export class BlogListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.router.url.includes('/blog')) {
+    if (this.router.url.split(/[?#]/)[0].startsWith('/blog')) {
       this.seoService.updateMetaTags({
         title: `Blog | Psicóloga ${PERSON_NAME}`,
         description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
