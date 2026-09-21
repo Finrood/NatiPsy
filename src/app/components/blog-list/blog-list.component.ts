@@ -22,7 +22,6 @@ import {
   startWith,
   switchMap,
 } from 'rxjs/operators';
-import { FormsModule } from '@angular/forms';
 import { BlogService } from '../../services/blog.service';
 import {
   BlogPost,
@@ -196,7 +195,7 @@ function queryIsCanonical(
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, NgOptimizedImage],
   templateUrl: './blog-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

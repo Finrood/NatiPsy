@@ -9,7 +9,11 @@ assert.match(listTemplate, /@for \(post of displayedPosts; track post\.slug; let
 assert.match(listTemplate, /class="block relative aspect-\[2\/1\]/);
 assert.match(listTemplate, /fill\s+class="object-cover/);
 assert.match(listTemplate, /\[priority\]="shouldPrioritizeFirstImage && index === 0"/);
-assert.match(listTemplate, /\[loading\]="shouldPrioritizeFirstImage && index === 0 \? 'eager' : 'lazy'"/);
+assert.doesNotMatch(
+  listTemplate,
+  /\[loading\]=/,
+  'NgOptimizedImage derives loading from priority; setting both triggers NG02952',
+);
 assert.match(listComponent, /@Input\(\) firstImagePriority\?: boolean/);
 assert.match(listComponent, /get shouldPrioritizeFirstImage\(\): boolean/);
 assert.doesNotMatch(listTemplate, /width="400" height="200"/);
