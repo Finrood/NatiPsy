@@ -49,6 +49,10 @@ Markdown or authored blog images under `content/blog`; changes are debounced
 into one validated, atomic regeneration and never watch the generated `public`
 tree.
 
+## Optional SSR server
+
+The Angular SSR server is optional; the production Docker image serves the prerendered browser output with Nginx. When running the Node server, set `PUBLIC_ORIGIN` to the canonical absolute `http(s)` origin (for example `https://psicologanataliaferreira.com`). It is deliberately not derived from request `Host` or forwarded headers. `/healthz` is the liveness endpoint, and SIGTERM/SIGINT drain the listener before exit.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
