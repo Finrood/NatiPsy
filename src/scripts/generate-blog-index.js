@@ -176,12 +176,15 @@ function generateFeed(posts) {
     const author = post.author?.name
       ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>`
       : "";
+    const taxonomy = [...post.categories, ...post.tags]
+      .map((label) => `\n      <category>${escapeXml(label)}</category>`)
+      .join("");
     return `    <item>
       <title>${escapeXml(post.title)}</title>
       <link>${escapeXml(postUrl)}</link>
       <guid isPermaLink="true">${escapeXml(postUrl)}</guid>${author}
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
-      <description>${escapeXml(post.description)}</description>
+      <description>${escapeXml(post.description)}</description>${taxonomy}
     </item>`;
   }).join("\n");
   const latestDate = posts[0]?.date

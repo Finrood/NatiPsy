@@ -523,7 +523,7 @@ export class BlogListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.router.url.includes('/blog')) {
+    if (this.router.url.split(/[?#]/)[0] === '/blog') {
       this.seoService.updateMetaTags({
         title: 'Blog | Psicóloga Natalia Ferreira',
         description:
