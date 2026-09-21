@@ -42,6 +42,20 @@ deployment/on-call notification destination. The workflow retries once after a
 failed probe; treat two consecutive failures as an alert and record the DNS or
 origin change, origin logs, and two-network results in the deployment log.
 
+## Production smoke monitoring
+
+After a deployment, set `SMOKE_BASE_URL` and run `npm run smoke:production`.
+The same bounded check runs daily through GitHub Actions and fails on origin
+errors, redirects, timeouts, or the deliberate home-heading smoke marker
+mismatch. Configure the repository secret `SMOKE_BASE_URL` and route workflow
+failures to the deployment/on-call notification destination. The workflow
+retries once after a failed probe; treat two consecutive failures as an alert.
+
+For each deployment incident, record the DNS/origin change, origin logs, and
+results from two independent network vantage points in the deployment log. The
+repository cannot attest to those external observations until an operator has
+filled them in.
+
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
 ## Container deployment

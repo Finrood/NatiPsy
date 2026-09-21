@@ -38,6 +38,8 @@
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium",
     "test:lazy-bundle": "npm run build:stats && node --test scripts/lazy-blog-bundle.test.mjs",
+    "test:smoke": "node --test scripts/deploy-smoke-check.test.mjs",
+    "smoke:production": "node scripts/deploy-smoke-check.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
