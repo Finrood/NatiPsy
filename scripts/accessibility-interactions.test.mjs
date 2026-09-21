@@ -36,8 +36,8 @@ assert.equal((blogList.match(/\[routerLink\]="\['\/blog', post\.slug\]"/g) ?? []
 assert.match(blogCard, /aria-hidden="true"[\s\S]*?\[ngSrc\]/,
   'reusable card media must not create a second keyboard stop');
 assert.doesNotMatch(blogCard, /Leia mais|Read more/, 'reusable cards must not duplicate their title link');
-assert.equal((blogCard.match(/\[routerLink\]="\['\/blog', post\.slug\]"/g) ?? []).length, 1,
-  'reusable cards must expose one primary post link');
+assert.equal((blogCard.match(/\[routerLink\]="\['\/blog', post\.slug\]"/g) ?? []).length, 2,
+  'the reusable card must expose one conditional title link for each supported heading level');
 
 const buttons = blogList.match(/<button\b[^>]*>/g) ?? [];
 assert.ok(buttons.length > 0, 'blog list should contain its filter and pagination controls');
