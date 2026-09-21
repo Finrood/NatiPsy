@@ -300,6 +300,11 @@ export class BlogListComponent implements OnInit {
       content: this.contentState$,
     }).pipe(
       map(({ rawParams, rawPage, query, content }): BlogListViewModel => {
+        const rawQuery = parseBlogQueryParams(rawParams);
+        const queryParamsSettled =
+          rawQuery.category === query.category &&
+          rawQuery.sortBy === query.sortBy &&
+          rawQuery.sortDirection === query.sortDirection;
         const totalItems = content.posts.length;
         const totalPages = Math.ceil(totalItems / this.itemsPerPage);
         const routePage = parseBlogPage(rawPage);
@@ -327,7 +332,12 @@ export class BlogListComponent implements OnInit {
           ...normalizedQuery,
           page: 1,
         });
-        if (!content.loading && rawPage === null && query.page > 1) {
+        if (
+          queryParamsSettled &&
+          !content.loading &&
+          rawPage === null &&
+          query.page > 1
+        ) {
           if (this.route.paramMap) {
             this.router.navigate(
               normalizedQuery.page > 1
@@ -342,7 +352,7 @@ export class BlogListComponent implements OnInit {
               replaceUrl: true,
             });
           }
-        } else if (!content.loading && !invalidPage) {
+        } else if (queryParamsSettled && !content.loading && !invalidPage) {
           const normalizedParams =
             rawPage !== null
               ? serializedQuery
