@@ -24,6 +24,13 @@ export const routes: Routes = [
     data: { pageKey: 'careerGuidance' },
   },
   {
+    path: 'contato-e-privacidade',
+    loadComponent: () =>
+      import('./components/trust-contact/trust-contact.component').then(
+        (m) => m.TrustContactComponent
+      ),
+  },
+  {
     path: 'blog',
     children: [
       {

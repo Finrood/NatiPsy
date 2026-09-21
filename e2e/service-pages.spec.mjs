@@ -30,6 +30,13 @@ for (const service of pages) {
       'content',
       /Natalia Ferreira/,
     );
+    await expect(page.getByText('Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892')).toBeVisible();
+    await expect(page.getByText(/WhatsApp é usado para contato inicial.*não é um canal de emergência/)).toBeVisible();
+    await expect(page.getByText(/SAMU \(192\).*CVV \(188\)/)).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Como funciona o contato e a privacidade' })).toHaveAttribute(
+      'href',
+      '/contato-e-privacidade',
+    );
 
     const schemas = await page.locator(`#${service.schemaId}`).evaluate((script) =>
       JSON.parse(script.textContent),
@@ -60,3 +67,14 @@ for (const service of pages) {
     });
   }
 }
+
+test('trust page explains contact privacy and editorial accountability', async ({ page }) => {
+  await page.goto('/contato-e-privacidade');
+
+  await expect(page.locator('h1')).toHaveText('Contato, privacidade e conteúdo');
+  await expect(page.getByText('Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892')).toBeVisible();
+  await expect(page.getByText(/não é um canal de emergência/i)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Privacidade e escopo' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Política editorial' })).toBeVisible();
+  await expect(page.getByText(/autoria.*data de publicação.*data de revisão/i)).toBeVisible();
+});

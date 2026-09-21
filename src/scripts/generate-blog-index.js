@@ -22,12 +22,27 @@ const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public
 const SITE_URL = "https://psicologanataliaferreira.com";
 const POSTS_PER_PAGE = 6;
 
-const STATIC_PAGES = [
-  { path: '/', lastmod: '2026-09-12', changefreq: 'weekly', priority: '1.0', image: { loc: '/assets/NatiHero.webp', title: 'Natalia Ferreira - Psicóloga Clínica', caption: 'Psicóloga especializada em Terapia Relacional Sistêmica' } },
-  { path: '/blog', lastmod: '2025-04-21', changefreq: 'weekly', priority: '0.8' },
-  { path: '/terapia-online', lastmod: '2026-09-12', changefreq: 'monthly', priority: '0.8' },
-  { path: '/orientacao-profissional', lastmod: '2026-09-12', changefreq: 'monthly', priority: '0.8' },
-];
+const STATIC_PAGES = require("../content/static-pages.json");
+
+function validateStaticPages(pages) {
+  if (!Array.isArray(pages) || pages.length === 0) {
+    throw new Error("Static page content must be a nonempty array");
+  }
+  const routes = new Set();
+  for (const page of pages) {
+    if (typeof page.path !== "string" || !page.path.startsWith("/")) {
+      throw new Error("Every static page must have a root-relative path");
+    }
+    if (routes.has(page.path)) throw new Error(`Duplicate static page path: ${page.path}`);
+    routes.add(page.path);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(page.reviewedAt) || Number.isNaN(Date.parse(`${page.reviewedAt}T00:00:00Z`))) {
+      throw new Error(`Invalid reviewedAt date for ${page.path}`);
+    }
+  }
+  return pages;
+}
+
+validateStaticPages(STATIC_PAGES);
 
 function calculateReadingTime(content) {
   if (!content) return 0;
@@ -112,7 +127,7 @@ ${items}
 function generateSitemap(posts) {
   const urls = STATIC_PAGES.map((page) => `  <url>
     <loc>${escapeXml(pageUrl(page.path))}</loc>
-    <lastmod>${page.lastmod}</lastmod>
+    <lastmod>${page.reviewedAt}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>${page.image ? `
     <image:image>
