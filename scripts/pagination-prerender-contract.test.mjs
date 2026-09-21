@@ -17,7 +17,7 @@ title: Fixture article ${String(index).padStart(2, '0')}
 date: 2025-01-${String(index).padStart(2, '0')}
 description: Fixture article ${index} for the pagination contract.
 categories:
-  - Fixture
+  - Carreira
 ---
 
 ## Fixture section ${index}
