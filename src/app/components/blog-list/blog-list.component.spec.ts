@@ -7,10 +7,7 @@ import {
   BlogListComponent,
   blogQueryParams,
   normalizeBlogQueryState,
-  paginateItems,
   parseBlogQueryParams,
-  paginationWindow,
-  parseBlogPage,
 } from './blog-list.component';
 import { BlogService } from '../../services/blog.service';
 
@@ -54,9 +51,7 @@ describe('BlogListComponent reactive state', () => {
       const queryParams$ = new ReplaySubject<Params>(1);
       queryParams$.next({ category: 'older' });
       const postsFor = (category: string) =>
-        category === 'older'
-          ? timer(50).pipe(map(() => [post('older')]))
-          : of([post('newer')]);
+        category === 'older' ? timer(50).pipe(map(() => [post('older')])) : of([post('newer')]);
       const fixture = await createReactiveFixture(queryParams$, postsFor);
       queryParams$.next({ category: 'newer' });
       await vi.advanceTimersByTimeAsync(0);
@@ -78,9 +73,7 @@ describe('BlogListComponent reactive state', () => {
       queryParams$,
       () => {
         postsRequests += 1;
-        return of(
-          Array.from({ length: 7 }, (_, index) => post(`post-${index}`)),
-        );
+        return of(Array.from({ length: 7 }, (_, index) => post(`post-${index}`)));
       },
       () => {
         categoryRequests += 1;
@@ -115,9 +108,7 @@ describe('BlogListComponent reactive state', () => {
       sortDir: 'sideways',
       extra: 'stale',
     });
-    const fixture = await createReactiveFixture(queryParams$, () =>
-      of([post('one')]),
-    );
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     queryParams$.next({
@@ -205,9 +196,7 @@ describe('BlogListComponent reactive state', () => {
     });
     expect(parseBlogQueryParams({ page: '-4' }).page).toBe(1);
     expect(parseBlogQueryParams({ page: 'not-a-number' }).page).toBe(1);
-    expect(parseBlogQueryParams({ page: '999999999999999999999' }).page).toBe(
-      1,
-    );
+    expect(parseBlogQueryParams({ page: '999999999999999999999' }).page).toBe(1);
   });
 
   it('clears invalid categories and bounds excessive pages', () => {

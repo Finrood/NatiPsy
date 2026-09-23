@@ -10,9 +10,8 @@ describe('TopMenuComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TopMenuComponent],
-      providers: [provideRouter([])]
-    })
-    .compileComponents();
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TopMenuComponent);
     component = fixture.componentInstance;

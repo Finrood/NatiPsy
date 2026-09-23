@@ -30,28 +30,28 @@ for (const service of pages) {
       'content',
       /Natalia Ferreira/,
     );
-    await expect(page.getByText('Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892')).toBeVisible();
-    await expect(page.getByText(/WhatsApp é usado para contato inicial.*não é um canal de emergência/)).toBeVisible();
+    await expect(
+      page.getByText('Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892'),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/WhatsApp é usado para contato inicial.*não é um canal de emergência/),
+    ).toBeVisible();
     await expect(page.getByText(/SAMU \(192\).*CVV \(188\)/)).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Como funciona o contato e a privacidade' })).toHaveAttribute(
-      'href',
-      '/contato-e-privacidade',
-    );
+    await expect(
+      page.getByRole('link', { name: 'Como funciona o contato e a privacidade' }),
+    ).toHaveAttribute('href', '/contato-e-privacidade');
 
-    const schemas = await page.locator(`#${service.schemaId}`).evaluate((script) =>
-      JSON.parse(script.textContent),
-    );
-    expect(schemas.map((schema) => schema['@type'])).toEqual([
-      'WebPage',
-      'BreadcrumbList',
-    ]);
-    expect(schemas[0].url).toBe(
-      `https://psicologanataliaferreira.com${service.path}`,
-    );
+    const schemas = await page
+      .locator(`#${service.schemaId}`)
+      .evaluate((script) => JSON.parse(script.textContent));
+    expect(schemas.map((schema) => schema['@type'])).toEqual(['WebPage', 'BreadcrumbList']);
+    expect(schemas[0].url).toBe(`https://psicologanataliaferreira.com${service.path}`);
   });
 
   for (const width of [320, 390]) {
-    test(`${service.path} stays usable without horizontal overflow at ${width}px`, async ({ page }) => {
+    test(`${service.path} stays usable without horizontal overflow at ${width}px`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto(service.path);
 
@@ -72,7 +72,9 @@ test('trust page explains contact privacy and editorial accountability', async (
   await page.goto('/contato-e-privacidade');
 
   await expect(page.locator('h1')).toHaveText('Contato, privacidade e conteúdo');
-  await expect(page.getByText('Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892')).toBeVisible();
+  await expect(
+    page.getByText('Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892'),
+  ).toBeVisible();
   await expect(page.getByText(/não é um canal de emergência/i)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Privacidade e escopo' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Política editorial' })).toBeVisible();

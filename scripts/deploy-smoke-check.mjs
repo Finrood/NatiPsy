@@ -17,7 +17,7 @@ export function validateSmokeResponse(path, status, body) {
 
   const expected = smokePaths.find((entry) => entry.path === path)?.markers ?? [];
   const normalizedBody = body.toLowerCase();
-  const missing = expected.filter(marker => !normalizedBody.includes(marker.toLowerCase()));
+  const missing = expected.filter((marker) => !normalizedBody.includes(marker.toLowerCase()));
   if (missing.length > 0) {
     throw new Error(`${path} returned 200 without stable markers: ${missing.join(', ')}`);
   }

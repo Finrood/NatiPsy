@@ -26,7 +26,9 @@ export async function findPrivateContent(root) {
 export async function assertPublicContent(root = process.argv[2] || 'dist/nati-psy/browser') {
   const violations = await findPrivateContent(root);
   if (violations.length > 0) {
-    throw new Error(`Private Markdown sources found in production output:\n${violations.join('\n')}`);
+    throw new Error(
+      `Private Markdown sources found in production output:\n${violations.join('\n')}`,
+    );
   }
   console.log(`PASS no Markdown sources in ${root}`);
 }

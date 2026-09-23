@@ -9,8 +9,7 @@ for (const path of ['/blog', articlePath]) {
     await expect(page.locator('h1')).toBeVisible();
     const results = await new AxeBuilder({ page }).analyze();
     expect(
-      results.violations.filter(({ impact }) =>
-        impact === 'critical' || impact === 'serious'),
+      results.violations.filter(({ impact }) => impact === 'critical' || impact === 'serious'),
     ).toEqual([]);
   });
 }
@@ -34,7 +33,9 @@ test('mobile menu has visible keyboard focus and returns it on close', async ({ 
 
 test('article network failure is announced without exposing backend details', async ({ page }) => {
   await page.goto('/blog');
-  await page.route('**/assets/content/blog/posts/*.json', (route) => route.abort('internetdisconnected'));
+  await page.route('**/assets/content/blog/posts/*.json', (route) =>
+    route.abort('internetdisconnected'),
+  );
   await page.locator(`a[href="${articlePath}"]`).first().click();
   const alert = page.getByRole('alert');
   await expect(alert).toBeVisible();
@@ -52,9 +53,11 @@ test('reduced motion preference suppresses loading animation', async ({ page }) 
   await page.locator(`a[href="${articlePath}"]`).first().click();
   const status = page.getByRole('status');
   await expect(status).toBeVisible();
-  const duration = await status.locator('.animate-spin').evaluate((element) =>
-    Number.parseFloat(getComputedStyle(element).animationDuration),
-  );
+  const duration = await status
+    .locator('.animate-spin')
+    .evaluate((element) => Number.parseFloat(getComputedStyle(element).animationDuration));
   expect(duration).toBeLessThanOrEqual(0.01);
-  expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+  expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(
+    true,
+  );
 });

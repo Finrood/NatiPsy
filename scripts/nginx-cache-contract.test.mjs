@@ -9,15 +9,17 @@ const oldNginxHashedLocation = 'location ~* "-[A-Za-z0-9]{8}\\.(?:js|css)$"';
 const serverHashedPattern = 'const HASHED_ASSET = /-[A-Za-z0-9_-]{8}(\\.[cm]?js|\\.css)$/;';
 
 assert.ok(nginx.includes(nginxHashedLocation), 'Nginx must accept URL-safe 8-character hashes');
-assert.ok(!nginx.includes(oldNginxHashedLocation), 'Nginx must not retain the alphanumeric-only hash');
-assert.ok(server.includes(serverHashedPattern), 'Express and Nginx must share the same hash grammar');
+assert.ok(
+  !nginx.includes(oldNginxHashedLocation),
+  'Nginx must not retain the alphanumeric-only hash',
+);
+assert.ok(
+  server.includes(serverHashedPattern),
+  'Express and Nginx must share the same hash grammar',
+);
 
 const hashedAsset = /-[A-Za-z0-9_-]{8}\.(?:js|css)$/;
-const validBundles = [
-  '/main-ABCDEFGH.js',
-  '/chunk-CkMi-9d3.js',
-  '/styles-AB_CD123.css',
-];
+const validBundles = ['/main-ABCDEFGH.js', '/chunk-CkMi-9d3.js', '/styles-AB_CD123.css'];
 const nearMisses = [
   '/main-ABCDEFG.js',
   '/main-ABCDEFGHI.js',

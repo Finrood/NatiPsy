@@ -1,31 +1,52 @@
-<section id="blog-list-start" class="py-16 bg-gradient-to-b from-gray-50 to-primary-pink/10 scroll-mt-20 overflow-x-clip"> <!-- Added id and scroll-mt -->
+<section
+  id="blog-list-start"
+  class="py-16 bg-gradient-to-b from-gray-50 to-primary-pink/10 scroll-mt-20 overflow-x-clip"
+>
+  <!-- Added id and scroll-mt -->
   <div class="container mx-auto max-w-full px-4">
     <h1 class="text-3xl md:text-4xl font-bold mb-8 text-center text-primary-blue">Blog</h1>
     <p class="text-center text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
-      Explore artigos sobre saúde mental, bem-estar, relacionamentos, carreira e desenvolvimento pessoal.
+      Explore artigos sobre saúde mental, bem-estar, relacionamentos, carreira e desenvolvimento
+      pessoal.
     </p>
 
     <!-- Filtering and Sorting Controls -->
     <div class="mb-10 px-4 sm:px-0">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 md:gap-6 border-b border-gray-200 pb-5">
-
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 md:gap-6 border-b border-gray-200 pb-5"
+      >
         <!-- Left Side: Category Filter -->
         <div class="min-w-0 flex-grow sm:flex-grow-0">
           <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">
             Filtrar por Categoria:
           </label>
           <div class="relative">
-            <select id="category-filter" name="category"
+            <select
+              id="category-filter"
+              name="category"
               [ngModel]="selectedCategory"
               (ngModelChange)="onCategoryChange($event)"
-              class="block w-full max-w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
+              class="block w-full max-w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition"
+            >
               <option value="">Todas as Categorias</option>
               @for (category of allCategories; track category) {
                 <option [value]="category">{{ category }}</option>
               }
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+            <div
+              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+            >
+              <svg
+                class="h-4 w-4 fill-current"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                />
+              </svg>
             </div>
           </div>
         </div>
@@ -37,34 +58,84 @@
           </label>
           <div class="flex items-center space-x-2">
             <div class="relative">
-              <select id="sort-by" name="sortBy"
+              <select
+                id="sort-by"
+                name="sortBy"
                 [ngModel]="sortBy"
                 (ngModelChange)="onSortChange($event)"
-                class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition">
+                class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition"
+              >
                 <option value="date">Mais Recentes</option>
                 <option value="title">Título (A-Z)</option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+              >
+                <svg
+                  class="h-4 w-4 fill-current"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  />
+                </svg>
               </div>
             </div>
 
             <!-- Sort Direction Button (Icon Style) -->
-            <button (click)="onSortDirectionToggle()"
+            <button
+              (click)="onSortDirectionToggle()"
               type="button"
               class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-blue focus:ring-offset-0 transition"
-              [attr.aria-label]="'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')"
-              [attr.title]="'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')">
+              [attr.aria-label]="
+                'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')
+              "
+              [attr.title]="
+                'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')
+              "
+            >
               @if (sortDirection === 'desc') {
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                  />
+                </svg>
               }
               @if (sortDirection === 'asc') {
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4" /></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 4h13M3 8h9m-9 4h9m-9 4h6m4 0l4 4m0 0l4-4m-4 4V4"
+                  />
+                </svg>
               }
             </button>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -72,7 +143,14 @@
       <div class="mb-6 rounded-md bg-amber-50 p-4 text-amber-800" role="status" aria-live="polite">
         <span>{{ categoryError }}</span>
         @if (categoryRetryable) {
-          <button type="button" class="ml-3 font-semibold underline" [disabled]="retryingCategories" (click)="retryCategories()">Tentar novamente</button>
+          <button
+            type="button"
+            class="ml-3 font-semibold underline"
+            [disabled]="retryingCategories"
+            (click)="retryCategories()"
+          >
+            Tentar novamente
+          </button>
         }
       </div>
     }
@@ -80,7 +158,10 @@
     <!-- Loading State -->
     @if (loading) {
       <div class="text-center py-12" role="status" aria-live="polite" aria-busy="true">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4" aria-hidden="true"></div>
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4"
+          aria-hidden="true"
+        ></div>
         <p class="text-xl text-gray-600">Carregando posts...</p>
       </div>
     }
@@ -88,13 +169,31 @@
     <!-- Error State -->
     @if (error && !loading) {
       <div class="text-center py-12 bg-red-50 p-6 rounded-lg" role="alert">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-12 w-12 mx-auto text-red-400 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
         <p class="text-xl text-red-700 font-semibold">Ocorreu um Erro</p>
         <p class="text-red-600">{{ error }}</p>
         @if (errorRetryable) {
-          <button type="button" class="mt-5 rounded-md bg-primary-blue px-5 py-2 font-semibold text-white hover:bg-blue-700" [disabled]="retryingList" (click)="retry()">
+          <button
+            type="button"
+            class="mt-5 rounded-md bg-primary-blue px-5 py-2 font-semibold text-white hover:bg-blue-700"
+            [disabled]="retryingList"
+            (click)="retry()"
+          >
             Tentar novamente
           </button>
         }
@@ -104,15 +203,33 @@
     <!-- Empty State (No Posts Found) -->
     @if (!loading && !error && displayedPosts.length === 0) {
       <div class="text-center py-12">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-16 w-16 mx-auto text-gray-400 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
         </svg>
         <p class="text-xl text-gray-600">
-          {{ selectedCategory ? 'Nenhum post encontrado nesta categoria.' : 'Nenhum post encontrado.' }}
+          {{
+            selectedCategory ? 'Nenhum post encontrado nesta categoria.' : 'Nenhum post encontrado.'
+          }}
         </p>
         @if (selectedCategory) {
-          <button type="button" (click)="onCategoryChange('')"
-            class="mt-4 text-primary-blue hover:underline">
+          <button
+            type="button"
+            (click)="onCategoryChange('')"
+            class="mt-4 text-primary-blue hover:underline"
+          >
             Mostrar todas as categorias
           </button>
         }
@@ -123,7 +240,9 @@
     @if (!loading && !error && displayedPosts.length > 0) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @for (post of displayedPosts; track post.slug; let index = $index) {
-          <article class="group min-w-0 bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 motion-safe:hover:scale-[1.03] flex flex-col">
+          <article
+            class="group min-w-0 bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 motion-safe:hover:scale-[1.03] flex flex-col"
+          >
             <div class="block relative aspect-[2/1] bg-gray-200 overflow-hidden" aria-hidden="true">
               @if (post.image) {
                 <img
@@ -132,66 +251,116 @@
                   fill
                   class="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
                   [priority]="shouldPrioritizeFirstImage && index === 0"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw">
-                }
-                <!-- Placeholder for posts without images -->
-                @if (!post.image) {
-                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/20 to-primary-blue/10">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  </div>
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              }
+              <!-- Placeholder for posts without images -->
+              @if (!post.image) {
+                <div
+                  class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-pink/20 to-primary-blue/10"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-16 w-16 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              }
+            </div>
+            <!-- Content Container -->
+            <div class="p-6 flex flex-col flex-grow">
+              <div class="flex items-center text-sm text-gray-500 mb-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <time [attr.datetime]="dateOnly(post)">{{ formatDate(dateOnly(post)) }}</time>
+              </div>
+              <h3
+                class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors"
+              >
+                <a [routerLink]="['/blog', post.slug]" class="line-clamp-2">{{ post.title }}</a>
+              </h3>
+              <p class="mt-1 text-gray-600 line-clamp-3 flex-grow">{{ post.description }}</p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                @for (category of post.categories; track category) {
+                  <span
+                    class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full"
+                  >
+                    {{ category }}
+                  </span>
                 }
               </div>
-              <!-- Content Container -->
-              <div class="p-6 flex flex-col flex-grow">
-                <div class="flex items-center text-sm text-gray-500 mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <time [attr.datetime]="dateOnly(post)">{{ formatDate(dateOnly(post)) }}</time>
-                </div>
-                <h3 class="text-xl font-semibold mt-1 mb-3 text-primary-blue hover:text-primary-pink-dark transition-colors">
-                  <a [routerLink]="['/blog', post.slug]" class="line-clamp-2">{{ post.title }}</a>
-                </h3>
-                <p class="mt-1 text-gray-600 line-clamp-3 flex-grow">{{ post.description }}</p>
-                <div class="mt-4 flex flex-wrap gap-2">
-                  @for (category of post.categories; track category) {
-                    <span
-                      class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full">
-                      {{ category }}
-                    </span>
-                  }
-                </div>
-              </div>
-            </article>
-          }
-        </div>
-      }
+            </div>
+          </article>
+        }
+      </div>
+    }
 
-      <!-- Pagination Controls -->
-      @if (!loading && !error && totalPages > 1) {
-        <div class="mt-12 flex flex-wrap justify-center items-center gap-2">
-          @if (previousPage) {
-            <a [routerLink]="pageUrl(previousPage)" [queryParams]="paginationQueryParams" fragment="blog-list-start"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-              aria-label="Página Anterior">
+    <!-- Pagination Controls -->
+    @if (!loading && !error && totalPages > 1) {
+      <div class="mt-12 flex flex-wrap justify-center items-center gap-2">
+        @if (previousPage) {
+          <a
+            [routerLink]="pageUrl(previousPage)"
+            [queryParams]="paginationQueryParams"
+            fragment="blog-list-start"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+            aria-label="Página Anterior"
+          >
             Anterior
-            </a>
-          }
-          @for (pageNum of pages; track pageNum) {
-            <a [routerLink]="pageUrl(pageNum)" [queryParams]="paginationQueryParams" fragment="blog-list-start"
-              [ngClass]="{'bg-primary-blue text-white border-primary-blue': currentPage === pageNum, 'border-gray-300 text-gray-700 hover:bg-gray-100': currentPage !== pageNum}"
-              class="px-4 py-2 border rounded-md transition-colors"
-              [attr.aria-current]="currentPage === pageNum ? 'page' : null">
-              {{ pageNum }}
-            </a>
-          }
-          @if (nextPage) {
-            <a [routerLink]="pageUrl(nextPage)" [queryParams]="paginationQueryParams" fragment="blog-list-start"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-              aria-label="Próxima Página">
+          </a>
+        }
+        @for (pageNum of pages; track pageNum) {
+          <a
+            [routerLink]="pageUrl(pageNum)"
+            [queryParams]="paginationQueryParams"
+            fragment="blog-list-start"
+            [ngClass]="{
+              'bg-primary-blue text-white border-primary-blue': currentPage === pageNum,
+              'border-gray-300 text-gray-700 hover:bg-gray-100': currentPage !== pageNum,
+            }"
+            class="px-4 py-2 border rounded-md transition-colors"
+            [attr.aria-current]="currentPage === pageNum ? 'page' : null"
+          >
+            {{ pageNum }}
+          </a>
+        }
+        @if (nextPage) {
+          <a
+            [routerLink]="pageUrl(nextPage)"
+            [queryParams]="paginationQueryParams"
+            fragment="blog-list-start"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+            aria-label="Próxima Página"
+          >
             Próxima
-            </a>
-          }
-        </div>
-      }
-
-    </div>
-  </section>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</section>

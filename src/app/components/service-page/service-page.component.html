@@ -2,7 +2,13 @@
   <div class="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
     <nav aria-label="Breadcrumb" class="mb-8 text-sm text-gray-600">
       <ol class="flex flex-wrap items-center gap-2">
-        <li><a routerLink="/" class="hover:text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue rounded-sm">Início</a></li>
+        <li>
+          <a
+            routerLink="/"
+            class="hover:text-primary-blue focus:outline-none focus:ring-2 focus:ring-primary-blue rounded-sm"
+            >Início</a
+          >
+        </li>
         <li aria-hidden="true">/</li>
         <li aria-current="page" class="font-medium text-primary-blue">{{ page.title }}</li>
       </ol>
@@ -10,16 +16,33 @@
 
     <article>
       <header class="mb-10 max-w-3xl">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-primary-pink-dark">{{ page.eyebrow }}</p>
-        <h1 id="service-page-title" class="mb-5 text-4xl font-bold leading-tight text-primary-blue sm:text-5xl">{{ page.title }}</h1>
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-primary-pink-dark">
+          {{ page.eyebrow }}
+        </p>
+        <h1
+          id="service-page-title"
+          class="mb-5 text-4xl font-bold leading-tight text-primary-blue sm:text-5xl"
+        >
+          {{ page.title }}
+        </h1>
         <p class="text-xl leading-relaxed text-gray-700">{{ page.intro }}</p>
-        <p class="mt-4 font-semibold text-primary-blue">Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892</p>
+        <p class="mt-4 font-semibold text-primary-blue">
+          Natalia Ferreira dos Santos · Psicóloga · CRP 12/19892
+        </p>
       </header>
 
       <div class="space-y-10">
         @for (section of page.sections; track section.heading; let sectionIndex = $index) {
-          <section [attr.id]="'service-section-' + sectionIndex" [attr.aria-labelledby]="'service-section-heading-' + sectionIndex">
-            <h2 [attr.id]="'service-section-heading-' + sectionIndex" class="mb-4 text-2xl font-semibold text-primary-blue">{{ section.heading }}</h2>
+          <section
+            [attr.id]="'service-section-' + sectionIndex"
+            [attr.aria-labelledby]="'service-section-heading-' + sectionIndex"
+          >
+            <h2
+              [attr.id]="'service-section-heading-' + sectionIndex"
+              class="mb-4 text-2xl font-semibold text-primary-blue"
+            >
+              {{ section.heading }}
+            </h2>
             @for (paragraph of section.paragraphs; track paragraph) {
               <p class="mb-4 text-lg leading-relaxed text-gray-700">{{ paragraph }}</p>
             }
@@ -34,12 +57,17 @@
         }
       </div>
 
-      <aside class="mt-12 rounded-lg bg-primary-pink/20 p-6 sm:p-8" aria-labelledby="service-page-cta-title">
-        <h2 id="service-page-cta-title" class="mb-3 text-2xl font-semibold text-primary-blue">{{ page.ctaTitle }}</h2>
+      <aside
+        class="mt-12 rounded-lg bg-primary-pink/20 p-6 sm:p-8"
+        aria-labelledby="service-page-cta-title"
+      >
+        <h2 id="service-page-cta-title" class="mb-3 text-2xl font-semibold text-primary-blue">
+          {{ page.ctaTitle }}
+        </h2>
         <p class="mb-6 text-lg leading-relaxed text-gray-700">{{ page.ctaDescription }}</p>
         <p class="mb-6 border-l-4 border-primary-blue pl-4 leading-relaxed text-gray-700">
-          O WhatsApp é usado para contato inicial e agendamento; não é um canal de emergência.
-          Em situação de risco imediato, ligue para o SAMU (192), procure uma UPA ou pronto-socorro.
+          O WhatsApp é usado para contato inicial e agendamento; não é um canal de emergência. Em
+          situação de risco imediato, ligue para o SAMU (192), procure uma UPA ou pronto-socorro.
           Para apoio emocional, ligue para o CVV (188).
         </p>
         <a
@@ -47,10 +75,14 @@
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center rounded-full bg-primary-blue px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors duration-300 hover:bg-primary-blue/90 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2"
-          aria-label="Agende uma conversa sobre este atendimento via WhatsApp">
+          aria-label="Agende uma conversa sobre este atendimento via WhatsApp"
+        >
           Agende uma conversa
         </a>
-        <a routerLink="/contato-e-privacidade" class="ml-0 mt-4 inline-block font-semibold text-primary-blue underline underline-offset-4 sm:ml-5">
+        <a
+          routerLink="/contato-e-privacidade"
+          class="ml-0 mt-4 inline-block font-semibold text-primary-blue underline underline-offset-4 sm:ml-5"
+        >
           Como funciona o contato e a privacidade
         </a>
       </aside>
@@ -61,7 +93,11 @@
       <ul class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
         @for (link of page.relatedLinks; track link.route) {
           <li>
-            <a [routerLink]="link.route" [fragment]="link.fragment" class="text-lg font-semibold text-primary-blue underline decoration-primary-pink-dark underline-offset-4 hover:text-primary-pink-dark focus:outline-none focus:ring-2 focus:ring-primary-blue rounded-sm">
+            <a
+              [routerLink]="link.route"
+              [fragment]="link.fragment"
+              class="text-lg font-semibold text-primary-blue underline decoration-primary-pink-dark underline-offset-4 hover:text-primary-pink-dark focus:outline-none focus:ring-2 focus:ring-primary-blue rounded-sm"
+            >
               {{ link.label }}
             </a>
           </li>

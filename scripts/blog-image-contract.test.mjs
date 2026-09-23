@@ -1,11 +1,23 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const listTemplate = fs.readFileSync('src/app/components/blog-list/blog-list.component.html', 'utf8');
-const listComponent = fs.readFileSync('src/app/components/blog-list/blog-list.component.ts', 'utf8');
-const postTemplate = fs.readFileSync('src/app/components/blog-post/blog-post.component.html', 'utf8');
+const listTemplate = fs.readFileSync(
+  'src/app/components/blog-list/blog-list.component.html',
+  'utf8',
+);
+const listComponent = fs.readFileSync(
+  'src/app/components/blog-list/blog-list.component.ts',
+  'utf8',
+);
+const postTemplate = fs.readFileSync(
+  'src/app/components/blog-post/blog-post.component.html',
+  'utf8',
+);
 
-assert.match(listTemplate, /@for \(post of displayedPosts; track post\.slug; let index = \$index\)/);
+assert.match(
+  listTemplate,
+  /@for \(post of displayedPosts; track post\.slug; let index = \$index\)/,
+);
 assert.match(listTemplate, /class="block relative aspect-\[2\/1\]/);
 assert.match(listTemplate, /fill\s+class="object-cover/);
 assert.match(listTemplate, /\[priority\]="shouldPrioritizeFirstImage && index === 0"/);

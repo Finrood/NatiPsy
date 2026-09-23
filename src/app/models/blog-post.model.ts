@@ -1,5 +1,5 @@
-import {SafeHtml} from '@angular/platform-browser';
-import {SITE_URL} from '../config/contact';
+import { SafeHtml } from '@angular/platform-browser';
+import { SITE_URL } from '../config/contact';
 
 export interface BlogPostAuthor {
   name: string;
@@ -51,12 +51,13 @@ export function blogImageUrl(relativePath: string | null | undefined): string {
   if (!relativePath) {
     return '';
   }
-  return relativePath.startsWith('/')
-    ? relativePath
-    : `${BLOG_IMAGES_BASE_PATH}/${relativePath}`;
+  return relativePath.startsWith('/') ? relativePath : `${BLOG_IMAGES_BASE_PATH}/${relativePath}`;
 }
 
-export function blogAbsoluteImageUrl(relativePath: string | null | undefined, baseUrl: string = SITE_URL): string {
+export function blogAbsoluteImageUrl(
+  relativePath: string | null | undefined,
+  baseUrl: string = SITE_URL,
+): string {
   return relativePath
     ? `${baseUrl}${blogImageUrl(relativePath)}`
     : `${baseUrl}/assets/NatiHero.webp`;

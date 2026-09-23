@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sizes = [16, 32, 48];
 const pngs = await Promise.all(
-  sizes.map(size => readFile(resolve(root, `public/assets/icons/icon-${size}.png`))),
+  sizes.map((size) => readFile(resolve(root, `public/assets/icons/icon-${size}.png`))),
 );
 
 const directorySize = 6 + sizes.length * 16;

@@ -11,7 +11,9 @@ const socialDescription =
 const meta = (page, attribute, value) =>
   page.locator(`meta[${attribute}="${value}"]`).getAttribute('content');
 
-test('direct article metadata is complete and stale article tags are removed on navigation', async ({ page }) => {
+test('direct article metadata is complete and stale article tags are removed on navigation', async ({
+  page,
+}) => {
   await page.goto(articlePath);
 
   await expect(page).toHaveTitle(seoTitle);
@@ -25,8 +27,12 @@ test('direct article metadata is complete and stale article tags are removed on 
   await expect.poll(() => meta(page, 'property', 'og:image:width')).toBe('1024');
   await expect.poll(() => meta(page, 'property', 'og:image:height')).toBe('1536');
   await expect.poll(() => meta(page, 'property', 'og:image:type')).toBe('image/webp');
-  await expect.poll(() => meta(page, 'property', 'og:image:alt')).toContain('Carreira e Mulheres Negras');
-  await expect.poll(() => meta(page, 'name', 'twitter:image:alt')).toContain('Carreira e Mulheres Negras');
+  await expect
+    .poll(() => meta(page, 'property', 'og:image:alt'))
+    .toContain('Carreira e Mulheres Negras');
+  await expect
+    .poll(() => meta(page, 'name', 'twitter:image:alt'))
+    .toContain('Carreira e Mulheres Negras');
   await expect(page.locator('meta[property="article:tag"]')).not.toHaveCount(0);
   await expect(page.locator('#json-ld-blog-post')).toHaveCount(1);
 
@@ -54,7 +60,9 @@ test('direct article metadata is complete and stale article tags are removed on 
   await expect(page.locator('#json-ld-blog-post')).toHaveCount(0);
 });
 
-test('article metadata falls back cleanly when optional discovery fields are absent', async ({ page }) => {
+test('article metadata falls back cleanly when optional discovery fields are absent', async ({
+  page,
+}) => {
   await page.route(`**/assets/content/blog/posts/${slug}.json`, async (route) => {
     const response = await route.fetch();
     const post = await response.json();

@@ -26,14 +26,16 @@ const configuredOrigin = process.env['PUBLIC_ORIGIN'] || 'https://psicologanatal
 export function validatePublicOrigin(value: string): URL {
   const origin = new URL(value);
   if (
-    !['http:', 'https:'].includes(origin.protocol)
-    || origin.username
-    || origin.password
-    || origin.pathname !== '/'
-    || origin.search
-    || origin.hash
+    !['http:', 'https:'].includes(origin.protocol) ||
+    origin.username ||
+    origin.password ||
+    origin.pathname !== '/' ||
+    origin.search ||
+    origin.hash
   ) {
-    throw new Error('PUBLIC_ORIGIN must be an absolute http(s) origin without credentials, path, query, or fragment.');
+    throw new Error(
+      'PUBLIC_ORIGIN must be an absolute http(s) origin without credentials, path, query, or fragment.',
+    );
   }
   return origin;
 }
@@ -43,13 +45,7 @@ const canonicalHostname = publicOrigin.hostname.toLowerCase();
 const alternateHostname = canonicalHostname.startsWith('www.')
   ? canonicalHostname.slice(4)
   : `www.${canonicalHostname}`;
-const allowedHosts = [
-  'localhost',
-  '127.0.0.1',
-  '::1',
-  canonicalHostname,
-  alternateHostname,
-];
+const allowedHosts = ['localhost', '127.0.0.1', '::1', canonicalHostname, alternateHostname];
 const allowedHostnames = new Set(allowedHosts);
 
 export function normalizeHostHeader(value: string | undefined): string | null {
@@ -257,14 +253,16 @@ app.use((req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (res.headersSent) {
-    next(err);
-    return;
-  }
-  console.error('SSR request failed:', err instanceof Error ? err.message : 'unknown error');
-  res.status(500).type('text/plain').send('Internal Server Error');
-});
+app.use(
+  (err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (res.headersSent) {
+      next(err);
+      return;
+    }
+    console.error('SSR request failed:', err instanceof Error ? err.message : 'unknown error');
+    res.status(500).type('text/plain').send('Internal Server Error');
+  },
+);
 
 /**
  * Start the server if this module is the main entry point.
@@ -287,7 +285,7 @@ if (isMainModule(import.meta.url)) {
       process.exit(1);
     }, 10_000);
     forceExitTimer.unref();
-    server.close(error => {
+    server.close((error) => {
       clearTimeout(forceExitTimer);
       if (error) {
         console.error('SSR server shutdown failed:', error.message);

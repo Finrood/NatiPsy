@@ -9,10 +9,15 @@ export function validateRobots(body, expectedSitemap = canonicalSitemap) {
   const sitemapLines = body.match(/^Sitemap:\s*(\S+)\s*$/gim) || [];
 
   if (userAgentLines.length !== 1 || allowLines.length !== 1 || disallowLines.length !== 1) {
-    throw new Error('robots.txt must contain exactly one canonical User-agent, Allow, and /404 Disallow directive');
+    throw new Error(
+      'robots.txt must contain exactly one canonical User-agent, Allow, and /404 Disallow directive',
+    );
   }
 
-  if (sitemapLines.length !== 1 || sitemapLines[0].split(':').slice(1).join(':').trim() !== expectedSitemap) {
+  if (
+    sitemapLines.length !== 1 ||
+    sitemapLines[0].split(':').slice(1).join(':').trim() !== expectedSitemap
+  ) {
     throw new Error(`robots.txt must contain exactly one Sitemap: ${expectedSitemap} directive`);
   }
 }

@@ -2,12 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const serverModule = await import('../dist/nati-psy/server/server.mjs');
-const {
-  buildRenderUrl,
-  isProtocolRelativeRequest,
-  normalizeHostHeader,
-  validatePublicOrigin,
-} = serverModule;
+const { buildRenderUrl, isProtocolRelativeRequest, normalizeHostHeader, validatePublicOrigin } =
+  serverModule;
 
 test('rejects origins that are not exact public origins', () => {
   assert.equal(validatePublicOrigin('https://example.test').origin, 'https://example.test');
@@ -34,7 +30,14 @@ test('normalizes valid host headers and rejects ambiguous forms', () => {
   assert.equal(normalizeHostHeader('Example.TEST:443'), 'example.test');
   assert.equal(normalizeHostHeader('example.test.'), 'example.test');
   assert.equal(normalizeHostHeader('[::1]:4000'), '::1');
-  for (const value of [undefined, '', 'bad host', 'example.test/path', 'user@example.test', 'example.test:bad']) {
+  for (const value of [
+    undefined,
+    '',
+    'bad host',
+    'example.test/path',
+    'user@example.test',
+    'example.test:bad',
+  ]) {
     assert.equal(normalizeHostHeader(value), null);
   }
 });

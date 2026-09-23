@@ -7,12 +7,7 @@ import {
   PLATFORM_ID,
   inject,
 } from '@angular/core';
-import {
-  NavigationEnd,
-  NavigationStart,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { FooterComponent } from './components/footer/footer.component';
 import { TopMenuComponent } from './components/top-menu/top-menu.component';
@@ -44,8 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
     let previousHeadingText = '';
     this.router.events.pipe(takeUntil(this.destroy$)).subscribe((event) => {
       if (event instanceof NavigationStart) {
-        focusUserNavigation =
-          event.navigationTrigger === 'imperative' && !event.restoredState;
+        focusUserNavigation = event.navigationTrigger === 'imperative' && !event.restoredState;
         previousHeading = document.querySelector<HTMLElement>('#main-content h1');
         previousHeadingText = previousHeading?.textContent?.trim() || '';
         return;
@@ -100,8 +94,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
       this.routeObserver?.disconnect();
       const destination = heading;
-      if (!destination.hasAttribute('tabindex'))
-        destination.setAttribute('tabindex', '-1');
+      if (!destination.hasAttribute('tabindex')) destination.setAttribute('tabindex', '-1');
       destination.focus({ preventScroll: true });
 
       const announcement = document.getElementById('route-announcer');

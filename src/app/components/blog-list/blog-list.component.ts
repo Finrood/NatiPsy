@@ -6,11 +6,7 @@ import {
   PLATFORM_ID,
   inject,
 } from '@angular/core';
-import {
-  CommonModule,
-  NgOptimizedImage,
-  isPlatformBrowser,
-} from '@angular/common';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { combineLatest, forkJoin, of, Subject } from 'rxjs';
@@ -24,17 +20,8 @@ import {
   tap,
 } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import {
-  BLOG_ERROR_MESSAGES,
-  BlogService,
-  BlogServiceError,
-} from '../../services/blog.service';
-import {
-  BlogPost,
-  blogDateOnly,
-  blogImageUrl,
-  formatBlogDate,
-} from '../../models/blog-post.model';
+import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
+import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../models/blog-post.model';
 import { SeoService } from '../../services/seo.service';
 import { SITE_URL } from '../../config/contact';
 
@@ -48,11 +35,7 @@ export interface BlogQueryState {
   sortDirection: BlogSortDirection;
 }
 
-export function paginateItems<T>(
-  items: T[],
-  page: number,
-  itemsPerPage: number,
-): T[] {
+export function paginateItems<T>(items: T[], page: number, itemsPerPage: number): T[] {
   const start = (Math.max(1, page) - 1) * itemsPerPage;
   return items.slice(start, start + itemsPerPage);
 }
@@ -66,10 +49,7 @@ export function paginationWindow(
   let start = Math.max(1, currentPage - halfWindow);
   const end = Math.min(totalPages, start + pageWindow - 1);
   start = Math.max(1, end - pageWindow + 1);
-  return Array.from(
-    { length: Math.max(0, end - start + 1) },
-    (_, index) => start + index,
-  );
+  return Array.from({ length: Math.max(0, end - start + 1) }, (_, index) => start + index);
 }
 
 export function parseBlogPage(value: string | null | undefined): number | null {
@@ -146,8 +126,7 @@ export function parseBlogQueryParams(params: Params): BlogQueryState {
         ? (firstQueryValue(params['category']) as string)
         : '',
     sortBy:
-      typeof sortByValue === 'string' &&
-      validSortFields.has(sortByValue as BlogSortBy)
+      typeof sortByValue === 'string' && validSortFields.has(sortByValue as BlogSortBy)
         ? (sortByValue as BlogSortBy)
         : 'date',
     sortDirection:
@@ -158,9 +137,7 @@ export function parseBlogQueryParams(params: Params): BlogQueryState {
   };
 }
 
-export function blogQueryParams(
-  state: BlogQueryState,
-): Record<string, string | number | null> {
+export function blogQueryParams(state: BlogQueryState): Record<string, string | number | null> {
   return {
     page: state.page > 1 ? state.page : null,
     category: state.category || null,
@@ -177,17 +154,11 @@ export function normalizeBlogQueryState(
   return {
     ...state,
     page: Math.min(Math.max(1, state.page), Math.max(1, maxPage)),
-    category:
-      state.category && categories.includes(state.category)
-        ? state.category
-        : '',
+    category: state.category && categories.includes(state.category) ? state.category : '',
   };
 }
 
-function sameQueryValue(
-  rawValue: unknown,
-  normalizedValue: string | number | null,
-): boolean {
+function sameQueryValue(rawValue: unknown, normalizedValue: string | number | null): boolean {
   const value = firstQueryValue(rawValue);
   if (normalizedValue === null) return value === undefined;
   return String(value) === String(normalizedValue);
@@ -209,9 +180,7 @@ function queryIsCanonical(
   const keys = new Set(Object.keys(serialized));
   return (
     Object.keys(params).every((key) => keys.has(key)) &&
-    Object.entries(serialized).every(([key, value]) =>
-      sameQueryValue(params[key], value),
-    )
+    Object.entries(serialized).every(([key, value]) => sameQueryValue(params[key], value))
   );
 }
 
@@ -264,9 +233,7 @@ export class BlogListComponent implements OnInit {
   }).pipe(
     map(({ query, rawPage }) => {
       const routePage = parseBlogPage(rawPage);
-      return routePage !== null && routePage > 0
-        ? { ...query, page: routePage }
-        : query;
+      return routePage !== null && routePage > 0 ? { ...query, page: routePage } : query;
     }),
     distinctUntilChanged(sameQuery),
     shareReplay({ bufferSize: 1, refCount: true }),
@@ -279,9 +246,7 @@ export class BlogListComponent implements OnInit {
     })),
     distinctUntilChanged(
       (a, b) =>
-        a.category === b.category &&
-        a.sortBy === b.sortBy &&
-        a.sortDirection === b.sortDirection,
+        a.category === b.category && a.sortBy === b.sortBy && a.sortDirection === b.sortDirection,
     ),
   );
   private readonly contentState$ = this.filterState$.pipe(
@@ -291,21 +256,29 @@ export class BlogListComponent implements OnInit {
         switchMap(() =>
           forkJoin({
             posts: this.blogService
-              .getPostsList(
-                filters.category,
-                filters.sortBy,
-                filters.sortDirection,
-              )
+              .getPostsList(filters.category, filters.sortBy, filters.sortDirection)
               .pipe(
                 map((posts) => ({ value: posts, error: null as string | null, retryable: false })),
                 catchError((error: unknown) =>
-                  of({ value: [] as BlogPost[], error: errorMessage(error), retryable: canRetry(error) }),
+                  of({
+                    value: [] as BlogPost[],
+                    error: errorMessage(error),
+                    retryable: canRetry(error),
+                  }),
                 ),
               ),
             categories: this.blogService.getAllCategories().pipe(
-              map((categories) => ({ value: categories, error: null as string | null, retryable: false })),
+              map((categories) => ({
+                value: categories,
+                error: null as string | null,
+                retryable: false,
+              })),
               catchError((error: unknown) =>
-                of({ value: [] as string[], error: errorMessage(error), retryable: canRetry(error) }),
+                of({
+                  value: [] as string[],
+                  error: errorMessage(error),
+                  retryable: canRetry(error),
+                }),
               ),
             ),
           }).pipe(
@@ -348,41 +321,26 @@ export class BlogListComponent implements OnInit {
         const totalItems = content.posts.length;
         const totalPages = Math.ceil(totalItems / this.itemsPerPage);
         const routePage = parseBlogPage(rawPage);
-        const requestedPage =
-          routePage !== null && routePage > 0 ? routePage : query.page;
+        const requestedPage = routePage !== null && routePage > 0 ? routePage : query.page;
         const invalidPage =
           routePage === -1 ||
-          (!content.loading &&
-            routePage !== null &&
-            requestedPage > totalPages);
+          (!content.loading && routePage !== null && requestedPage > totalPages);
         const normalizedQuery =
           content.loading || invalidPage
             ? { ...query, page: requestedPage }
             : normalizeBlogQueryState(query, totalPages, content.categories);
-        const pageError = invalidPage
-          ? 'Esta página do blog não foi encontrada.'
-          : null;
+        const pageError = invalidPage ? 'Esta página do blog não foi encontrada.' : null;
         const hasAlternateView = Boolean(
-          pageError ||
-          query.category ||
-          query.sortBy !== 'date' ||
-          query.sortDirection !== 'desc',
+          pageError || query.category || query.sortBy !== 'date' || query.sortDirection !== 'desc',
         );
         const serializedQuery = blogQueryParams({
           ...normalizedQuery,
           page: 1,
         });
-        if (
-          queryParamsSettled &&
-          !content.loading &&
-          rawPage === null &&
-          query.page > 1
-        ) {
+        if (queryParamsSettled && !content.loading && rawPage === null && query.page > 1) {
           if (this.route.paramMap) {
             this.router.navigate(
-              normalizedQuery.page > 1
-                ? ['/blog/page', normalizedQuery.page]
-                : ['/blog'],
+              normalizedQuery.page > 1 ? ['/blog/page', normalizedQuery.page] : ['/blog'],
               { queryParams: serializedQuery, replaceUrl: true },
             );
           } else {
@@ -394,9 +352,7 @@ export class BlogListComponent implements OnInit {
           }
         } else if (queryParamsSettled && !content.loading && !invalidPage) {
           const normalizedParams =
-            rawPage !== null
-              ? serializedQuery
-              : blogQueryParams(normalizedQuery);
+            rawPage !== null ? serializedQuery : blogQueryParams(normalizedQuery);
           if (!queryIsCanonical(rawParams, normalizedParams)) {
             this.router.navigate([], {
               relativeTo: this.route,
@@ -419,11 +375,7 @@ export class BlogListComponent implements OnInit {
         });
         const visiblePosts = pageError
           ? []
-          : paginateItems(
-              content.posts,
-              normalizedQuery.page,
-              this.itemsPerPage,
-            );
+          : paginateItems(content.posts, normalizedQuery.page, this.itemsPerPage);
         return {
           ...normalizedQuery,
           ...content,
@@ -505,25 +457,18 @@ export class BlogListComponent implements OnInit {
     if (page < 1 || (this.totalPages > 0 && page > this.totalPages)) return;
     this.navigate({ page });
     if (isPlatformBrowser(this.platformId)) {
-      document
-        .getElementById('blog-list-start')
-        ?.scrollIntoView({
-          behavior: this.getPaginationScrollBehavior(),
-          block: 'start',
-        });
+      document.getElementById('blog-list-start')?.scrollIntoView({
+        behavior: this.getPaginationScrollBehavior(),
+        block: 'start',
+      });
     }
   }
 
-  getPaginationScrollBehavior(): ScrollBehavior {
-    if (
-      !isPlatformBrowser(this.platformId) ||
-      typeof window.matchMedia !== 'function'
-    ) {
+  getPaginationScrollBehavior(): 'auto' | 'smooth' {
+    if (!isPlatformBrowser(this.platformId) || typeof window.matchMedia !== 'function') {
       return 'auto';
     }
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      ? 'auto'
-      : 'smooth';
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
   onCategoryChange(category: string): void {
     this.navigate({ category, page: 1 });

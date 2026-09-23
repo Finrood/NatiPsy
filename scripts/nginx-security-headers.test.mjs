@@ -5,9 +5,18 @@ const config = fs.readFileSync('nginx.conf', 'utf8');
 const headers = fs.readFileSync('nginx-security-headers.conf', 'utf8');
 const dockerfile = fs.readFileSync('Dockerfile', 'utf8');
 
-assert.equal((config.match(/include \/etc\/nginx\/snippets\/natipsy-security-headers\.conf;/g) || []).length, 4);
-assert.match(config, /location = \/50x\.html[\s\S]*include \/etc\/nginx\/snippets\/natipsy-security-headers\.conf;/);
-assert.match(dockerfile, /COPY nginx-security-headers\.conf \/etc\/nginx\/snippets\/natipsy-security-headers\.conf/);
+assert.equal(
+  (config.match(/include \/etc\/nginx\/snippets\/natipsy-security-headers\.conf;/g) || []).length,
+  4,
+);
+assert.match(
+  config,
+  /location = \/50x\.html[\s\S]*include \/etc\/nginx\/snippets\/natipsy-security-headers\.conf;/,
+);
+assert.match(
+  dockerfile,
+  /COPY nginx-security-headers\.conf \/etc\/nginx\/snippets\/natipsy-security-headers\.conf/,
+);
 assert.match(config, /server_tokens off/);
 assert.match(headers, /object-src 'none'/);
 assert.match(headers, /base-uri 'self'/);

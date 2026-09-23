@@ -11,7 +11,7 @@ const [indexHtml, topMenu, manifestText, indexJson, favicon] = await Promise.all
   read('src/app/components/top-menu/top-menu.component.html'),
   read('public/site.webmanifest'),
   read('public/assets/content/blog/index.json'),
-  readFile(resolve(root, 'public/favicon.ico'))
+  readFile(resolve(root, 'public/favicon.ico')),
 ]);
 
 const manifest = JSON.parse(manifestText);
@@ -28,7 +28,11 @@ for (const icon of manifest.icons) {
 
 for (const size of [16, 32, 48, 180, 192, 512]) {
   const png = await readFile(resolve(root, 'public/assets/icons/icon-' + size + '.png'));
-  assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'icon-' + size + '.png must be a PNG');
+  assert.deepEqual(
+    [...png.subarray(0, 8)],
+    [137, 80, 78, 71, 13, 10, 26, 10],
+    'icon-' + size + '.png must be a PNG',
+  );
   assert.equal(png.readUInt32BE(16), size, 'icon-' + size + '.png width must be square');
   assert.equal(png.readUInt32BE(20), size, 'icon-' + size + '.png height must be square');
 }
@@ -47,22 +51,53 @@ for (let index = 0; index < faviconCount; index += 1) {
   assert.equal(width, height, 'favicon layers must be square');
   assert.ok([16, 32, 48].includes(width), 'favicon layer size must be 16, 32, or 48 pixels');
   assert.ok(bytesInResource > 0, 'favicon layer must contain image data');
-  assert.ok(resourceOffset + bytesInResource <= favicon.length, 'favicon layer must fit inside the ICO file');
+  assert.ok(
+    resourceOffset + bytesInResource <= favicon.length,
+    'favicon layer must fit inside the ICO file',
+  );
   const resource = favicon.subarray(resourceOffset, resourceOffset + bytesInResource);
-  assert.deepEqual([...resource.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'ICO layers must contain complete PNG data');
+  assert.deepEqual(
+    [...resource.subarray(0, 8)],
+    [137, 80, 78, 71, 13, 10, 26, 10],
+    'ICO layers must contain complete PNG data',
+  );
   assert.equal(resource.readUInt32BE(16), width, 'ICO PNG width must match its directory entry');
   assert.equal(resource.readUInt32BE(20), height, 'ICO PNG height must match its directory entry');
   faviconEntries.push(width);
 }
-assert.deepEqual(faviconEntries.sort((a, b) => a - b), [16, 32, 48], 'favicon must include every required layer');
+assert.deepEqual(
+  faviconEntries.sort((a, b) => a - b),
+  [16, 32, 48],
+  'favicon must include every required layer',
+);
 
 for (const source of [indexHtml, topMenu]) {
-  assert.doesNotMatch(source, /logo(?:_signature)?\.webp/, 'removed WebP logos must not be referenced');
+  assert.doesNotMatch(
+    source,
+    /logo(?:_signature)?\.webp/,
+    'removed WebP logos must not be referenced',
+  );
 }
-assert.match(indexHtml, /rel="manifest" href="site\.webmanifest"/, 'index must advertise the web manifest');
-assert.match(indexHtml, /rel="apple-touch-icon" sizes="180x180"/, 'index must advertise the Apple touch icon');
-assert.match(indexHtml, /name="theme-color" content="#1f1e3b"/, 'index must expose the theme color');
-assert.match(indexJson, /"avatar": "\/assets\/NatiAboutMe\.webp"/, 'blog data must use the canonical portrait');
+assert.match(
+  indexHtml,
+  /rel="manifest" href="site\.webmanifest"/,
+  'index must advertise the web manifest',
+);
+assert.match(
+  indexHtml,
+  /rel="apple-touch-icon" sizes="180x180"/,
+  'index must advertise the Apple touch icon',
+);
+assert.match(
+  indexHtml,
+  /name="theme-color" content="#1f1e3b"/,
+  'index must expose the theme color',
+);
+assert.match(
+  indexJson,
+  /"avatar": "\/assets\/NatiAboutMe\.webp"/,
+  'blog data must use the canonical portrait',
+);
 await exists('public/assets/NatiAboutMe.webp');
 await assert.rejects(exists('public/assets/content/blog/images/authors/natalia_ferreira.webp'));
 
@@ -72,12 +107,16 @@ const iconFiles = [
   'desenvolvimento-rotinas.svg',
   'gerenciamento-emocoes.svg',
   'relacionamentos.svg',
-  'transicao-carreira.svg'
+  'transicao-carreira.svg',
 ];
 let iconBytes = 0;
 for (const iconFile of iconFiles) {
   const source = await read('public/assets/icons/' + iconFile);
-  assert.doesNotMatch(source, /SVGRepo_iconCarrier/, iconFile + ' must not contain a duplicate carrier group');
+  assert.doesNotMatch(
+    source,
+    /SVGRepo_iconCarrier/,
+    iconFile + ' must not contain a duplicate carrier group',
+  );
   iconBytes += (await stat(resolve(root, 'public/assets/icons/' + iconFile))).size;
 }
 assert.ok(iconBytes < 87200, 'optimized service SVGs must stay below the audited 87 kB total');

@@ -45,10 +45,7 @@ const failures = [
 function captureApplicationErrors(page) {
   const errors = [];
   page.on('console', (message) => {
-    if (
-      message.type() === 'error' &&
-      message.text().includes('BlogService request failed')
-    ) {
+    if (message.type() === 'error' && message.text().includes('BlogService request failed')) {
       errors.push(message.text());
     }
   });

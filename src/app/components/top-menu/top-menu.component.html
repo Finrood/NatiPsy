@@ -8,9 +8,7 @@
   }"
   role="banner"
 >
-  <div
-    class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]"
-  >
+  <div class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]">
     <a
       href="/"
       class="flex items-center transition-transform duration-300 motion-safe:hover:scale-110 scale-125"
@@ -61,27 +59,47 @@
     </nav>
 
     <!-- Mobile Menu Toggle Button -->
-    <button type="button" class="lg:hidden focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-md p-1"
-      [ngClass]="isMenuOpen() ? 'text-white focus:ring-white' : 'text-primary-blue focus:ring-primary-blue'"
+    <button
+      type="button"
+      class="lg:hidden focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-md p-1"
+      [ngClass]="
+        isMenuOpen() ? 'text-white focus:ring-white' : 'text-primary-blue focus:ring-primary-blue'
+      "
       (click)="toggleMenu()"
       [attr.aria-expanded]="isMenuOpen().toString()"
       aria-controls="mobile-menu"
-      [attr.aria-label]="
-        isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'
-      "
+      [attr.aria-label]="isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'"
     >
       <span class="sr-only">{{
-        isMenuOpen() ? "Fechar menu principal" : "Abrir menu principal"
+        isMenuOpen() ? 'Fechar menu principal' : 'Abrir menu principal'
       }}</span>
       <!-- Conditionally show open/close icon -->
       @if (!isMenuOpen()) {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-8 w-8 text-primary-blue"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
         </svg>
       }
       @if (isMenuOpen()) {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-8 w-8 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       }
     </button>
@@ -89,34 +107,32 @@
 </header>
 
 <div
-    class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
-    [class.mobile-menu-open]="isMenuOpen()"
-    [class.mobile-menu-closed]="!isMenuOpen()"
-    [attr.aria-hidden]="isMenuOpen() ? 'false' : 'true'"
-    [attr.inert]="isMenuOpen() ? null : ''"
-    id="mobile-menu"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Menu de navegação"
-    (keydown)="onMenuKeyDown($event)"
-    (click)="onBackdropClick($event)"
-  >
-    <nav
-      class="flex flex-col items-center space-y-8 py-16 px-4"
-      aria-label="Navegação Móvel"
-    >
-      @for (item of menuItems; track item) {
-        <a
-          [routerLink]="item === 'blog' ? ['/blog'] : ['/']"
-          [fragment]="item === 'blog' ? undefined : item"
-          routerLinkActive
-          [routerLinkActiveOptions]="{ exact: item !== 'blog' }"
-          ariaCurrentWhenActive="page"
-          (click)="closeMenu()"
-          class="text-2xl sm:text-3xl font-semibold text-white hover:text-pink-100 transition-[transform,color] duration-300 motion-safe:hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-pink-dark rounded-sm"
-          [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]">
-          {{ menuDisplayNames[item] }}
-        </a>
-      }
-    </nav>
-  </div>
+  class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
+  [class.mobile-menu-open]="isMenuOpen()"
+  [class.mobile-menu-closed]="!isMenuOpen()"
+  [attr.aria-hidden]="isMenuOpen() ? 'false' : 'true'"
+  [attr.inert]="isMenuOpen() ? null : ''"
+  id="mobile-menu"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Menu de navegação"
+  (keydown)="onMenuKeyDown($event)"
+  (click)="onBackdropClick($event)"
+>
+  <nav class="flex flex-col items-center space-y-8 py-16 px-4" aria-label="Navegação Móvel">
+    @for (item of menuItems; track item) {
+      <a
+        [routerLink]="item === 'blog' ? ['/blog'] : ['/']"
+        [fragment]="item === 'blog' ? undefined : item"
+        routerLinkActive
+        [routerLinkActiveOptions]="{ exact: item !== 'blog' }"
+        ariaCurrentWhenActive="page"
+        (click)="closeMenu()"
+        class="text-2xl sm:text-3xl font-semibold text-white hover:text-pink-100 transition-[transform,color] duration-300 motion-safe:hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-pink-dark rounded-sm"
+        [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]"
+      >
+        {{ menuDisplayNames[item] }}
+      </a>
+    }
+  </nav>
+</div>

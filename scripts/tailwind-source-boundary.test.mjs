@@ -17,7 +17,11 @@ await mkdir(dirname(stylesheetPath), { recursive: true });
 await mkdir(dirname(appProbePath), { recursive: true });
 await mkdir(dirname(docsProbePath), { recursive: true });
 await copyFile(sourceStylesheet, stylesheetPath);
-await symlink(resolve(process.cwd(), 'node_modules'), join(tempProject, 'node_modules'), 'junction');
+await symlink(
+  resolve(process.cwd(), 'node_modules'),
+  join(tempProject, 'node_modules'),
+  'junction',
+);
 
 const compileStyles = async () => {
   const css = await readFile(stylesheetPath, 'utf8');
@@ -25,7 +29,7 @@ const compileStyles = async () => {
   return result.css;
 };
 
-const fingerprint = css => ({
+const fingerprint = (css) => ({
   bytes: Buffer.byteLength(css),
   sha256: createHash('sha256').update(css).digest('hex'),
 });
@@ -36,15 +40,24 @@ try {
 
   await writeFile(docsProbePath, `<div class="${probeClass}"></div>\n`);
   const withDocumentationProbe = await compileStyles();
-  assert.deepEqual(fingerprint(withDocumentationProbe), fingerprint(baseline),
-    'a documentation fixture inside the temporary repository must not change production CSS');
+  assert.deepEqual(
+    fingerprint(withDocumentationProbe),
+    fingerprint(baseline),
+    'a documentation fixture inside the temporary repository must not change production CSS',
+  );
 
   await writeFile(appProbePath, `<div class="${probeClass}"></div>\n`);
   const withApplicationProbe = await compileStyles();
-  assert.notDeepEqual(fingerprint(withApplicationProbe), fingerprint(baseline),
-    'an application-template fixture must change the generated CSS');
-  assert.match(withApplicationProbe, /\.bg-fuchsia-950/,
-    'the application-template utility must be emitted into production CSS');
+  assert.notDeepEqual(
+    fingerprint(withApplicationProbe),
+    fingerprint(baseline),
+    'an application-template fixture must change the generated CSS',
+  );
+  assert.match(
+    withApplicationProbe,
+    /\.bg-fuchsia-950/,
+    'the application-template utility must be emitted into production CSS',
+  );
 } finally {
   await rm(tempProject, { recursive: true, force: true });
 }

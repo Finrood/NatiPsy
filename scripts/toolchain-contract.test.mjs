@@ -27,15 +27,39 @@ const dockerfile = fs.readFileSync('Dockerfile', 'utf8');
 assert.match(dockerfile, /FROM node:22\.22\.3-alpine3\.22@sha256:[a-f0-9]{64} AS build/);
 assert.match(dockerfile, /npm install --global npm@10\.9\.9/);
 assert.match(fs.readFileSync('README.md', 'utf8'), /Node\.js `22\.22\.3` and npm `10\.9\.9`/);
-for (const name of ['@angular/common', '@angular/core', '@angular/router', '@angular/build', '@angular/cli']) {
-  assert.match(dependencies[name], /^22\.1\./, `${name} should stay on the documented Angular 22.1 patch line`);
+for (const name of [
+  '@angular/common',
+  '@angular/core',
+  '@angular/router',
+  '@angular/build',
+  '@angular/cli',
+]) {
+  assert.match(
+    dependencies[name],
+    /^22\.1\./,
+    `${name} should stay on the documented Angular 22.1 patch line`,
+  );
 }
 for (const name of ['@tailwindcss/postcss', 'postcss', 'tailwindcss']) {
   assert.ok(packageJson.devDependencies[name], `${name} should be build-only`);
-  assert.equal(packageJson.dependencies[name], undefined, `${name} should not be runtime dependency`);
+  assert.equal(
+    packageJson.dependencies[name],
+    undefined,
+    `${name} should not be runtime dependency`,
+  );
 }
-for (const name of ['@angular/animations', '@angular/platform-browser-dynamic', 'karma', 'jasmine-core', 'karma-jasmine']) {
-  assert.equal(dependencies[name], undefined, `${name} should be removed from the Vitest toolchain`);
+for (const name of [
+  '@angular/animations',
+  '@angular/platform-browser-dynamic',
+  'karma',
+  'jasmine-core',
+  'karma-jasmine',
+]) {
+  assert.equal(
+    dependencies[name],
+    undefined,
+    `${name} should be removed from the Vitest toolchain`,
+  );
 }
 
 console.log('Toolchain and dependency-role contract passed.');

@@ -23,14 +23,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
 import { merge, Observable, of, Subject } from 'rxjs';
-import {
-  catchError,
-  distinctUntilChanged,
-  map,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs/operators';
+import { catchError, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { SITE_URL } from '../../config/contact';
 
 const BLOG_TITLE_SUFFIX = ' | Blog Natália Ferreira';
@@ -116,9 +109,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.post = state.post;
         this.relatedPosts = state.relatedPosts;
-        this.safeContent = state.post
-          ? this.toSafeHtml(state.post.content as string)
-          : null;
+        this.safeContent = state.post ? this.toSafeHtml(state.post.content as string) : null;
 
         if (state.post) {
           this.updateMetaAndStructuredData(state.post);
@@ -183,9 +174,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   }
 
   handleErrorState(error: unknown): void {
-    const blogError = error instanceof BlogServiceError
-      ? error
-      : new BlogServiceError('invalid-content', 'render post error', { cause: error });
+    const blogError =
+      error instanceof BlogServiceError
+        ? error
+        : new BlogServiceError('invalid-content', 'render post error', { cause: error });
     this.error = BLOG_ERROR_MESSAGES[blogError.kind];
     this.retryable = blogError.kind !== 'not-found';
     this.post = null;
