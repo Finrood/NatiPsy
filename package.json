@@ -27,6 +27,7 @@
     "test:rss-feed:fixtures": "node ./scripts/rss-feed-fixtures.test.mjs",
     "test:rss-feed:http": "node ./scripts/rss-feed-http.test.mjs",
     "test:pagination-prerender": "node ./scripts/pagination-prerender-contract.test.mjs",
+    "test:accessibility-interactions": "node ./scripts/accessibility-interactions.test.mjs",
     "assert:public-content": "node scripts/assert-public-content.mjs",
     "test:hydration-cache": "node ./scripts/hydration-cache-contract.test.mjs",
     "test:hydration-render": "node scripts/hydration-render-contract.mjs",
