@@ -4,6 +4,26 @@ import { Observable, of, throwError } from 'rxjs';
 import { catchError, finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { BlogPost } from '../models/blog-post.model';
 
+export type BlogErrorKind = 'not-found' | 'offline' | 'server' | 'invalid-content';
+
+export class BlogServiceError extends Error {
+  constructor(
+    readonly kind: BlogErrorKind,
+    readonly context: string,
+    options?: { cause?: unknown },
+  ) {
+    super(kind, options);
+    this.name = 'BlogServiceError';
+  }
+}
+
+export const BLOG_ERROR_MESSAGES: Record<BlogErrorKind, string> = {
+  'not-found': 'Não encontramos este conteúdo.',
+  offline: 'Não foi possível conectar. Verifique sua internet e tente novamente.',
+  server: 'O conteúdo está temporariamente indisponível. Tente novamente em instantes.',
+  'invalid-content': 'Não foi possível ler este conteúdo. Tente novamente mais tarde.',
+};
+
 @Injectable({ providedIn: 'root' })
 export class BlogService {
   private postsCache: BlogPost[] | null = null;
@@ -12,13 +32,24 @@ export class BlogService {
 
   constructor(private http: HttpClient) {}
 
-  private handleError(error: HttpErrorResponse, context: string) {
-    const errorMessage = error.error instanceof ErrorEvent
-      ? `Error: ${error.error.message}`
-      : `Error Code: ${error.status}\nMessage: ${error.message}`;
-    console.error(`BlogService Error (${context}):`, error);
-    console.error(`BlogService Error Message (${context}):`, errorMessage);
-    return throwError(() => new Error(`Failed to ${context}. Please try again later.`));
+  private handleError(error: unknown, context: string) {
+    const blogError = this.toBlogError(error, context);
+    if (!(error instanceof BlogServiceError)) {
+      const status = error instanceof HttpErrorResponse ? error.status : undefined;
+      console.error('BlogService request failed', { context, kind: blogError.kind, status });
+    }
+    return throwError(() => blogError);
+  }
+
+  private toBlogError(error: unknown, context: string): BlogServiceError {
+    if (error instanceof BlogServiceError) return error;
+    let kind: BlogErrorKind = 'invalid-content';
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) kind = 'offline';
+      else if (error.status >= 500) kind = 'server';
+      else if (error.status === 404) kind = 'not-found';
+    }
+    return new BlogServiceError(kind, context, { cause: error });
   }
 
   private reviveIndex(raw: Omit<BlogPost, 'content' | 'readTime'>[]): BlogPost[] {
@@ -49,7 +80,10 @@ export class BlogService {
     // Angular's default HTTP transfer cache owns SSR-to-client hydration;
     // this service only owns the in-memory request sharing and retry state.
     this.postsIndexRequest$ = this.http.get<Omit<BlogPost, 'content' | 'readTime'>[]>(this.postsIndexUrl).pipe(
-        map(posts => this.reviveIndex(posts)),
+        map(posts => {
+          if (!Array.isArray(posts)) throw new Error('Blog index must be an array.');
+          return this.reviveIndex(posts);
+        }),
         map(posts => {
           this.postsCache = posts;
           return posts;
@@ -99,10 +133,7 @@ export class BlogService {
   getPostBySlug(slug: string): Observable<BlogPost | null> {
     return this.fetchPostsIndex().pipe(
       switchMap(index => index.some(post => post.slug === slug) ? this.fetchPostJson(slug) : of(null)),
-      catchError(error => {
-        console.error(`Failed to load blog post ${slug}:`, error.message || error);
-        return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
-      }),
+      catchError(error => this.handleError(error, `load post ${slug}`)),
     );
   }
 
@@ -114,14 +145,7 @@ export class BlogService {
         date: new Date(post.date),
         dateOnly: post.dateOnly ?? new Date(post.date).toISOString().slice(0, 10),
       })),
-      catchError(error => {
-        if (error instanceof HttpErrorResponse && error.status === 404) {
-          console.warn(`Blog post not found: ${slug}`);
-          return of(null);
-        }
-        console.error(`Failed to load or process blog post ${slug}:`, error.message || error);
-        return throwError(() => new Error(`Could not load post "${slug}". It might not exist or there was a problem.`));
-      }),
+      catchError(error => this.handleError(error, `load post ${slug}`)),
     );
   }
 
@@ -145,10 +169,7 @@ export class BlogService {
     if (categories && categories.length > 0) return findRelated(categories);
     return this.getPostBySlug(currentSlug).pipe(
       switchMap(currentPost => findRelated(currentPost?.categories || [])),
-      catchError(error => {
-        console.error('Error fetching related posts:', error);
-        return of([]);
-      }),
+      catchError(() => of([])),
     );
   }
 }

@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { vi } from 'vitest';
 
-import { BlogService } from './blog.service';
+import { BlogService, BlogServiceError } from './blog.service';
 import { BlogPost } from '../models/blog-post.model';
 
 describe('BlogService', () => {
@@ -92,6 +93,35 @@ describe('BlogService', () => {
     expect(secondResult[0].title).toBe('Alpha');
     expect(secondResult[0].categories).toEqual(['A']);
     expect(secondResult[0].date.getTime()).toBe(new Date('2025-01-01').getTime());
+  });
+
+  it('logs one sanitized record and maps server failures without exposing the response body', () => {
+    const log = vi.spyOn(console, 'error');
+    let error: BlogServiceError | undefined;
+    service.getPostsList().subscribe({ error: value => { error = value; } });
+
+    httpMock.expectOne('/assets/content/blog/index.json').flush({ secret: 'do-not-log' }, {
+      status: 500,
+      statusText: 'Server Error',
+    });
+
+    expect(error?.kind).toBe('server');
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(log.mock.calls.at(-1))).not.toContain('do-not-log');
+    log.mockRestore();
+  });
+
+  it('allows a failed index request to be retried without sharing the failed request', () => {
+    let firstError: BlogServiceError | undefined;
+    service.getPostsList().subscribe({ error: value => { firstError = value; } });
+    httpMock.expectOne('/assets/content/blog/index.json').error(new ProgressEvent('offline'));
+    expect(firstError?.kind).toBe('offline');
+
+    let secondResult: BlogPost[] = [];
+    service.getPostsList().subscribe(posts => { secondResult = posts; });
+    const retry = httpMock.expectOne('/assets/content/blog/index.json');
+    retry.flush([]);
+    expect(secondResult).toEqual([]);
   });
 
   it('does not expose mutable dates through related-post results', () => {

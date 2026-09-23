@@ -10,7 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BlogService } from '../../services/blog.service';
+import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
 import {
   BlogPost,
   blogAbsoluteImageUrl,
@@ -18,15 +18,11 @@ import {
   blogImageUrl,
   formatBlogDate,
 } from '../../models/blog-post.model';
-import {
-  CommonModule,
-  NgOptimizedImage,
-  isPlatformBrowser,
-} from '@angular/common';
+import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
-import { Observable, of, Subject } from 'rxjs';
+import { merge, Observable, of, Subject } from 'rxjs';
 import {
   catchError,
   distinctUntilChanged,
@@ -75,21 +71,30 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   relatedPosts: BlogPost[] = [];
   loading = true;
   error: string | null = null;
+  retryable = false;
   safeContent: SafeHtml | string | null = null;
+  private currentSlug: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
+  private readonly retry$ = new Subject<string>();
   protected readonly imageUrl = blogImageUrl;
   protected readonly dateOnly = blogDateOnly;
   protected readonly formatDate = formatBlogDate;
 
   ngOnInit(): void {
-    this.route.paramMap
+    const routeSlug$ = this.route.paramMap.pipe(
+      map((params) => params.get('slug')),
+      distinctUntilChanged(),
+      tap((slug) => (this.currentSlug = slug)),
+    );
+
+    merge(routeSlug$, this.retry$)
       .pipe(
-        map((params) => params.get('slug')),
-        distinctUntilChanged(),
-        tap(() => {
+        tap((slug) => {
+          this.currentSlug = slug;
           this.loading = true;
           this.error = null;
+          this.retryable = false;
           this.seoService.removeStructuredData('blog-post');
           this.post = null;
           this.safeContent = null;
@@ -102,7 +107,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             : of({
                 post: null,
                 relatedPosts: [],
-                error: 'Post slug not found in URL.',
+                error: new BlogServiceError('not-found', 'read post URL'),
               }),
         ),
         takeUntil(this.destroy$),
@@ -111,7 +116,6 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.post = state.post;
         this.relatedPosts = state.relatedPosts;
-        this.error = state.error;
         this.safeContent = state.post
           ? this.toSafeHtml(state.post.content as string)
           : null;
@@ -119,7 +123,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         if (state.post) {
           this.updateMetaAndStructuredData(state.post);
         } else {
-          this.handleErrorState(state.error || 'Post não encontrado.');
+          this.handleErrorState(state.error);
         }
         this.cdr.markForCheck();
       });
@@ -128,6 +132,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.retry$.complete();
     this.seoService.removeStructuredData('blog-post');
   }
 
@@ -136,24 +141,29 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   ): Observable<{
     post: BlogPost | null;
     relatedPosts: BlogPost[];
-    error: string | null;
+    error: BlogServiceError | null;
   }> {
     return this.blogService.getPostBySlug(slug).pipe(
       switchMap((post) =>
         post
           ? this.blogService.getRelatedPosts(slug, post.categories, 3).pipe(
-              map((relatedPosts) => ({ post, relatedPosts })),
-              catchError(() => of({ post, relatedPosts: [] })),
+              map((relatedPosts) => ({ post, relatedPosts, error: null })),
+              catchError(() => of({ post, relatedPosts: [], error: null })),
             )
-          : of({ post: null, relatedPosts: [], error: 'Post não encontrado.' }),
+          : of({
+              post: null,
+              relatedPosts: [],
+              error: new BlogServiceError('not-found', `load post ${slug}`),
+            }),
       ),
-      map((state) => ('error' in state ? state : { ...state, error: null })),
       catchError((error) =>
         of({
           post: null,
           relatedPosts: [],
           error:
-            error instanceof Error ? error.message : 'Erro ao carregar o post.',
+            error instanceof BlogServiceError
+              ? error
+              : new BlogServiceError('invalid-content', `load post ${slug}`, { cause: error }),
         }),
       ),
     );
@@ -174,8 +184,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
   }
 
-  handleErrorState(errorMessage: string): void {
-    this.error = errorMessage;
+  handleErrorState(error: unknown): void {
+    const blogError = error instanceof BlogServiceError
+      ? error
+      : new BlogServiceError('invalid-content', 'render post error', { cause: error });
+    this.error = BLOG_ERROR_MESSAGES[blogError.kind];
+    this.retryable = blogError.kind !== 'not-found';
     this.post = null;
     this.safeContent = null;
     this.loading = false;
@@ -186,6 +200,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       robots: 'noindex',
     });
     this.cdr.detectChanges();
+  }
+
+  retryPost(): void {
+    if (this.currentSlug && !this.loading) {
+      this.retry$.next(this.currentSlug);
+    }
   }
 
   updateMetaAndStructuredData(post: BlogPost): void {
