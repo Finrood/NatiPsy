@@ -12,6 +12,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
 import {
+  BlogHeading,
   BlogPost,
   blogAbsoluteImageUrl,
   blogDateOnly,
@@ -74,6 +75,18 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   retryable = false;
   safeContent: SafeHtml | string | null = null;
   private currentSlug: string | null = null;
+
+  get tocGroups(): { heading: BlogHeading; children: BlogHeading[] }[] {
+    const groups: { heading: BlogHeading; children: BlogHeading[] }[] = [];
+    for (const heading of this.post?.headings ?? []) {
+      if (heading.level === 2 || !groups.length) {
+        groups.push({ heading, children: [] });
+      } else {
+        groups[groups.length - 1].children.push(heading);
+      }
+    }
+    return groups;
+  }
 
   private readonly destroy$ = new Subject<void>();
   private readonly retry$ = new Subject<string>();
