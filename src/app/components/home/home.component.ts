@@ -6,7 +6,8 @@ import { ApproachComponent } from '../approach/approach.component';
 import { AdvantagesComponent } from '../advantages/advantages.component';
 import { SeoService } from '../../services/seo.service';
 import { BlogPreviewComponent } from '../blog-preview/blog-preview.component';
-import { SITE_URL, WHATSAPP_NUMBER } from '../../config/contact';
+import { PERSON_NAME, SITE_URL, WHATSAPP_NUMBER } from '../../config/contact';
+import { SITE_CONFIG } from '../../config/site-config';
 
 export function homepageStructuredData() {
   return {
@@ -16,8 +17,8 @@ export function homepageStructuredData() {
         '@type': 'WebSite',
         '@id': `${SITE_URL}/#website`,
         url: `${SITE_URL}/`,
-        name: 'Natalia Ferreira | Psicóloga Clínica',
-        inLanguage: 'pt-BR',
+        name: `${PERSON_NAME} | Psicóloga Clínica`,
+        inLanguage: SITE_CONFIG.locale,
       },
       {
         '@type': 'WebPage',
@@ -26,12 +27,12 @@ export function homepageStructuredData() {
         isPartOf: { '@id': `${SITE_URL}/#website` },
         mainEntity: { '@id': `${SITE_URL}/#person` },
         about: { '@id': `${SITE_URL}/#service` },
-        inLanguage: 'pt-BR',
+        inLanguage: SITE_CONFIG.locale,
       },
       {
         '@type': 'Person',
         '@id': `${SITE_URL}/#person`,
-        name: 'Natalia Ferreira',
+        name: PERSON_NAME,
         jobTitle: 'Psicóloga Clínica',
         url: `${SITE_URL}/`,
         image: `${SITE_URL}/assets/NatiAboutMe.webp`,
@@ -40,9 +41,9 @@ export function homepageStructuredData() {
       {
         '@type': 'Service',
         '@id': `${SITE_URL}/#service`,
-        name: 'Natalia Ferreira - Psicóloga Clínica',
+        name: `${PERSON_NAME} - Psicóloga Clínica`,
         url: `${SITE_URL}/`,
-        image: `${SITE_URL}/assets/NatiHero.webp`,
+        image: `${SITE_URL}${SITE_CONFIG.defaultImage}`,
         provider: { '@id': `${SITE_URL}/#person` },
       },
     ],
@@ -80,9 +81,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.seoService.setStructuredData('homepage-entities', homepageStructuredData());
     this.seoService.updateMetaTags({
-      title: 'Psicóloga Natalia Ferreira | Terapia Online - CRP 12/19892',
-      description:
-        'Psicóloga Clínica especializada em Terapia Relacional Sistêmica. Atendimento online para jovens, adultos e casais. Experiência em terapia sistêmica, ansiedade, depressão e relacionamentos.',
+      title: `Psicóloga ${PERSON_NAME} | Terapia Online - ${SITE_CONFIG.credential}`,
+      description: SITE_CONFIG.siteDescription,
       keywords:
         'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
       url: `${SITE_URL}/`,

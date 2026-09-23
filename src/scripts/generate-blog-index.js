@@ -8,18 +8,63 @@ const projectRoot =
   process.env.BLOG_PROJECT_ROOT || path.join(__dirname, "../..");
 const configuredPath = (name, fallback) =>
   process.env[name] ? path.resolve(process.env[name]) : fallback;
-const contentDir = configuredPath("BLOG_CONTENT_DIR", path.join(projectRoot, "content/blog"));
-const sourceImagesDir = configuredPath("BLOG_IMAGES_DIR", path.join(contentDir, "images"));
+const contentDir = configuredPath(
+  "BLOG_CONTENT_DIR",
+  path.join(projectRoot, "content/blog"),
+);
+const sourceImagesDir = configuredPath(
+  "BLOG_IMAGES_DIR",
+  path.join(contentDir, "images"),
+);
+const configuredPostsDir = process.env.BLOG_POSTS_DIR
+  ? path.resolve(process.env.BLOG_POSTS_DIR)
+  : null;
 const publicContentDir = configuredPath(
   "BLOG_PUBLIC_CONTENT_DIR",
-  path.join(projectRoot, "public/assets/content/blog"),
+  configuredPostsDir
+    ? path.dirname(configuredPostsDir)
+    : path.join(projectRoot, "public/assets/content/blog"),
 );
-const publicAssetsDir = path.join(projectRoot, "public/assets");
-const routesPath = configuredPath("BLOG_ROUTES_PATH", path.join(projectRoot, "src/routes.txt"));
-const sitemapPath = configuredPath("BLOG_SITEMAP_PATH", path.join(projectRoot, "public/sitemap.xml"));
-const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public/feed.xml"));
-
-const SITE_URL = "https://psicologanataliaferreira.com";
+const publicAssetsDir = configuredPath(
+  "BLOG_PUBLIC_ASSETS_DIR",
+  path.join(projectRoot, "public/assets"),
+);
+const routesPath = configuredPath(
+  "BLOG_ROUTES_PATH",
+  path.join(projectRoot, "src/routes.txt"),
+);
+const sitemapPath = configuredPath(
+  "BLOG_SITEMAP_PATH",
+  path.join(projectRoot, "public/sitemap.xml"),
+);
+const feedPath = configuredPath(
+  "BLOG_FEED_PATH",
+  path.join(projectRoot, "public/feed.xml"),
+);
+const indexPath = configuredPath(
+  "SITE_INDEX_PATH",
+  path.join(projectRoot, "src/index.html"),
+);
+const robotsPath = configuredPath(
+  "SITE_ROBOTS_PATH",
+  path.join(projectRoot, "public/robots.txt"),
+);
+const llmsPath = configuredPath(
+  "SITE_LLMS_PATH",
+  path.join(projectRoot, "public/llms.txt"),
+);
+const siteConfigPath = configuredPath(
+  "SITE_CONFIG_PATH",
+  fs.existsSync(path.join(projectRoot, "src/app/config/site-config.json"))
+    ? path.join(projectRoot, "src/app/config/site-config.json")
+    : path.join(__dirname, "../app/config/site-config.json"),
+);
+const { validateSiteConfig } = require("../app/config/site-config-validator.cjs");
+const SITE_CONFIG = validateSiteConfig(require(siteConfigPath));
+const publicOrigin = new URL(SITE_CONFIG.canonicalOrigin);
+const whatsappDigits = SITE_CONFIG.whatsappNumber.slice(1);
+const SITE_URL = publicOrigin.origin;
+const WHATSAPP_URL = `https://wa.me/${whatsappDigits}`;
 const POSTS_PER_PAGE = 6;
 
 const STATIC_PAGES = require("../content/static-pages.json");
@@ -43,6 +88,81 @@ function validateStaticPages(pages) {
 }
 
 validateStaticPages(STATIC_PAGES);
+const CATEGORY_REGISTRY = new Map([
+  ['carreira', {
+    slug: 'carreira',
+    label: 'Carreira',
+    description: 'Reflexões e ferramentas para escolhas, transições e desenvolvimento profissional.',
+    aliases: ['carreira', 'desenvolvimento profissional'],
+  }],
+  ['psicologia', {
+    slug: 'psicologia',
+    label: 'Psicologia',
+    description: 'Conteúdos sobre saúde mental, relações e desenvolvimento pessoal.',
+    aliases: ['psicologia', 'saúde mental'],
+  }],
+  ['orientacao profissional', {
+    slug: 'orientacao-profissional',
+    label: 'Orientação Profissional',
+    description: 'Apoio para construir percursos profissionais alinhados a valores e possibilidades.',
+    aliases: ['orientação profissional', 'orientacao profissional'],
+  }],
+]);
+
+const normalizeKey = (value) => String(value)
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .trim()
+  .replace(/\s+/g, ' ')
+  .toLowerCase();
+
+const CATEGORY_ALIASES = new Map(
+  [...CATEGORY_REGISTRY.values()].flatMap(category =>
+    category.aliases.map(alias => [normalizeKey(alias), category])),
+);
+
+function normalizeLabels(value, fieldName) {
+  const values = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  const labels = values.map(label => String(label).trim()).filter(Boolean);
+  const seen = new Set();
+  return labels.map(label => {
+    const key = normalizeKey(label);
+    if (seen.has(key)) throw new Error(`Duplicate ${fieldName}: ${label}`);
+    seen.add(key);
+    return label;
+  });
+}
+
+function normalizeCategories(value) {
+  const labels = normalizeLabels(value, 'category');
+  if (labels.length < 1 || labels.length > 3) {
+    throw new Error('Each post must have between one and three primary categories.');
+  }
+  const seen = new Set();
+  return labels.map(label => {
+    const category = CATEGORY_ALIASES.get(normalizeKey(label));
+    if (!category) throw new Error(`Unknown primary category: ${label}`);
+    if (seen.has(category.slug)) throw new Error(`Duplicate category: ${label}`);
+    seen.add(category.slug);
+    return category.label;
+  });
+}
+
+function normalizeTags(value, categories) {
+  const tags = normalizeLabels(value, 'tag');
+  const categoryKeys = new Set(categories.map(category => normalizeKey(category)));
+  if (tags.some(tag => categoryKeys.has(normalizeKey(tag)))) {
+    throw new Error('A label cannot be both a primary category and a tag.');
+  }
+  return tags;
+}
+
+function categoryDetails(categories) {
+  return categories.map(label => {
+    const category = CATEGORY_ALIASES.get(normalizeKey(label));
+    return { slug: category.slug, label: category.label, description: category.description };
+  });
+}
 
 function calculateReadingTime(content) {
   if (!content) return 0;
@@ -79,9 +199,12 @@ function generateRoutesFile(posts) {
     { length: Math.max(0, pageCount - 1) },
     (_, index) => `/blog/page/${index + 2}`,
   );
+  const categoryRoutes = [...new Set(posts.flatMap(post =>
+    post.categoryDetails.map(category => `/blog/category/${category.slug}`)))];
   return [
     ...STATIC_PAGES.map(page => page.path),
     ...pageRoutes,
+    ...categoryRoutes,
     ...posts.map(post => `/blog/${post.slug}`),
   ].join('\n') + '\n';
 }
@@ -98,12 +221,15 @@ function generateFeed(posts) {
     const author = post.author?.name
       ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>`
       : "";
+    const taxonomy = [...post.categories, ...post.tags]
+      .map((label) => `\n      <category>${escapeXml(label)}</category>`)
+      .join("");
     return `    <item>
       <title>${escapeXml(post.title)}</title>
       <link>${escapeXml(postUrl)}</link>
       <guid isPermaLink="true">${escapeXml(postUrl)}</guid>${author}
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
-      <description>${escapeXml(post.description)}</description>
+      <description>${escapeXml(post.description)}</description>${taxonomy}
     </item>`;
   }).join("\n");
   const latestDate = posts[0]?.date
@@ -112,16 +238,48 @@ function generateFeed(posts) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
-    <title>Natalia Ferreira | Psicóloga Clínica</title>
+    <title>${escapeXml(`${SITE_CONFIG.brandName} | Psicóloga Clínica`)}</title>
     <link>${escapeXml(SITE_URL)}/</link>
-    <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
-    <language>pt-BR</language>
+    <description>${escapeXml(SITE_CONFIG.siteDescription)}</description>
+    <language>${escapeXml(SITE_CONFIG.locale)}</language>
     <lastBuildDate>${latestDate}</lastBuildDate>
     <atom:link href="${escapeXml(pageUrl("/feed.xml"))}" rel="self" type="application/rss+xml" />
 ${items}
   </channel>
 </rss>
 `;
+}
+
+function slugifyHeading(text, usedIds) {
+  const base =
+    text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "secao";
+  const count = usedIds.get(base) || 0;
+  usedIds.set(base, count + 1);
+  return count === 0 ? base : `${base}-${count + 1}`;
+}
+
+function renderPostMarkdown(content) {
+  const usedIds = new Map();
+  const headings = [];
+  const renderer = new marked.Renderer();
+  renderer.heading = function ({ tokens, depth }) {
+    const text = this.parser.parseInline(tokens, this.parser.textRenderer);
+    const id = slugifyHeading(text, usedIds);
+    if (depth === 2 || depth === 3) {
+      headings.push({ id, text, level: depth });
+    }
+    return `<h${depth} id="${id}">${this.parser.parseInline(tokens)}</h${depth}>`;
+  };
+
+  return {
+    html: marked.parse(content, { renderer }),
+    headings,
+  };
 }
 
 function optionalDiscoveryText(data, file, field, maxLength) {
@@ -136,6 +294,79 @@ function optionalDiscoveryText(data, file, field, maxLength) {
   }
   return value;
 }
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) =>
+    ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[char],
+  );
+}
+
+function replaceOnce(html, pattern, replacement) {
+  const attributeMarker = /^<(meta|link) (name|property|rel)="([^"]+)" (content|href)=/.exec(pattern.source);
+  if (attributeMarker) {
+    const [, tag, markerAttribute, markerValue, valueAttribute] = attributeMarker;
+    const tagPattern = new RegExp(`<${tag}\\b[^>]*\\b${markerAttribute}="${markerValue}"[^>]*>`, 's');
+    const valuePattern = new RegExp(`${valueAttribute}="[^"]*"`);
+    const target = html.match(tagPattern);
+    const desired = replacement.match(valuePattern);
+    if (!target || !desired || !valuePattern.test(target[0])) {
+      throw new Error(`Static metadata marker not found: ${pattern}`);
+    }
+    return html.replace(tagPattern, (tagMarkup) => tagMarkup.replace(valuePattern, desired[0]));
+  }
+  if (!pattern.test(html)) {
+    throw new Error(`Static metadata marker not found: ${pattern}`);
+  }
+  return html.replace(pattern, replacement);
+}
+
+function synchronizeStaticMetadata() {
+  let html = fs.readFileSync(indexPath, "utf8");
+  const title = `${SITE_CONFIG.brandName} | Psicóloga Clínica - Terapia Online`;
+  const description = `${SITE_CONFIG.siteDescription} ${SITE_CONFIG.credential}`;
+  const image = escapeHtml(pageUrl(SITE_CONFIG.defaultImage));
+  html = replaceOnce(html, /<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
+  html = replaceOnce(
+    html,
+    /<meta name="description" content="[^"]*">/,
+    `<meta name="description" content="${escapeHtml(description)}">`,
+  );
+  html = replaceOnce(
+    html,
+    /<meta name="author" content="[^"]*">/,
+    `<meta name="author" content="${escapeHtml(SITE_CONFIG.brandName)}">`,
+  );
+  html = replaceOnce(html, /<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${escapeHtml(pageUrl('/'))}">`);
+  html = replaceOnce(html, /<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escapeHtml(title)}">`);
+  html = replaceOnce(html, /<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escapeHtml(description)}">`);
+  html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${image}">`);
+  html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escapeHtml(title)}">`);
+  html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escapeHtml(description)}">`);
+  html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${image}">`);
+  html = replaceOnce(html, /<meta name="twitter:image:alt" content="[^"]*">/, `<meta name="twitter:image:alt" content="${escapeHtml(SITE_CONFIG.professionalName)}">`);
+  html = replaceOnce(html, /<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${escapeHtml(pageUrl('/'))}">`);
+  fs.writeFileSync(indexPath, html);
+}
+
+function generateRobots() {
+  fs.writeFileSync(
+    robotsPath,
+    `User-agent: *\nAllow: /\nDisallow: /404\n\nSitemap: ${pageUrl("/sitemap.xml")}\n`,
+  );
+}
+
+function generateLlms() {
+  fs.writeFileSync(
+    llmsPath,
+    `# ${SITE_CONFIG.brandName} - Psicóloga Clínica\n\n> ${SITE_CONFIG.siteDescription}\n\n## Páginas Principais\n- [Início](${pageUrl("/")}): Página principal com informações sobre atendimento, serviços e agendamento.\n- [Sobre Mim](${pageUrl("/#sobre-mim")}): Informações profissionais sobre ${SITE_CONFIG.brandName} (${SITE_CONFIG.credential}).\n- [Meus Serviços](${pageUrl("/#meus-servicos")}): Terapia individual, desenvolvimento pessoal, ansiedade e orientação de carreira.\n- [Minha Abordagem](${pageUrl("/#abordagem")}): ${SITE_CONFIG.specialization}.\n- [Vantagens](${pageUrl("/#vantagens")}): Benefícios da terapia online.\n- [Blog](${pageUrl("/blog")}): Artigos sobre psicologia, saúde mental e relacionamentos.\n\n## Contato\n- [WhatsApp](${WHATSAPP_URL}): Agendamento de consultas via WhatsApp.\n`,
+  );
+}
+
 
 function generateSitemap(posts) {
   const urls = STATIC_PAGES.map((page) => `  <url>
@@ -144,9 +375,9 @@ function generateSitemap(posts) {
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>${page.image ? `
     <image:image>
-      <image:loc>${escapeXml(pageUrl(page.image.loc))}</image:loc>
-      <image:title>${escapeXml(page.image.title)}</image:title>
-      <image:caption>${escapeXml(page.image.caption)}</image:caption>
+      <image:loc>${escapeXml(pageUrl(page.path === '/' ? SITE_CONFIG.defaultImage : page.image.loc))}</image:loc>
+      <image:title>${escapeXml(page.path === '/' ? SITE_CONFIG.professionalName : page.image.title)}</image:title>
+      <image:caption>${escapeXml(page.path === '/' ? SITE_CONFIG.specialization : page.image.caption)}</image:caption>
     </image:image>` : ''}
   </url>`);
 
@@ -156,6 +387,20 @@ function generateSitemap(posts) {
     urls.push(`  <url>
     <loc>${escapeXml(pageUrl(`/blog/page/${page}`))}</loc>
     <lastmod>${paginationLastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+  }
+
+  const categories = [...new Map(posts.flatMap(post =>
+    post.categoryDetails.map(category => [category.slug, category]))).values()];
+  for (const category of categories) {
+    const categoryPostCount = posts.filter(post =>
+      post.categoryDetails.some(detail => detail.slug === category.slug)).length;
+    if (categoryPostCount < 2) continue;
+    urls.push(`  <url>
+    <loc>${escapeXml(pageUrl(`/blog/category/${category.slug}`))}</loc>
+    <lastmod>${posts.filter(post => post.categoryDetails.some(detail => detail.slug === category.slug))[0].date.slice(0, 10)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`);
@@ -321,14 +566,8 @@ function generateIndex() {
           continue;
         }
 
-        const categories = Array.isArray(data.categories)
-          ? data.categories
-          : typeof data.categories === "string"
-            ? data.categories
-                .split(",")
-                .map((category) => category.trim())
-                .filter(Boolean)
-            : [];
+        const categories = normalizeCategories(data.categories);
+        const tags = normalizeTags(data.tags, categories);
         const sourceAuthor = data.author;
         let author = null;
         if (sourceAuthor) {
@@ -353,6 +592,7 @@ function generateIndex() {
         const image = data.image
           ? copyReferencedImage(data.image, stagingImagesDir, entry.name)
           : null;
+        const rendered = renderPostMarkdown(content);
         const postData = {
           slug,
           title: data.title,
@@ -367,14 +607,17 @@ function generateIndex() {
           imageWidth: data.imageWidth,
           imageHeight: data.imageHeight,
           categories,
+          tags,
+          categoryDetails: categoryDetails(categories),
           author,
           readTime: calculateReadingTime(content),
+          headings: rendered.headings,
         };
         posts.push(postData);
         fs.writeFileSync(
           path.join(stagingPostsDir, `${slug}.json`),
           JSON.stringify(
-            { ...postData, content: marked.parse(content) },
+            { ...postData, content: rendered.html },
             null,
             2,
           ),
@@ -408,6 +651,11 @@ function generateIndex() {
     replaceFile(stagingRoutesPath, routesPath);
     replaceFile(stagingSitemapPath, sitemapPath);
     replaceFile(stagingFeedPath, feedPath);
+    if (fs.existsSync(indexPath)) {
+      synchronizeStaticMetadata();
+    }
+    generateRobots();
+    generateLlms();
     console.log(
       `[Blog Index Generator] Generated ${posts.length} publishable posts atomically.`,
     );
@@ -425,4 +673,11 @@ if (require.main === module) {
   }
 }
 
-module.exports = { calculateReadingTime, generateFeed, generateIndex, generateSitemap };
+module.exports = {
+  calculateReadingTime,
+  generateFeed,
+  generateIndex,
+  generateRoutesFile,
+  generateSitemap,
+  renderPostMarkdown,
+};

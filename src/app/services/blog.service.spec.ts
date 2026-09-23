@@ -34,6 +34,8 @@ describe('BlogService', () => {
       description: 'd',
       image: null,
       categories: ['Test'],
+      tags: [],
+      categoryDetails: [],
       author: null,
     };
 
@@ -85,6 +87,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
       {
@@ -94,6 +98,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
     ];
@@ -168,6 +174,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
       {
@@ -177,6 +185,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
     ];
@@ -204,6 +214,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A', 'B'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
       {
@@ -213,6 +225,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
       {
@@ -222,6 +236,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A', 'B'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
       {
@@ -231,6 +247,8 @@ describe('BlogService', () => {
         description: 'd',
         image: null,
         categories: ['A', 'B'],
+        tags: [],
+        categoryDetails: [],
         author: null,
       },
     ];

@@ -12,6 +12,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BLOG_ERROR_MESSAGES, BlogService, BlogServiceError } from '../../services/blog.service';
 import {
+  BlogHeading,
   BlogPost,
   blogAbsoluteImageUrl,
   blogDateOnly,
@@ -24,7 +25,7 @@ import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { SITE_URL } from '../../config/contact';
+import { PERSON_NAME, PROFESSIONAL_NAME, SITE_URL } from '../../config/contact';
 
 const BLOG_TITLE_SUFFIX = ' | Blog Natália Ferreira';
 
@@ -68,8 +69,22 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   safeContent: SafeHtml | string | null = null;
   private currentSlug: string | null = null;
 
+  get tocGroups(): { heading: BlogHeading; children: BlogHeading[] }[] {
+    const groups: { heading: BlogHeading; children: BlogHeading[] }[] = [];
+    for (const heading of this.post?.headings ?? []) {
+      if (heading.level === 2 || !groups.length) {
+        groups.push({ heading, children: [] });
+      } else {
+        groups[groups.length - 1].children.push(heading);
+      }
+    }
+    return groups;
+  }
+
   private readonly destroy$ = new Subject<void>();
   private readonly retry$ = new Subject<string>();
+  private fragmentObserver: MutationObserver | null = null;
+  private readonly onHashChange = () => this.resolveFragment();
   protected readonly imageUrl = blogImageUrl;
   protected readonly dateOnly = blogDateOnly;
   protected readonly formatDate = formatBlogDate;
@@ -81,6 +96,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       tap((slug) => (this.currentSlug = slug)),
     );
 
+    if (this.isBrowser) window.addEventListener('hashchange', this.onHashChange);
+    this.route.fragment.pipe(distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => {
+      if (this.isBrowser) setTimeout(() => this.resolveFragment(), 0);
+    });
     merge(routeSlug$, this.retry$)
       .pipe(
         tap((slug) => {
@@ -92,6 +111,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           this.post = null;
           this.safeContent = null;
           this.relatedPosts = [];
+          this.fragmentObserver?.disconnect();
           this.cdr.markForCheck();
         }),
         switchMap((slug) =>
@@ -107,12 +127,13 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       )
       .subscribe((state) => {
         this.loading = false;
-        this.post = state.post;
+        this.post = state.post ? this.normalizePost(state.post) : null;
         this.relatedPosts = state.relatedPosts;
-        this.safeContent = state.post ? this.toSafeHtml(state.post.content as string) : null;
+        this.safeContent = this.post ? this.toSafeHtml(this.post.content as string) : null;
 
-        if (state.post) {
-          this.updateMetaAndStructuredData(state.post);
+        if (this.post) {
+          this.updateMetaAndStructuredData(this.post);
+          this.resolveFragment();
         } else {
           this.handleErrorState(state.error);
         }
@@ -120,10 +141,21 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       });
   }
 
+  private normalizePost(post: BlogPost): BlogPost {
+    return {
+      ...post,
+      categories: post.categories ?? [],
+      tags: post.tags ?? [],
+      categoryDetails: post.categoryDetails ?? [],
+    };
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
     this.retry$.complete();
+    this.fragmentObserver?.disconnect();
+    if (this.isBrowser) window.removeEventListener('hashchange', this.onHashChange);
     this.seoService.removeStructuredData('blog-post');
   }
 
@@ -158,6 +190,39 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     );
   }
 
+  private resolveFragment(): void {
+    if (!this.isBrowser || !window.location.hash) return;
+
+    this.fragmentObserver?.disconnect();
+    const targetId = decodeURIComponent(window.location.hash.slice(1));
+    const article = document.querySelector('article');
+    if (!article) return;
+
+    const scrollToTarget = () => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      this.fragmentObserver?.disconnect();
+      target.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      target.focus({ preventScroll: true });
+    };
+
+    this.fragmentObserver = new MutationObserver(scrollToTarget);
+    this.fragmentObserver.observe(article, { childList: true, subtree: true });
+    scrollToTarget();
+  }
+
+  loadRelatedPosts(slug: string, categories?: string[]): void {
+    this.blogService
+      .getRelatedPosts(slug, categories, 3)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((posts) => {
+        this.relatedPosts = posts;
+        this.cdr.detectChanges();
+      });
+  }
+
   /**
    * Sanitize rendered Markdown HTML before binding it to the view.
    * `marked` passes raw HTML straight through, so its output must be
@@ -184,7 +249,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.safeContent = null;
     this.loading = false;
     this.seoService.updateMetaTags({
-      title: 'Erro | Psicóloga Natalia Ferreira',
+      title: `Erro | Psicóloga ${PERSON_NAME}`,
       description: 'Página não encontrada ou erro ao carregar o artigo.',
       url: `${SITE_URL}/404`,
       robots: 'noindex',
@@ -208,7 +273,9 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: seoDescription,
       socialTitle: post.socialTitle || post.seoTitle || post.title,
       socialDescription: post.socialDescription || post.seoDescription || post.description,
-      keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
+      keywords:
+        [...(post.categories ?? []), ...(post.tags ?? [])].join(', ') +
+        ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       imageWidth: post.imageWidth,
       imageHeight: post.imageHeight,
@@ -217,8 +284,8 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       url: `${SITE_URL}/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
-      author: post.author?.name || 'Natalia Ferreira',
-      tags: post.categories,
+      author: post.author?.name || PERSON_NAME,
+      tags: [...(post.categories ?? []), ...(post.tags ?? [])],
     });
 
     this.seoService.setStructuredData('blog-post', {
@@ -233,12 +300,12 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           datePublished: post.date.toISOString(),
           author: {
             '@type': 'Person',
-            name: post.author?.name || 'Natalia Ferreira',
+            name: post.author?.name || PERSON_NAME,
             url: SITE_URL,
           },
           publisher: {
             '@type': 'Person',
-            name: 'Natalia Ferreira Psicóloga',
+            name: PROFESSIONAL_NAME,
             logo: {
               '@type': 'ImageObject',
               url: `${SITE_URL}/assets/logo.png`,
@@ -249,7 +316,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             '@type': 'WebPage',
             '@id': `${SITE_URL}/blog/${post.slug}`,
           },
-          keywords: post.categories.join(', '),
+          keywords: [...(post.categories ?? []), ...(post.tags ?? [])].join(', '),
         },
         {
           '@type': 'BreadcrumbList',

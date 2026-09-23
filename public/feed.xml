@@ -3,7 +3,7 @@
   <channel>
     <title>Natalia Ferreira | Psicóloga Clínica</title>
     <link>https://psicologanataliaferreira.com/</link>
-    <description>Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal.</description>
+    <description>Psicóloga Clínica especializada em Terapia Relacional Sistêmica. Atendimento online para jovens, adultos e casais.</description>
     <language>pt-BR</language>
     <lastBuildDate>Mon, 21 Apr 2025 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://psicologanataliaferreira.com/feed.xml" rel="self" type="application/rss+xml" />
@@ -14,6 +14,14 @@
       <dc:creator>Natalia Ferreira dos Santos</dc:creator>
       <pubDate>Mon, 21 Apr 2025 00:00:00 GMT</pubDate>
       <description>Uma análise crítica sobre os desafios de carreira para mulheres negras, o impacto da fadiga de batalha racial e como uma orientação profissional antirracista pode promover bem-estar e realização.</description>
+      <category>Carreira</category>
+      <category>Mulheres Negras</category>
+      <category>Interseccionalidade</category>
+      <category>Racismo</category>
+      <category>Racismo de Gênero</category>
+      <category>Fadiga de Batalha Racial</category>
+      <category>Bem-Estar</category>
+      <category>Saúde Mental</category>
     </item>
   </channel>
 </rss>

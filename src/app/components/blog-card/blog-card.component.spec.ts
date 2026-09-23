@@ -12,6 +12,8 @@ describe('BlogCardComponent', () => {
     description: 'Description',
     image: null,
     categories: [],
+    tags: [],
+    categoryDetails: [{ slug: 'carreira', label: 'Carreira', description: 'Vida profissional' }],
     content: '',
     readTime: null,
   };
@@ -40,5 +42,14 @@ describe('BlogCardComponent', () => {
 
     expect(fixture.nativeElement.querySelector('h2')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('h3')).toBeNull();
+  });
+
+  it('links registered categories from the shared card', () => {
+    fixture = TestBed.createComponent(BlogCardComponent);
+    fixture.componentInstance.post = post;
+    fixture.detectChanges();
+
+    const category = fixture.nativeElement.querySelector('a[href="/blog/categoria/carreira"]');
+    expect(category?.textContent.trim()).toBe('Carreira');
   });
 });

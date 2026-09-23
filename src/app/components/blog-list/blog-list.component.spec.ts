@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Params, Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Params, Router, convertToParamMap, provideRouter } from '@angular/router';
+import { Meta, Title } from '@angular/platform-browser';
 import { ReplaySubject, Observable, of, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -18,6 +19,8 @@ const post = (slug: string) => ({
   description: 'description',
   image: null,
   categories: [slug],
+  tags: [],
+  categoryDetails: [],
   content: '',
   readTime: 1,
 });
@@ -45,6 +48,51 @@ async function createReactiveFixture(
 }
 
 describe('BlogListComponent reactive state', () => {
+  it('updates category results and SEO when the same component receives a new route slug', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    const routeParams$ = new ReplaySubject<ReturnType<typeof convertToParamMap>>(1);
+    queryParams$.next({});
+    routeParams$.next(convertToParamMap({ category: 'carreira' }));
+    await TestBed.configureTestingModule({
+      imports: [BlogListComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: queryParams$.asObservable(),
+            paramMap: routeParams$.asObservable(),
+            snapshot: { paramMap: convertToParamMap({ category: 'carreira' }) },
+          },
+        },
+        {
+          provide: BlogService,
+          useValue: {
+            getPostsList: (category: string) =>
+              of([post(category === 'Carreira' ? 'career' : 'psychology')]),
+            getAllCategories: () => of(['Carreira', 'Psicologia']),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(BlogListComponent);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.selectedCategory).toBe('Carreira');
+    expect(fixture.componentInstance.displayedPosts[0]?.slug).toBe('career');
+
+    routeParams$.next(convertToParamMap({ category: 'psicologia' }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.selectedCategory).toBe('Psicologia');
+    expect(fixture.componentInstance.displayedPosts[0]?.slug).toBe('psychology');
+    expect(TestBed.inject(Title).getTitle()).toContain('Psicologia');
+    expect(TestBed.inject(Meta).getTag('name="robots"')?.content).toBe('noindex,follow');
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://psicologanataliaferreira.com/blog/category/psicologia',
+    );
+    fixture.destroy();
+  });
+
   it('cancels stale filter work when a newer selection arrives', async () => {
     vi.useFakeTimers();
     try {
