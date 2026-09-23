@@ -97,3 +97,11 @@ test("client route navigation focuses the new page heading and announces it", as
     "Navegação concluída",
   );
 });
+
+
+test("routed pages expose one main landmark", async ({ page }) => {
+  for (const route of ["/", "/blog", "/terapia-online", "/contato-e-privacidade"]) {
+    await page.goto(route);
+    await expect(page.locator("main")).toHaveCount(1);
+  }
+});
