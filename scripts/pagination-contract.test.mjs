@@ -26,7 +26,7 @@ assert.match(
   component,
   /robots:\s*\(isCategoryRoute && content\.posts\.length < 2\) \|\| hasAlternateView\s*\? 'noindex,follow'/,
 );
-assert.match(template, /<a \[routerLink\]="pageUrl\(pageNum\)"/);
+assert.match(template, /<a\s+\[routerLink\]="pageUrl\(pageNum\)"/);
 assert.doesNotMatch(template, /<button[^>]*onPageChange/);
 
 console.log('Crawlable pagination contract passed.');
