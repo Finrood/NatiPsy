@@ -88,6 +88,81 @@ function validateStaticPages(pages) {
 }
 
 validateStaticPages(STATIC_PAGES);
+const CATEGORY_REGISTRY = new Map([
+  ['carreira', {
+    slug: 'carreira',
+    label: 'Carreira',
+    description: 'Reflexões e ferramentas para escolhas, transições e desenvolvimento profissional.',
+    aliases: ['carreira', 'desenvolvimento profissional'],
+  }],
+  ['psicologia', {
+    slug: 'psicologia',
+    label: 'Psicologia',
+    description: 'Conteúdos sobre saúde mental, relações e desenvolvimento pessoal.',
+    aliases: ['psicologia', 'saúde mental'],
+  }],
+  ['orientacao profissional', {
+    slug: 'orientacao-profissional',
+    label: 'Orientação Profissional',
+    description: 'Apoio para construir percursos profissionais alinhados a valores e possibilidades.',
+    aliases: ['orientação profissional', 'orientacao profissional'],
+  }],
+]);
+
+const normalizeKey = (value) => String(value)
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .trim()
+  .replace(/\s+/g, ' ')
+  .toLowerCase();
+
+const CATEGORY_ALIASES = new Map(
+  [...CATEGORY_REGISTRY.values()].flatMap(category =>
+    category.aliases.map(alias => [normalizeKey(alias), category])),
+);
+
+function normalizeLabels(value, fieldName) {
+  const values = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  const labels = values.map(label => String(label).trim()).filter(Boolean);
+  const seen = new Set();
+  return labels.map(label => {
+    const key = normalizeKey(label);
+    if (seen.has(key)) throw new Error(`Duplicate ${fieldName}: ${label}`);
+    seen.add(key);
+    return label;
+  });
+}
+
+function normalizeCategories(value) {
+  const labels = normalizeLabels(value, 'category');
+  if (labels.length < 1 || labels.length > 3) {
+    throw new Error('Each post must have between one and three primary categories.');
+  }
+  const seen = new Set();
+  return labels.map(label => {
+    const category = CATEGORY_ALIASES.get(normalizeKey(label));
+    if (!category) throw new Error(`Unknown primary category: ${label}`);
+    if (seen.has(category.slug)) throw new Error(`Duplicate category: ${label}`);
+    seen.add(category.slug);
+    return category.label;
+  });
+}
+
+function normalizeTags(value, categories) {
+  const tags = normalizeLabels(value, 'tag');
+  const categoryKeys = new Set(categories.map(category => normalizeKey(category)));
+  if (tags.some(tag => categoryKeys.has(normalizeKey(tag)))) {
+    throw new Error('A label cannot be both a primary category and a tag.');
+  }
+  return tags;
+}
+
+function categoryDetails(categories) {
+  return categories.map(label => {
+    const category = CATEGORY_ALIASES.get(normalizeKey(label));
+    return { slug: category.slug, label: category.label, description: category.description };
+  });
+}
 
 function calculateReadingTime(content) {
   if (!content) return 0;
@@ -124,9 +199,12 @@ function generateRoutesFile(posts) {
     { length: Math.max(0, pageCount - 1) },
     (_, index) => `/blog/page/${index + 2}`,
   );
+  const categoryRoutes = [...new Set(posts.flatMap(post =>
+    post.categoryDetails.map(category => `/blog/category/${category.slug}`)))];
   return [
     ...STATIC_PAGES.map(page => page.path),
     ...pageRoutes,
+    ...categoryRoutes,
     ...posts.map(post => `/blog/${post.slug}`),
   ].join('\n') + '\n';
 }
@@ -143,12 +221,15 @@ function generateFeed(posts) {
     const author = post.author?.name
       ? `\n      <dc:creator>${escapeXml(post.author.name)}</dc:creator>`
       : "";
+    const taxonomy = [...post.categories, ...post.tags]
+      .map((label) => `\n      <category>${escapeXml(label)}</category>`)
+      .join("");
     return `    <item>
       <title>${escapeXml(post.title)}</title>
       <link>${escapeXml(postUrl)}</link>
       <guid isPermaLink="true">${escapeXml(postUrl)}</guid>${author}
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
-      <description>${escapeXml(post.description)}</description>
+      <description>${escapeXml(post.description)}</description>${taxonomy}
     </item>`;
   }).join("\n");
   const latestDate = posts[0]?.date
@@ -294,6 +375,20 @@ function generateSitemap(posts) {
     urls.push(`  <url>
     <loc>${escapeXml(pageUrl(`/blog/page/${page}`))}</loc>
     <lastmod>${paginationLastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+  }
+
+  const categories = [...new Map(posts.flatMap(post =>
+    post.categoryDetails.map(category => [category.slug, category]))).values()];
+  for (const category of categories) {
+    const categoryPostCount = posts.filter(post =>
+      post.categoryDetails.some(detail => detail.slug === category.slug)).length;
+    if (categoryPostCount < 2) continue;
+    urls.push(`  <url>
+    <loc>${escapeXml(pageUrl(`/blog/category/${category.slug}`))}</loc>
+    <lastmod>${posts.filter(post => post.categoryDetails.some(detail => detail.slug === category.slug))[0].date.slice(0, 10)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`);
@@ -459,14 +554,8 @@ function generateIndex() {
           continue;
         }
 
-        const categories = Array.isArray(data.categories)
-          ? data.categories
-          : typeof data.categories === "string"
-            ? data.categories
-                .split(",")
-                .map((category) => category.trim())
-                .filter(Boolean)
-            : [];
+        const categories = normalizeCategories(data.categories);
+        const tags = normalizeTags(data.tags, categories);
         const sourceAuthor = data.author;
         let author = null;
         if (sourceAuthor) {
@@ -506,6 +595,8 @@ function generateIndex() {
           imageWidth: data.imageWidth,
           imageHeight: data.imageHeight,
           categories,
+          tags,
+          categoryDetails: categoryDetails(categories),
           author,
           readTime: calculateReadingTime(content),
           headings: rendered.headings,
@@ -574,6 +665,7 @@ module.exports = {
   calculateReadingTime,
   generateFeed,
   generateIndex,
+  generateRoutesFile,
   generateSitemap,
   renderPostMarkdown,
 };

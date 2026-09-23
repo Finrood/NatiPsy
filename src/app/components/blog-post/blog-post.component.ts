@@ -137,20 +137,29 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       )
       .subscribe((state) => {
         this.loading = false;
-        this.post = state.post;
+        this.post = state.post ? this.normalizePost(state.post) : null;
         this.relatedPosts = state.relatedPosts;
-        this.safeContent = state.post
-          ? this.toSafeHtml(state.post.content as string)
+        this.safeContent = this.post
+          ? this.toSafeHtml(this.post.content as string)
           : null;
 
-        if (state.post) {
-          this.updateMetaAndStructuredData(state.post);
+        if (this.post) {
+          this.updateMetaAndStructuredData(this.post);
           this.resolveFragment();
         } else {
           this.handleErrorState(state.error);
         }
         this.cdr.markForCheck();
       });
+  }
+
+  private normalizePost(post: BlogPost): BlogPost {
+    return {
+      ...post,
+      categories: post.categories ?? [],
+      tags: post.tags ?? [],
+      categoryDetails: post.categoryDetails ?? [],
+    };
   }
 
   ngOnDestroy(): void {
@@ -277,7 +286,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: seoDescription,
       socialTitle: post.socialTitle || post.seoTitle || post.title,
       socialDescription: post.socialDescription || post.seoDescription || post.description,
-      keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
+      keywords: [...(post.categories ?? []), ...(post.tags ?? [])].join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       imageWidth: post.imageWidth,
       imageHeight: post.imageHeight,
@@ -287,7 +296,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
       author: post.author?.name || PERSON_NAME,
-      tags: post.categories
+      tags: [...(post.categories ?? []), ...(post.tags ?? [])]
     });
 
     this.seoService.setStructuredData('blog-post', {
@@ -318,7 +327,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
             '@type': 'WebPage',
             '@id': `${SITE_URL}/blog/${post.slug}`,
           },
-          keywords: post.categories.join(', '),
+          keywords: [...(post.categories ?? []), ...(post.tags ?? [])].join(', '),
         },
         {
           '@type': 'BreadcrumbList',

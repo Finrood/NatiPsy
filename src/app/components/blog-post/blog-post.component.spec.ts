@@ -46,6 +46,8 @@ describe('BlogPostComponent', () => {
       description: 'Lead',
       image: null,
       categories: [],
+      tags: [],
+      categoryDetails: [],
       content: '',
       readTime: 1,
       headings: [
@@ -100,6 +102,8 @@ describe('BlogPostComponent', () => {
       description: 'Editorial description',
       image: null,
       categories: ['Carreira'],
+      tags: [],
+      categoryDetails: [{ slug: 'carreira', label: 'Carreira', description: 'Carreira' }],
       content: '<p>content</p>',
       readTime: 1,
     });
@@ -119,6 +123,8 @@ describe('BlogPostComponent reused route state', () => {
     description: 'd',
     image: null,
     categories: ['c'],
+    tags: [],
+    categoryDetails: [],
     content: '<p>content</p>',
     readTime: 1,
   });

@@ -34,6 +34,8 @@ describe('BlogService', () => {
       description: 'd',
       image: null,
       categories: ['Test'],
+      tags: [],
+      categoryDetails: [],
       author: null
     };
 
@@ -76,8 +78,8 @@ describe('BlogService', () => {
 
   it('does not expose the mutable cache through sorted results', () => {
     const index = [
-      { slug: 'zeta', title: 'Zeta', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-      { slug: 'alpha', title: 'Alpha', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
+      { slug: 'zeta', title: 'Zeta', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], tags: [], categoryDetails: [], author: null },
+      { slug: 'alpha', title: 'Alpha', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], tags: [], categoryDetails: [], author: null },
     ];
     let firstResult: BlogPost[] = [];
     service.getPostsList().subscribe(posts => { firstResult = posts; });
@@ -126,8 +128,8 @@ describe('BlogService', () => {
 
   it('does not expose mutable dates through related-post results', () => {
     const index = [
-      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-      { slug: 'related', title: 'Related', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
+      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A'], tags: [], categoryDetails: [], author: null },
+      { slug: 'related', title: 'Related', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A'], tags: [], categoryDetails: [], author: null },
     ];
 
     let firstResult: BlogPost[] = [];
@@ -142,10 +144,10 @@ describe('BlogService', () => {
 
   it('ranks related posts by shared categories, date, then slug', () => {
     const index = [
-      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], author: null },
-      { slug: 'one-shared', title: 'One', date: new Date('2025-03-01').toISOString(), description: 'd', image: null, categories: ['A'], author: null },
-      { slug: 'two-shared-old', title: 'Two', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], author: null },
-      { slug: 'two-shared-new', title: 'Three', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], author: null },
+      { slug: 'current', title: 'Current', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], tags: [], categoryDetails: [], author: null },
+      { slug: 'one-shared', title: 'One', date: new Date('2025-03-01').toISOString(), description: 'd', image: null, categories: ['A'], tags: [], categoryDetails: [], author: null },
+      { slug: 'two-shared-old', title: 'Two', date: new Date('2025-01-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], tags: [], categoryDetails: [], author: null },
+      { slug: 'two-shared-new', title: 'Three', date: new Date('2025-02-01').toISOString(), description: 'd', image: null, categories: ['A', 'B'], tags: [], categoryDetails: [], author: null },
     ];
     let related: BlogPost[] = [];
     service.getRelatedPosts('current', ['A', 'B'], 3).subscribe(posts => { related = posts; });

@@ -44,6 +44,13 @@ export const routes: Routes = [
         path: 'page/:page',
         loadComponent: () =>
           import('./components/blog-list/blog-list.component').then(
+            (m) => m.BlogListComponent,
+          ),
+      },
+      {
+        path: 'category/:category',
+        loadComponent: () =>
+          import('./components/blog-list/blog-list.component').then(
             (m) => m.BlogListComponent
           ),
       },

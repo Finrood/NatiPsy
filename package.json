@@ -31,6 +31,7 @@
     "test:route-focus": "node ./scripts/route-focus-contract.test.mjs",
     "test:search-content": "node ./scripts/search-content-architecture.test.mjs",
     "test:accessibility-interactions": "node ./scripts/accessibility-interactions.test.mjs",
+    "test:taxonomy": "node ./scripts/taxonomy-contract.test.mjs",
     "assert:public-content": "node scripts/assert-public-content.mjs",
     "test:hydration-cache": "node ./scripts/hydration-cache-contract.test.mjs",
     "test:hydration-render": "node scripts/hydration-render-contract.mjs",

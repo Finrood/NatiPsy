@@ -90,12 +90,18 @@ interface BlogContentState {
 
 interface BlogListViewModel extends BlogContentState, BlogQueryState {
   displayedPosts: BlogPost[];
+  categoryRouteSlug: string | null;
   totalItems: number;
   totalPages: number;
 }
 
 const validSortFields = new Set<BlogSortBy>(['date', 'title']);
 const validSortDirections = new Set<BlogSortDirection>(['asc', 'desc']);
+const categoryLabelsBySlug: Record<string, string> = {
+  carreira: 'Carreira',
+  psicologia: 'Psicologia',
+  'orientacao-profissional': 'Orientação Profissional',
+};
 
 const initialQueryState: BlogQueryState = {
   page: 1,
@@ -247,14 +253,31 @@ export class BlogListComponent implements OnInit {
   private readonly rawQueryParams$ = this.route.queryParams.pipe(
     shareReplay({ bufferSize: 1, refCount: true }),
   );
-  private readonly rawRoutePage$ = (this.route.paramMap ?? of(null)).pipe(
+  private readonly rawParamMap$ = (this.route.paramMap ?? of(null)).pipe(
+    startWith(this.route.snapshot?.paramMap ?? null),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  private readonly rawRoutePage$ = this.rawParamMap$.pipe(
     map((params) => params?.get('page') ?? null),
-    startWith(this.route.snapshot?.paramMap?.get('page') ?? null),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
-  private readonly queryState$ = this.rawQueryParams$.pipe(
-    map(parseBlogQueryParams),
+  private readonly rawCategorySlug$ = this.rawParamMap$.pipe(
+    map((params) => params?.get('category') ?? null),
+    distinctUntilChanged(),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  private readonly queryState$ = combineLatest({
+    params: this.rawQueryParams$,
+    categorySlug: this.rawCategorySlug$,
+  }).pipe(
+    map(({ params, categorySlug }) => {
+      const state = parseBlogQueryParams(params);
+      const routeCategory = categorySlug
+        ? categoryLabelsBySlug[categorySlug]
+        : undefined;
+      return routeCategory ? { ...state, category: routeCategory } : state;
+    }),
     distinctUntilChanged(sameQuery),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -336,13 +359,14 @@ export class BlogListComponent implements OnInit {
     combineLatest({
       rawParams: this.rawQueryParams$,
       rawPage: this.rawRoutePage$,
+      categorySlug: this.rawCategorySlug$,
       query: this.effectiveQueryState$,
       content: this.contentState$,
     }).pipe(
-      map(({ rawParams, rawPage, query, content }): BlogListViewModel => {
+      map(({ rawParams, rawPage, categorySlug, query, content }): BlogListViewModel => {
         const rawQuery = parseBlogQueryParams(rawParams);
         const queryParamsSettled =
-          rawQuery.category === query.category &&
+          (Boolean(categorySlug) || rawQuery.category === query.category) &&
           rawQuery.sortBy === query.sortBy &&
           rawQuery.sortDirection === query.sortDirection;
         const totalItems = content.posts.length;
@@ -350,6 +374,10 @@ export class BlogListComponent implements OnInit {
         const routePage = parseBlogPage(rawPage);
         const requestedPage =
           routePage !== null && routePage > 0 ? routePage : query.page;
+        const unknownCategoryRoute = Boolean(
+          categorySlug &&
+            !categoryLabelsBySlug[categorySlug],
+        );
         const invalidPage =
           routePage === -1 ||
           (!content.loading &&
@@ -359,22 +387,26 @@ export class BlogListComponent implements OnInit {
           content.loading || invalidPage
             ? { ...query, page: requestedPage }
             : normalizeBlogQueryState(query, totalPages, content.categories);
-        const pageError = invalidPage
-          ? 'Esta página do blog não foi encontrada.'
-          : null;
+        const pageError =
+          invalidPage || unknownCategoryRoute
+            ? 'Esta página do blog não foi encontrada.'
+            : null;
+        const isCategoryRoute = Boolean(categorySlug);
         const hasAlternateView = Boolean(
           pageError ||
-          query.category ||
+          (!isCategoryRoute && query.category) ||
           query.sortBy !== 'date' ||
           query.sortDirection !== 'desc',
         );
         const serializedQuery = blogQueryParams({
           ...normalizedQuery,
           page: 1,
+          category: isCategoryRoute ? '' : normalizedQuery.category,
         });
         if (
           queryParamsSettled &&
           !content.loading &&
+          !isCategoryRoute &&
           rawPage === null &&
           query.page > 1
         ) {
@@ -396,7 +428,10 @@ export class BlogListComponent implements OnInit {
           const normalizedParams =
             rawPage !== null
               ? serializedQuery
-              : blogQueryParams(normalizedQuery);
+              : blogQueryParams({
+                  ...normalizedQuery,
+                  category: isCategoryRoute ? '' : normalizedQuery.category,
+                });
           if (!queryIsCanonical(rawParams, normalizedParams)) {
             this.router.navigate([], {
               relativeTo: this.route,
@@ -405,17 +440,28 @@ export class BlogListComponent implements OnInit {
             });
           }
         }
-        if (this.router.url.split(/[?#]/)[0].startsWith('/blog')) {
+        const categoryLabel = categorySlug
+          ? categoryLabelsBySlug[categorySlug]
+          : undefined;
+        const categoryUrl = categorySlug
+          ? `/blog/category/${categorySlug}`
+          : null;
+        if (categorySlug || this.router.url.split(/[?#]/)[0].startsWith('/blog')) {
           this.seoService.updateMetaTags({
-            title:
-              requestedPage === 1
+            title: categoryLabel
+              ? `${categoryLabel} | Blog ${PERSON_NAME}`
+              : requestedPage === 1
                 ? `Blog | Psicóloga ${PERSON_NAME}`
                 : `Blog — Página ${requestedPage} | Psicóloga ${PERSON_NAME}`,
             description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
             keywords:
               'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-            url: `${SITE_URL}${requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog'}`,
-            robots: hasAlternateView ? 'noindex,follow' : undefined,
+            url: `${SITE_URL}${categoryUrl ?? (requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog')}`,
+            // Category pages stay crawlable but noindex until they contain enough posts.
+            robots:
+              (isCategoryRoute && content.posts.length < 2) || hasAlternateView
+                ? 'noindex,follow'
+                : undefined,
           });
         }
         const visiblePosts = pageError
@@ -428,6 +474,7 @@ export class BlogListComponent implements OnInit {
         return {
           ...normalizedQuery,
           ...content,
+          categoryRouteSlug: categorySlug,
           error: pageError ?? content.error,
           errorRetryable: !pageError && content.errorRetryable,
           totalItems,
@@ -440,6 +487,7 @@ export class BlogListComponent implements OnInit {
       initialValue: {
         ...initialQueryState,
         ...initialContentState,
+        categoryRouteSlug: null,
         displayedPosts: [],
         totalItems: 0,
         totalPages: 0,
@@ -491,7 +539,7 @@ export class BlogListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.router.url.split(/[?#]/)[0].startsWith('/blog')) {
+    if (this.router.url.split(/[?#]/)[0] === '/blog') {
       this.seoService.updateMetaTags({
         title: `Blog | Psicóloga ${PERSON_NAME}`,
         description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
@@ -525,6 +573,22 @@ export class BlogListComponent implements OnInit {
       : 'smooth';
   }
   onCategoryChange(category: string): void {
+    if (this.viewModel().categoryRouteSlug) {
+      const slug = Object.entries(categoryLabelsBySlug)
+        .find(([, label]) => label === category)?.[0];
+      const current = this.viewModel();
+      this.router.navigate(
+        slug ? ['/blog/category', slug] : ['/blog'],
+        {
+          queryParams: blogQueryParams({
+            ...current,
+            category: '',
+            page: 1,
+          }),
+        },
+      );
+      return;
+    }
     this.navigate({ category, page: 1 });
   }
   onSortChange(sortBy: string): void {
@@ -579,7 +643,7 @@ export class BlogListComponent implements OnInit {
       relativeTo: this.route,
       queryParams: blogQueryParams({
         page: current.page,
-        category: current.category,
+        category: current.categoryRouteSlug ? '' : current.category,
         sortBy: current.sortBy,
         sortDirection: current.sortDirection,
         ...changes,

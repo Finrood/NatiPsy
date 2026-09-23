@@ -123,7 +123,7 @@ try {
     instagramUrl: 'https://www.instagram.com/example/',
   };
   await writeFile(fixtureConfigPath, JSON.stringify(replacementConfig, null, 2));
-  await writeFile(join(fixtureContentDir, 'example.md'), `---\ntitle: Example\ndate: 2026-01-01\ndescription: Example\ncategories:\n  - Example\n---\n\nContent\n`);
+  await writeFile(join(fixtureContentDir, 'example.md'), `---\ntitle: Example\ndate: 2026-01-01\ndescription: Example\ncategories:\n  - Carreira\n---\n\nContent\n`);
 
   runGenerator();
   const generatedFiles = await Promise.all([

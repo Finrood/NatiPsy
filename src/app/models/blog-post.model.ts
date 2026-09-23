@@ -7,6 +7,12 @@ export interface BlogPostAuthor {
   avatar?: string;
 }
 
+export interface BlogCategory {
+  slug: string;
+  label: string;
+  description: string;
+}
+
 export interface BlogHeading {
   id: string;
   text: string;
@@ -30,6 +36,8 @@ export interface BlogPost {
   imageWidth?: number;
   imageHeight?: number;
   categories: string[];
+  tags: string[];
+  categoryDetails: BlogCategory[];
   content: string | SafeHtml;
   readTime: number | null;
   headings?: BlogHeading[];
