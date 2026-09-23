@@ -42,7 +42,8 @@ assert.doesNotMatch(
   /\/blog\/category\/carreira/,
   'a category with one article must stay out of the sitemap',
 );
-assert.match(archiveComponent, /isCategoryRoute \|\| hasAlternateView \? 'noindex,follow'/);
+assert.match(archiveComponent, /rawCategorySlug\$ = this\.rawParamMap\$\.pipe/);
+assert.match(archiveComponent, /isCategoryRoute && content\.posts\.length < 2/);
 for (const label of [...generatedPost.categories, ...generatedPost.tags]) {
   assert.ok(feed.includes(`<category>${label}</category>`), `${label} should be normalized into RSS`);
 }

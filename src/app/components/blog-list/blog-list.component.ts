@@ -90,6 +90,7 @@ interface BlogContentState {
 
 interface BlogListViewModel extends BlogContentState, BlogQueryState {
   displayedPosts: BlogPost[];
+  categoryRouteSlug: string | null;
   totalItems: number;
   totalPages: number;
 }
@@ -252,17 +253,28 @@ export class BlogListComponent implements OnInit {
   private readonly rawQueryParams$ = this.route.queryParams.pipe(
     shareReplay({ bufferSize: 1, refCount: true }),
   );
-  private readonly rawRoutePage$ = (this.route.paramMap ?? of(null)).pipe(
+  private readonly rawParamMap$ = (this.route.paramMap ?? of(null)).pipe(
+    startWith(this.route.snapshot?.paramMap ?? null),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  private readonly rawRoutePage$ = this.rawParamMap$.pipe(
     map((params) => params?.get('page') ?? null),
-    startWith(this.route.snapshot?.paramMap?.get('page') ?? null),
     distinctUntilChanged(),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
-  private readonly queryState$ = this.rawQueryParams$.pipe(
-    map((params) => {
+  private readonly rawCategorySlug$ = this.rawParamMap$.pipe(
+    map((params) => params?.get('category') ?? null),
+    distinctUntilChanged(),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+  private readonly queryState$ = combineLatest({
+    params: this.rawQueryParams$,
+    categorySlug: this.rawCategorySlug$,
+  }).pipe(
+    map(({ params, categorySlug }) => {
       const state = parseBlogQueryParams(params);
-      const routeCategory = this.categoryRouteSlug
-        ? categoryLabelsBySlug[this.categoryRouteSlug]
+      const routeCategory = categorySlug
+        ? categoryLabelsBySlug[categorySlug]
         : undefined;
       return routeCategory ? { ...state, category: routeCategory } : state;
     }),
@@ -347,13 +359,14 @@ export class BlogListComponent implements OnInit {
     combineLatest({
       rawParams: this.rawQueryParams$,
       rawPage: this.rawRoutePage$,
+      categorySlug: this.rawCategorySlug$,
       query: this.effectiveQueryState$,
       content: this.contentState$,
     }).pipe(
-      map(({ rawParams, rawPage, query, content }): BlogListViewModel => {
+      map(({ rawParams, rawPage, categorySlug, query, content }): BlogListViewModel => {
         const rawQuery = parseBlogQueryParams(rawParams);
         const queryParamsSettled =
-          rawQuery.category === query.category &&
+          (Boolean(categorySlug) || rawQuery.category === query.category) &&
           rawQuery.sortBy === query.sortBy &&
           rawQuery.sortDirection === query.sortDirection;
         const totalItems = content.posts.length;
@@ -362,8 +375,8 @@ export class BlogListComponent implements OnInit {
         const requestedPage =
           routePage !== null && routePage > 0 ? routePage : query.page;
         const unknownCategoryRoute = Boolean(
-          this.categoryRouteSlug &&
-            !categoryLabelsBySlug[this.categoryRouteSlug],
+          categorySlug &&
+            !categoryLabelsBySlug[categorySlug],
         );
         const invalidPage =
           routePage === -1 ||
@@ -378,7 +391,7 @@ export class BlogListComponent implements OnInit {
           invalidPage || unknownCategoryRoute
             ? 'Esta página do blog não foi encontrada.'
             : null;
-        const isCategoryRoute = Boolean(this.categoryRouteSlug);
+        const isCategoryRoute = Boolean(categorySlug);
         const hasAlternateView = Boolean(
           pageError ||
           (!isCategoryRoute && query.category) ||
@@ -427,11 +440,11 @@ export class BlogListComponent implements OnInit {
             });
           }
         }
-        const categoryLabel = this.categoryRouteSlug
-          ? categoryLabelsBySlug[this.categoryRouteSlug]
+        const categoryLabel = categorySlug
+          ? categoryLabelsBySlug[categorySlug]
           : undefined;
-        const categoryUrl = this.categoryRouteSlug
-          ? `/blog/category/${this.categoryRouteSlug}`
+        const categoryUrl = categorySlug
+          ? `/blog/category/${categorySlug}`
           : null;
         this.seoService.updateMetaTags({
           title:
@@ -448,7 +461,8 @@ export class BlogListComponent implements OnInit {
           // Category landing pages remain crawlable through internal links but
           // are noindex while the registry has fewer than two posts per page.
           robots:
-            isCategoryRoute || hasAlternateView ? 'noindex,follow' : undefined,
+            (isCategoryRoute && content.posts.length < 2) || hasAlternateView
+              ? 'noindex,follow' : undefined,
         });
         const visiblePosts = pageError
           ? []
@@ -460,6 +474,7 @@ export class BlogListComponent implements OnInit {
         return {
           ...normalizedQuery,
           ...content,
+          categoryRouteSlug: categorySlug,
           error: pageError ?? content.error,
           errorRetryable: !pageError && content.errorRetryable,
           totalItems,
@@ -472,6 +487,7 @@ export class BlogListComponent implements OnInit {
       initialValue: {
         ...initialQueryState,
         ...initialContentState,
+        categoryRouteSlug: null,
         displayedPosts: [],
         totalItems: 0,
         totalPages: 0,
@@ -559,6 +575,22 @@ export class BlogListComponent implements OnInit {
       : 'smooth';
   }
   onCategoryChange(category: string): void {
+    if (this.viewModel().categoryRouteSlug) {
+      const slug = Object.entries(categoryLabelsBySlug)
+        .find(([, label]) => label === category)?.[0];
+      const current = this.viewModel();
+      this.router.navigate(
+        slug ? ['/blog/category', slug] : ['/blog'],
+        {
+          queryParams: blogQueryParams({
+            ...current,
+            category: '',
+            page: 1,
+          }),
+        },
+      );
+      return;
+    }
     this.navigate({ category, page: 1 });
   }
   onSortChange(sortBy: string): void {
@@ -613,7 +645,7 @@ export class BlogListComponent implements OnInit {
       relativeTo: this.route,
       queryParams: blogQueryParams({
         page: current.page,
-        category: current.category,
+        category: current.categoryRouteSlug ? '' : current.category,
         sortBy: current.sortBy,
         sortDirection: current.sortDirection,
         ...changes,
