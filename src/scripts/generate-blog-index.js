@@ -22,6 +22,28 @@ const feedPath = configuredPath("BLOG_FEED_PATH", path.join(projectRoot, "public
 const SITE_URL = "https://psicologanataliaferreira.com";
 const POSTS_PER_PAGE = 6;
 
+const STATIC_PAGES = require("../content/static-pages.json");
+
+function validateStaticPages(pages) {
+  if (!Array.isArray(pages) || pages.length === 0) {
+    throw new Error("Static page content must be a nonempty array");
+  }
+  const routes = new Set();
+  for (const page of pages) {
+    if (typeof page.path !== "string" || !page.path.startsWith("/")) {
+      throw new Error("Every static page must have a root-relative path");
+    }
+    if (routes.has(page.path)) throw new Error(`Duplicate static page path: ${page.path}`);
+    routes.add(page.path);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(page.reviewedAt) || Number.isNaN(Date.parse(`${page.reviewedAt}T00:00:00Z`))) {
+      throw new Error(`Invalid reviewedAt date for ${page.path}`);
+    }
+  }
+  return pages;
+}
+
+validateStaticPages(STATIC_PAGES);
+
 function calculateReadingTime(content) {
   if (!content) return 0;
   const wordsPerMinute = 200;
@@ -49,6 +71,19 @@ function escapeXml(value) {
 
 function pageUrl(route) {
   return `${SITE_URL}${route}`;
+}
+
+function generateRoutesFile(posts) {
+  const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const pageRoutes = Array.from(
+    { length: Math.max(0, pageCount - 1) },
+    (_, index) => `/blog/page/${index + 2}`,
+  );
+  return [
+    ...STATIC_PAGES.map(page => page.path),
+    ...pageRoutes,
+    ...posts.map(post => `/blog/${post.slug}`),
+  ].join('\n') + '\n';
 }
 
 function imageUrl(post) {
@@ -103,34 +138,24 @@ function optionalDiscoveryText(data, file, field, maxLength) {
 }
 
 function generateSitemap(posts) {
-  const lastSiteUpdate = posts.length
-    ? posts[0].date.slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
-  const urls = [
-    `  <url>
-    <loc>${escapeXml(pageUrl("/"))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+  const urls = STATIC_PAGES.map((page) => `  <url>
+    <loc>${escapeXml(pageUrl(page.path))}</loc>
+    <lastmod>${page.reviewedAt}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>${page.image ? `
     <image:image>
-      <image:loc>${escapeXml(pageUrl("/assets/NatiHero.webp"))}</image:loc>
-      <image:title>Natalia Ferreira - Psicóloga Clínica</image:title>
-      <image:caption>Psicóloga especializada em Terapia Relacional Sistêmica</image:caption>
-    </image:image>
-  </url>`,
-    `  <url>
-    <loc>${escapeXml(pageUrl("/blog"))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`,
-  ];
+      <image:loc>${escapeXml(pageUrl(page.image.loc))}</image:loc>
+      <image:title>${escapeXml(page.image.title)}</image:title>
+      <image:caption>${escapeXml(page.image.caption)}</image:caption>
+    </image:image>` : ''}
+  </url>`);
 
   const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const paginationLastmod = posts[0]?.date.slice(0, 10) ?? '2025-04-21';
   for (let page = 2; page <= pageCount; page++) {
     urls.push(`  <url>
     <loc>${escapeXml(pageUrl(`/blog/page/${page}`))}</loc>
-    <lastmod>${lastSiteUpdate}</lastmod>
+    <lastmod>${paginationLastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`);
@@ -364,22 +389,13 @@ function generateIndex() {
     posts.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-    const pageCount = Math.ceil(posts.length / POSTS_PER_PAGE);
     fs.writeFileSync(
       path.join(stagingBlogDir, "index.json"),
       JSON.stringify(posts, null, 2),
     );
     fs.writeFileSync(
       stagingRoutesPath,
-      [
-        "/",
-        "/blog",
-        ...Array.from(
-          { length: Math.max(0, pageCount - 1) },
-          (_, index) => `/blog/page/${index + 2}`,
-        ),
-        ...posts.map((post) => `/blog/${post.slug}`),
-      ].join("\n") + "\n",
+      generateRoutesFile(posts),
     );
     fs.writeFileSync(stagingSitemapPath, generateSitemap(posts));
     fs.writeFileSync(stagingFeedPath, generateFeed(posts));

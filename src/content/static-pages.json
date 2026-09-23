@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/",
+    "reviewedAt": "2026-09-12",
+    "changefreq": "weekly",
+    "priority": "1.0",
+    "image": {
+      "loc": "/assets/NatiHero.webp",
+      "title": "Natalia Ferreira - Psicóloga Clínica",
+      "caption": "Psicóloga especializada em Terapia Relacional Sistêmica"
+    }
+  },
+  {
+    "path": "/blog",
+    "reviewedAt": "2025-04-21",
+    "changefreq": "weekly",
+    "priority": "0.8"
+  },
+  {
+    "path": "/terapia-online",
+    "reviewedAt": "2026-09-21",
+    "changefreq": "monthly",
+    "priority": "0.8"
+  },
+  {
+    "path": "/orientacao-profissional",
+    "reviewedAt": "2026-09-21",
+    "changefreq": "monthly",
+    "priority": "0.8"
+  },
+  {
+    "path": "/contato-e-privacidade",
+    "reviewedAt": "2026-09-21",
+    "changefreq": "yearly",
+    "priority": "0.5"
+  }
+]
