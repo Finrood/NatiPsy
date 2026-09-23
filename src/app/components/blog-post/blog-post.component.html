@@ -14,7 +14,7 @@
         <li class="flex items-center text-primary-blue font-medium" aria-current="page">
           <span class="mx-2" aria-hidden="true">/</span>
           @if (post) {
-            <span>{{ post.title | slice:0:50 }}{{ post.title.length > 50 ? '...' : '' }}</span>
+            <span class="breadcrumb-title" [title]="post.title">{{ post.title }}</span>
           }
           @if (loading && !post) {
             <span>Carregando...</span>
@@ -53,22 +53,11 @@
     <!-- Post Content Area -->
     @if (post && !loading && !error) {
       <article class="bg-white rounded-lg shadow-xl overflow-hidden">
-        <!-- Featured Image -->
-        @if (post.image) {
-          <div class="relative w-full aspect-[2/1] overflow-hidden bg-gray-100">
-            <img [ngSrc]="imageUrl(post.image)"
-              [alt]="post.title"
-              fill
-              class="object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
-              priority
-              sizes="100vw">
-          </div>
-        }
-        <!-- Article Body -->
-        <div class="p-6 md:p-10">
-          <!-- Post Header -->
-          <header class="mb-8">
-            <div class="flex flex-wrap gap-2 mb-4">
+        <!-- Post Header -->
+        <header class="p-6 md:p-10 pb-0 mb-8">
+            <h1 tabindex="-1" class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-primary-blue leading-tight focus:outline-none">{{ post.title }}</h1>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">{{ post.description }}</p>
+            <div class="flex flex-wrap gap-2 mb-4" aria-label="Categorias">
               @for (category of post.categories; track category) {
                 <span
                   class="text-sm px-3 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full transition-transform motion-safe:hover:scale-105 cursor-default">
@@ -76,7 +65,6 @@
                 </span>
               }
             </div>
-            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-primary-blue leading-tight">{{ post.title }}</h1>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-600 text-sm">
               <!-- Author Info (Inline) -->
               @if (post.author) {
@@ -111,7 +99,46 @@
                 </div>
               }
             </div>
-          </header>
+        </header>
+
+        <!-- Featured Image -->
+        @if (post.image) {
+          <div class="relative w-full aspect-[2/1] overflow-hidden bg-gray-100">
+            <img [ngSrc]="imageUrl(post.image)"
+              [alt]="post.title"
+              fill
+              class="object-cover transform motion-safe:hover:scale-105 transition-transform duration-500"
+              priority
+              sizes="100vw">
+          </div>
+        }
+
+        <!-- Article Body -->
+        <div class="p-6 md:p-10">
+          @if (post.headings && post.headings.length >= 2) {
+            <nav aria-label="Neste artigo" class="mb-8 rounded-lg border border-primary-blue/20 bg-primary-blue/5 p-5">
+              <h2 class="text-lg font-semibold text-primary-blue mb-3">Neste artigo</h2>
+              <ol class="space-y-2 list-none m-0 p-0">
+                @for (group of tocGroups; track group.heading.id) {
+                  <li>
+                    <a [routerLink]="['/blog', post.slug]" [fragment]="group.heading.id" class="text-primary-blue hover:text-primary-pink-dark underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm">
+                      {{ group.heading.text }}
+                    </a>
+                    @if (group.children.length) {
+                      <ol class="ml-5 mt-2 space-y-2 list-none p-0">
+                        @for (heading of group.children; track heading.id) {
+                          <li>
+                            <a [routerLink]="['/blog', post.slug]" [fragment]="heading.id" class="text-primary-blue hover:text-primary-pink-dark underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm">{{ heading.text }}</a>
+                          </li>
+                        }
+                      </ol>
+                    }
+                  </li>
+                }
+              </ol>
+            </nav>
+          }
+
           <!-- Post Content - Using Tailwind Typography -->
           <div class="prose prose-lg max-w-none
                       break-words
