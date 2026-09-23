@@ -1,5 +1,9 @@
 ---
 title: "Carreira e Mulheres Negras: Como cuidar da fadiga de batalha racial potencializa o bem-estar e realização na vida e no trabalho"
+seoTitle: "Fadiga racial e carreira: caminhos para o bem-estar"
+seoDescription: "Entenda como a fadiga de batalha racial afeta a carreira e o bem-estar de mulheres negras e conheça caminhos de orientação profissional antirracista."
+socialTitle: "Fadiga racial e bem-estar na carreira de mulheres negras"
+socialDescription: "Uma reflexão sobre fadiga de batalha racial, carreira e orientação profissional antirracista para mulheres negras."
 author:
   name: Natalia Ferreira dos Santos
   bio: "Psicóloga Clínica (CRP 12/19892) e Orientadora de Carreira, graduada pela UFSC, com formação em Terapia Relacional Sistêmica. Comprometida com uma prática inclusiva e antirracista."
