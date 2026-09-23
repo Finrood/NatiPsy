@@ -143,8 +143,7 @@ test('client-side category changes update cards, filter, metadata, and back navi
     'href',
     'https://psicologanataliaferreira.com/blog/category/psicologia',
   );
-  await expect.poll(() => page.locator('meta[name="robots"]').getAttribute('content'))
-    .not.toBe('noindex,follow');
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
   expect(await page.evaluate(() => window.__taxonomyRouteMarker)).toBe('same-document');
 
   await page.goBack();
@@ -156,4 +155,5 @@ test('client-side category changes update cards, filter, metadata, and back navi
     'https://psicologanataliaferreira.com/blog/category/carreira',
   );
   expect(await page.evaluate(() => window.__taxonomyRouteMarker)).toBe('same-document');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow');
 });
