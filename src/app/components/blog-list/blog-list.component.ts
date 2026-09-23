@@ -456,8 +456,23 @@ export class BlogListComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       document
         .getElementById('blog-list-start')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        ?.scrollIntoView({
+          behavior: this.getPaginationScrollBehavior(),
+          block: 'start',
+        });
     }
+  }
+
+  getPaginationScrollBehavior(): ScrollBehavior {
+    if (
+      !isPlatformBrowser(this.platformId) ||
+      typeof window.matchMedia !== 'function'
+    ) {
+      return 'auto';
+    }
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
   }
   onCategoryChange(category: string): void {
     this.navigate({ category, page: 1 });

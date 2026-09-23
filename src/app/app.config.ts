@@ -4,9 +4,6 @@ import {provideRouter, withInMemoryScrolling} from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-// Async variant lazy-loads the animations engine instead of bundling it
-// into the initial chunk; the only animation is the 300ms mobile-menu fade.
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,6 +20,5 @@ export const appConfig: ApplicationConfig = {
     // serialized to the client and never requested twice.
     provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch()),
-    provideAnimationsAsync()
   ]
 };

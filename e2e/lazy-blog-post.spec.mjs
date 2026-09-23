@@ -18,7 +18,7 @@ test('first client article navigation renders under delayed lazy chunks', async 
     await new Promise((resolve) => setTimeout(resolve, 250));
     await route.continue();
   });
-  await page.getByRole('link', { name: /Leia mais/ }).first().click();
+  await page.locator(`a[href="${article}"]`).first().click();
   await expect(page.locator('article h1')).toBeVisible();
   await expect(page.locator('#json-ld-blog-post')).toHaveCount(1);
 });
