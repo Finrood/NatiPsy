@@ -23,6 +23,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
 import {
   BLOG_ERROR_MESSAGES,
   BlogService,
@@ -217,7 +218,7 @@ function queryIsCanonical(
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgOptimizedImage],
+  imports: [CommonModule, RouterLink, FormsModule, NgOptimizedImage],
   templateUrl: './blog-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

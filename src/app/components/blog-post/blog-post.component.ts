@@ -136,9 +136,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.seoService.removeStructuredData('blog-post');
   }
 
-  private loadPostState(
-    slug: string,
-  ): Observable<{
+  private loadPostState(slug: string): Observable<{
     post: BlogPost | null;
     relatedPosts: BlogPost[];
     error: BlogServiceError | null;

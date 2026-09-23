@@ -9,15 +9,15 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   HostListener,
-  signal
+  signal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-top-menu',
   templateUrl: './top-menu.component.html',
   standalone: true,
-  imports: [NgClass, RouterLink],
+  imports: [NgClass, RouterLink, RouterLinkActive],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./top-menu.component.css']
 })
@@ -36,14 +36,21 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   readonly isHidden = signal(false);
   lastScrollPosition = 0;
 
-  readonly menuItems = ['inicio', 'meus-servicos', 'abordagem', 'vantagens', 'sobre-mim', 'blog'] as const;
+  readonly menuItems = [
+    'inicio',
+    'meus-servicos',
+    'abordagem',
+    'vantagens',
+    'sobre-mim',
+    'blog',
+  ] as const;
   readonly menuDisplayNames: Record<string, string> = {
-    'inicio': 'Início',
+    inicio: 'Início',
     'meus-servicos': 'Meus Serviços',
-    'abordagem': 'Abordagem',
-    'vantagens': 'Terapia Online',
+    abordagem: 'Abordagem',
+    vantagens: 'Terapia Online',
     'sobre-mim': 'Sobre Mim',
-    'blog': 'Blog',
+    blog: 'Blog',
   };
 
   ngOnInit(): void {
@@ -104,11 +111,17 @@ export class TopMenuComponent implements OnInit, OnDestroy {
    * Traps Tab focus within the mobile menu dialog per WAI-ARIA modal dialog specifications.
    */
   onMenuKeyDown(event: KeyboardEvent): void {
-    if (event.key !== 'Tab' || !this.isMenuOpen() || !isPlatformBrowser(this.platformId)) {
+    if (
+      event.key !== 'Tab' ||
+      !this.isMenuOpen() ||
+      !isPlatformBrowser(this.platformId)
+    ) {
       return;
     }
     const focusable = Array.from(
-      document.querySelectorAll<HTMLElement>('#mobile-menu a[href], #mobile-menu button')
+      document.querySelectorAll<HTMLElement>(
+        '#mobile-menu a[href], #mobile-menu button',
+      ),
     );
     if (focusable.length === 0) return;
     const first = focusable[0];
@@ -172,9 +185,12 @@ export class TopMenuComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    const currentScrollPosition =
+      window.pageYOffset || document.documentElement.scrollTop;
     const scrolled = currentScrollPosition > 50;
-    const hidden = currentScrollPosition > 100 && currentScrollPosition > this.lastScrollPosition;
+    const hidden =
+      currentScrollPosition > 100 &&
+      currentScrollPosition > this.lastScrollPosition;
 
     if (scrolled !== this.isScrolled() || hidden !== this.isHidden()) {
       this.ngZone.run(() => {
@@ -184,6 +200,7 @@ export class TopMenuComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.lastScrollPosition = currentScrollPosition <= 0 ? 0 : currentScrollPosition;
+    this.lastScrollPosition =
+      currentScrollPosition <= 0 ? 0 : currentScrollPosition;
   };
 }

@@ -28,6 +28,7 @@
     "test:rss-feed:fixtures": "node ./scripts/rss-feed-fixtures.test.mjs",
     "test:rss-feed:http": "node ./scripts/rss-feed-http.test.mjs",
     "test:pagination-prerender": "node ./scripts/pagination-prerender-contract.test.mjs",
+    "test:route-focus": "node ./scripts/route-focus-contract.test.mjs",
     "test:search-content": "node ./scripts/search-content-architecture.test.mjs",
     "test:accessibility-interactions": "node ./scripts/accessibility-interactions.test.mjs",
     "assert:public-content": "node scripts/assert-public-content.mjs",

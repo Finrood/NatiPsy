@@ -86,3 +86,22 @@ test("article direct load and client navigation expose one valid article schema"
   await expect(page.locator("article h1")).toBeVisible();
   await expect(page.locator("#json-ld-blog-post")).toHaveCount(1);
 });
+
+test("client route navigation focuses the new page heading and announces it", async ({
+  page,
+}) => {
+  await page.goto("/blog");
+  await page.locator('a[href="/blog/carreira-mulheres-negras-fadiga-racial"]').first().click();
+  await expect(page.locator("article h1")).toBeFocused();
+  await expect(page.locator("#route-announcer")).toContainText(
+    "Navegação concluída",
+  );
+});
+
+
+test("routed pages expose one main landmark", async ({ page }) => {
+  for (const route of ["/", "/blog", "/terapia-online", "/contato-e-privacidade"]) {
+    await page.goto(route);
+    await expect(page.locator("main")).toHaveCount(1);
+  }
+});
