@@ -38,6 +38,28 @@ describe('BlogPostComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('groups third-level headings under their preceding second-level heading', () => {
+    component.post = {
+      slug: 'article',
+      title: 'Article',
+      date: new Date('2025-01-01'),
+      description: 'Lead',
+      image: null,
+      categories: [],
+      tags: [],
+      categoryDetails: [],
+      content: '',
+      readTime: 1,
+      headings: [
+        { id: 'first', text: 'First', level: 2 },
+        { id: 'child', text: 'Child', level: 3 },
+        { id: 'second', text: 'Second', level: 2 },
+      ],
+    };
+    expect(component.tocGroups.map(({ heading, children }) => [heading.id, children.map((child) => child.id)]))
+      .toEqual([['first', ['child']], ['second', []]]);
+  });
+
   it('should strip scripts and event handlers from rendered html', () => {
     const dirty =
       '<p>Hello</p><script>alert("xss")</script><img src="x" onerror="alert(1)">';
@@ -116,7 +138,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         {
           provide: BlogService,
@@ -150,7 +172,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         { provide: BlogService, useValue: blogService },
       ],
@@ -179,7 +201,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         {
           provide: BlogService,
@@ -208,7 +230,7 @@ describe('BlogPostComponent reused route state', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: params$.asObservable() },
+          useValue: { paramMap: params$.asObservable(), fragment: of(null) },
         },
         {
           provide: BlogService,

@@ -36,6 +36,53 @@
       "bio": "Psicóloga Clínica (CRP 12/19892) e Orientadora de Carreira, graduada pela UFSC, com formação em Terapia Relacional Sistêmica. Comprometida com uma prática inclusiva e antirracista.",
       "avatar": "/assets/NatiAboutMe.webp"
     },
-    "readTime": 6
+    "readTime": 6,
+    "headings": [
+      {
+        "id": "a-falacia-da-meritocracia-e-a-realidade-da-interseccionalidade",
+        "text": "A Falácia da Meritocracia e a Realidade da Interseccionalidade",
+        "level": 2
+      },
+      {
+        "id": "as-barreiras-invisiveis-mas-profundamente-sentidas",
+        "text": "As Barreiras Invisíveis (Mas Profundamente Sentidas)",
+        "level": 2
+      },
+      {
+        "id": "1-microagressoes-raciais-de-genero",
+        "text": "1. Microagressões Raciais de Gênero",
+        "level": 3
+      },
+      {
+        "id": "2-silenciamento-e-invisibilidade",
+        "text": "2. Silenciamento e Invisibilidade",
+        "level": 3
+      },
+      {
+        "id": "3-fadiga-de-batalha-racial",
+        "text": "3. Fadiga de Batalha Racial",
+        "level": 3
+      },
+      {
+        "id": "4-solidao-e-falta-de-referencias",
+        "text": "4. Solidão e Falta de Referências",
+        "level": 3
+      },
+      {
+        "id": "como-uma-orientacao-de-carreira-antirracista-e-emancipatoria-pode-fazer-a-diferenca",
+        "text": "Como uma Orientação de Carreira Antirracista e Emancipatória Pode Fazer a Diferença?",
+        "level": 2
+      },
+      {
+        "id": "faco-um-convite-a-acao-e-ao-acolhimento",
+        "text": "Faço um Convite à Ação (e ao Acolhimento)",
+        "level": 2
+      },
+      {
+        "id": "referencias",
+        "text": "Referências",
+        "level": 2
+      }
+    ]
   }
 ]

@@ -105,3 +105,38 @@ test("routed pages expose one main landmark", async ({ page }) => {
     await expect(page.locator("main")).toHaveCount(1);
   }
 });
+
+test("article table of contents keeps the article route and focuses the target", async ({
+  page,
+}) => {
+  const article = "/blog/carreira-mulheres-negras-fadiga-racial";
+  await page.goto(article);
+  const toc = page.getByRole("navigation", { name: "Neste artigo" });
+  await expect(toc).toBeVisible();
+  const articleOrder = await page.locator("article").evaluate((articleNode) => {
+    const heading = articleNode.querySelector("header h1");
+    const lead = articleNode.querySelector("header p");
+    const image = articleNode.querySelector(":scope > div > img");
+    return {
+      firstHeaderElement: articleNode.querySelector("header")?.firstElementChild?.tagName,
+      lead: lead?.textContent?.trim(),
+      headingBeforeLead: Boolean(heading?.compareDocumentPosition(lead) & Node.DOCUMENT_POSITION_FOLLOWING),
+      leadBeforeImage: Boolean(lead?.compareDocumentPosition(image) & Node.DOCUMENT_POSITION_FOLLOWING),
+    };
+  });
+  expect(articleOrder.firstHeaderElement).toBe("H1");
+  expect(articleOrder.lead).toBeTruthy();
+  expect(articleOrder.headingBeforeLead && articleOrder.leadBeforeImage).toBe(true);
+  const nestedLink = toc.locator("ol > li > ol > li > a").first();
+  await expect(nestedLink).toBeVisible();
+  await nestedLink.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#[^#]+$/);
+  const firstLink = toc.getByRole("link").first();
+  const href = await firstLink.getAttribute("href");
+  expect(href).toMatch(new RegExp(`${article}#[^#]+$`));
+  const targetId = href.split("#")[1];
+  await firstLink.click();
+  await expect(page).toHaveURL(new RegExp(`${article}#${targetId}$`));
+  await expect(page.locator(`#${targetId}`)).toBeFocused();
+});

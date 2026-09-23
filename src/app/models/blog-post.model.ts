@@ -13,6 +13,12 @@ export interface BlogCategory {
   description: string;
 }
 
+export interface BlogHeading {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -34,6 +40,7 @@ export interface BlogPost {
   categoryDetails: BlogCategory[];
   content: string | SafeHtml;
   readTime: number | null;
+  headings?: BlogHeading[];
 
   author?: BlogPostAuthor;
 }

@@ -250,6 +250,38 @@ ${items}
 `;
 }
 
+function slugifyHeading(text, usedIds) {
+  const base =
+    text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "secao";
+  const count = usedIds.get(base) || 0;
+  usedIds.set(base, count + 1);
+  return count === 0 ? base : `${base}-${count + 1}`;
+}
+
+function renderPostMarkdown(content) {
+  const usedIds = new Map();
+  const headings = [];
+  const renderer = new marked.Renderer();
+  renderer.heading = function ({ tokens, depth }) {
+    const text = this.parser.parseInline(tokens, this.parser.textRenderer);
+    const id = slugifyHeading(text, usedIds);
+    if (depth === 2 || depth === 3) {
+      headings.push({ id, text, level: depth });
+    }
+    return `<h${depth} id="${id}">${this.parser.parseInline(tokens)}</h${depth}>`;
+  };
+
+  return {
+    html: marked.parse(content, { renderer }),
+    headings,
+  };
+}
+
 function optionalDiscoveryText(data, file, field, maxLength) {
   if (data[field] === undefined || data[field] === null) return undefined;
   if (typeof data[field] !== 'string' || data[field].trim() === '') {
@@ -548,6 +580,7 @@ function generateIndex() {
         const image = data.image
           ? copyReferencedImage(data.image, stagingImagesDir, entry.name)
           : null;
+        const rendered = renderPostMarkdown(content);
         const postData = {
           slug,
           title: data.title,
@@ -566,12 +599,13 @@ function generateIndex() {
           categoryDetails: categoryDetails(categories),
           author,
           readTime: calculateReadingTime(content),
+          headings: rendered.headings,
         };
         posts.push(postData);
         fs.writeFileSync(
           path.join(stagingPostsDir, `${slug}.json`),
           JSON.stringify(
-            { ...postData, content: marked.parse(content) },
+            { ...postData, content: rendered.html },
             null,
             2,
           ),
@@ -633,4 +667,5 @@ module.exports = {
   generateIndex,
   generateRoutesFile,
   generateSitemap,
+  renderPostMarkdown,
 };
