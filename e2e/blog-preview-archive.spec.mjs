@@ -24,7 +24,7 @@ test('home preview and archive remain distinct and usable', async ({ page }) => 
   await category.selectOption('');
   await expect(page).not.toHaveURL(/category=/);
 
-  await page.getByRole('link', { name: /Leia mais/ }).first().click();
+  await page.locator(`a[href="${articlePath}"]`).first().click();
   await expect(page).toHaveURL(articlePath);
   await expect(page.locator('article h1')).toBeVisible();
   expect(runtimeErrors).toEqual([]);

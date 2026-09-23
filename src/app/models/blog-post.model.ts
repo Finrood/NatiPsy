@@ -10,6 +10,12 @@ export interface BlogPostAuthor {
 export interface BlogPost {
   slug: string;
   title: string;
+  /** Optional concise discovery title; the editorial title remains the page h1. */
+  seoTitle?: string;
+  /** Optional concise search description with the editorial description as fallback. */
+  seoDescription?: string;
+  socialTitle?: string;
+  socialDescription?: string;
   date: Date;
   /** Calendar date from frontmatter; deliberately not a local timestamp. */
   dateOnly?: string;

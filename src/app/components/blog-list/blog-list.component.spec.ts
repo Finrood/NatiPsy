@@ -159,6 +159,36 @@ describe('BlogListComponent reactive state', () => {
     fixture.destroy();
   });
 
+  it('uses automatic pagination scrolling when reduced motion is requested', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    queryParams$.next({});
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = (() => ({ matches: true })) as unknown as typeof window.matchMedia;
+
+    try {
+      expect(fixture.componentInstance.getPaginationScrollBehavior()).toBe('auto');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      fixture.destroy();
+    }
+  });
+
+  it('uses smooth pagination scrolling when reduced motion is not requested', async () => {
+    const queryParams$ = new ReplaySubject<Params>(1);
+    queryParams$.next({});
+    const fixture = await createReactiveFixture(queryParams$, () => of([post('one')]));
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = (() => ({ matches: false })) as unknown as typeof window.matchMedia;
+
+    try {
+      expect(fixture.componentInstance.getPaginationScrollBehavior()).toBe('smooth');
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      fixture.destroy();
+    }
+  });
+
   it('normalizes invalid query enums and page values to safe defaults', () => {
     expect(
       parseBlogQueryParams({
