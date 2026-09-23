@@ -13,7 +13,7 @@ import {
 } from '@angular/common';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { combineLatest, forkJoin, of } from 'rxjs';
+import { combineLatest, forkJoin, of, Subject } from 'rxjs';
 import {
   catchError,
   distinctUntilChanged,
@@ -21,9 +21,14 @@ import {
   shareReplay,
   startWith,
   switchMap,
+  tap,
 } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import { BlogService } from '../../services/blog.service';
+import {
+  BLOG_ERROR_MESSAGES,
+  BlogService,
+  BlogServiceError,
+} from '../../services/blog.service';
 import {
   BlogPost,
   blogDateOnly,
@@ -78,6 +83,9 @@ interface BlogContentState {
   categories: string[];
   loading: boolean;
   error: string | null;
+  categoryError: string | null;
+  errorRetryable: boolean;
+  categoryRetryable: boolean;
 }
 
 interface BlogListViewModel extends BlogContentState, BlogQueryState {
@@ -101,7 +109,21 @@ const initialContentState: BlogContentState = {
   categories: [],
   loading: true,
   error: null,
+  categoryError: null,
+  errorRetryable: false,
+  categoryRetryable: false,
 };
+
+function errorMessage(error: unknown): string {
+  if (error instanceof BlogServiceError) {
+    return BLOG_ERROR_MESSAGES[error.kind];
+  }
+  return 'Não foi possível carregar este conteúdo.';
+}
+
+function canRetry(error: unknown): boolean {
+  return !(error instanceof BlogServiceError && error.kind === 'not-found');
+}
 
 function firstQueryValue(value: unknown): unknown {
   return Array.isArray(value) ? value[0] : value;
@@ -206,6 +228,9 @@ export class BlogListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly retry$ = new Subject<void>();
+  retryingList = false;
+  retryingCategories = false;
 
   /** Whether the first archive card is an above-the-fold LCP candidate. */
   @Input() firstImagePriority?: boolean;
@@ -261,34 +286,49 @@ export class BlogListComponent implements OnInit {
   );
   private readonly contentState$ = this.filterState$.pipe(
     switchMap((filters) =>
-      forkJoin({
-        posts: this.blogService.getPostsList(
-          filters.category,
-          filters.sortBy,
-          filters.sortDirection,
-        ),
-        categories: this.blogService.getAllCategories(),
-      }).pipe(
-        map(({ posts, categories }) => ({
-          posts,
-          categories,
-          loading: false,
-          error: null,
-        })),
-        startWith(initialContentState),
-        catchError((error: unknown) =>
-          of({
-            posts: [],
-            categories: [],
-            loading: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : 'Não foi possível carregar os posts.',
-          }),
+      this.retry$.pipe(
+        startWith(undefined),
+        switchMap(() =>
+          forkJoin({
+            posts: this.blogService
+              .getPostsList(
+                filters.category,
+                filters.sortBy,
+                filters.sortDirection,
+              )
+              .pipe(
+                map((posts) => ({ value: posts, error: null as string | null, retryable: false })),
+                catchError((error: unknown) =>
+                  of({ value: [] as BlogPost[], error: errorMessage(error), retryable: canRetry(error) }),
+                ),
+              ),
+            categories: this.blogService.getAllCategories().pipe(
+              map((categories) => ({ value: categories, error: null as string | null, retryable: false })),
+              catchError((error: unknown) =>
+                of({ value: [] as string[], error: errorMessage(error), retryable: canRetry(error) }),
+              ),
+            ),
+          }).pipe(
+            map(({ posts, categories }): BlogContentState => ({
+              posts: posts.value,
+              categories: categories.value,
+              loading: false,
+              error: posts.error,
+              categoryError: categories.error,
+              errorRetryable: posts.retryable,
+              categoryRetryable: categories.retryable,
+            })),
+            startWith(initialContentState as BlogContentState),
+          ),
         ),
       ),
     ),
+    tap((state) => {
+      if (!state.loading) {
+        this.retryingList = false;
+        this.retryingCategories = false;
+      }
+    }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
@@ -388,6 +428,7 @@ export class BlogListComponent implements OnInit {
           ...normalizedQuery,
           ...content,
           error: pageError ?? content.error,
+          errorRetryable: !pageError && content.errorRetryable,
           totalItems,
           totalPages,
           displayedPosts: visiblePosts,
@@ -419,6 +460,15 @@ export class BlogListComponent implements OnInit {
   }
   get error(): string | null {
     return this.viewModel().error;
+  }
+  get categoryError(): string | null {
+    return this.viewModel().categoryError;
+  }
+  get errorRetryable(): boolean {
+    return this.viewModel().errorRetryable;
+  }
+  get categoryRetryable(): boolean {
+    return this.viewModel().categoryRetryable;
   }
   get currentPage(): number {
     return this.viewModel().page;
@@ -508,6 +558,20 @@ export class BlogListComponent implements OnInit {
   }
   get nextPage(): number | null {
     return this.currentPage < this.totalPages ? this.currentPage + 1 : null;
+  }
+
+  retry(): void {
+    if (!this.retryingList) {
+      this.retryingList = true;
+      this.retry$.next();
+    }
+  }
+
+  retryCategories(): void {
+    if (!this.retryingCategories) {
+      this.retryingCategories = true;
+      this.retry$.next();
+    }
   }
 
   private navigate(changes: Partial<BlogQueryState>): void {
