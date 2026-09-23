@@ -204,7 +204,7 @@ function synchronizeStaticMetadata() {
   let html = fs.readFileSync(indexPath, "utf8");
   const title = `${SITE_CONFIG.brandName} | Psicóloga Clínica - Terapia Online`;
   const description = `${SITE_CONFIG.siteDescription} ${SITE_CONFIG.credential}`;
-  const image = pageUrl(SITE_CONFIG.defaultImage);
+  const image = escapeHtml(pageUrl(SITE_CONFIG.defaultImage));
   html = replaceOnce(html, /<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
   html = replaceOnce(
     html,
@@ -216,7 +216,7 @@ function synchronizeStaticMetadata() {
     /<meta name="author" content="[^"]*">/,
     `<meta name="author" content="${escapeHtml(SITE_CONFIG.brandName)}">`,
   );
-  html = replaceOnce(html, /<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${SITE_URL}/">`);
+  html = replaceOnce(html, /<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${escapeHtml(pageUrl('/'))}">`);
   html = replaceOnce(html, /<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escapeHtml(title)}">`);
   html = replaceOnce(html, /<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escapeHtml(description)}">`);
   html = replaceOnce(html, /<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${image}">`);
@@ -224,7 +224,7 @@ function synchronizeStaticMetadata() {
   html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escapeHtml(description)}">`);
   html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${image}">`);
   html = replaceOnce(html, /<meta name="twitter:image:alt" content="[^"]*">/, `<meta name="twitter:image:alt" content="${escapeHtml(SITE_CONFIG.professionalName)}">`);
-  html = replaceOnce(html, /<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${SITE_URL}/">`);
+  html = replaceOnce(html, /<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${escapeHtml(pageUrl('/'))}">`);
   fs.writeFileSync(indexPath, html);
 }
 
@@ -250,9 +250,9 @@ function generateSitemap(posts) {
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>${page.image ? `
     <image:image>
-      <image:loc>${escapeXml(pageUrl(page.image.loc))}</image:loc>
-      <image:title>${escapeXml(page.image.title)}</image:title>
-      <image:caption>${escapeXml(page.image.caption)}</image:caption>
+      <image:loc>${escapeXml(pageUrl(page.path === '/' ? SITE_CONFIG.defaultImage : page.image.loc))}</image:loc>
+      <image:title>${escapeXml(page.path === '/' ? SITE_CONFIG.professionalName : page.image.title)}</image:title>
+      <image:caption>${escapeXml(page.path === '/' ? SITE_CONFIG.specialization : page.image.caption)}</image:caption>
     </image:image>` : ''}
   </url>`);
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { JSDOM } from 'jsdom';
 
 const root = process.cwd();
 const config = JSON.parse(await readFile(new URL('../src/app/config/site-config.json', import.meta.url), 'utf8'));
@@ -64,6 +65,12 @@ const invalidShapes = [
   ['absolute image', { defaultImage: 'https://example.test/image.webp' }, /root-relative/],
   ['traversing image', { defaultImage: '/assets/../secret.webp' }, /root-relative/],
   ['encoded traversing image', { defaultImage: '/assets/%2e%2e/secret.webp' }, /root-relative/],
+  ['attribute injection image', { defaultImage: '/assets/hero" onerror="alert(1).webp' }, /root-relative/],
+  ['markup image', { defaultImage: '/assets/<script>.webp' }, /root-relative/],
+  ['encoded backslash image', { defaultImage: '/assets/%5C..%5Cprivate.webp' }, /root-relative/],
+  ['literal backslash image', { defaultImage: '/assets/\\..\\private.webp' }, /root-relative/],
+  ['whitespace image', { defaultImage: '/assets/hero image.webp' }, /root-relative/],
+  ['double-encoded traversal image', { defaultImage: '/assets/%252e%252e/private.webp' }, /root-relative/],
   ['unknown key', { extraPublicValue: 'x' }, /Unknown site configuration field/],
   ['secret key', { apiToken: 'never-commit-this' }, /Secret-shaped site configuration key/],
 ];
@@ -149,6 +156,30 @@ try {
     /['"]Natalia Ferreira(?: Psicóloga)?['"]/,
     'JSON-LD identity must flow through shared configuration instead of stale literals',
   );
+
+  const injectionProbe = {
+    ...replacementConfig,
+    brandName: 'Example" onerror="alert(1)',
+    siteDescription: '<script id="config-injection">bad</script>',
+  };
+  await writeFile(fixtureConfigPath, JSON.stringify(injectionProbe, null, 2));
+  runGenerator();
+  const escapedIndex = await readFile(fixtureIndexPath, 'utf8');
+  const document = new JSDOM(escapedIndex).window.document;
+  assert.equal(document.querySelectorAll('[onerror], #config-injection').length, 0);
+  assert.equal(document.querySelector('meta[name="author"]')?.getAttribute('content'), injectionProbe.brandName);
+  assert.match(escapedIndex, /&quot; onerror=&quot;/);
+  assert.match(escapedIndex, /&lt;script/);
+
+  for (const defaultImage of [
+    '/assets/hero" onerror="alert(1).webp',
+    '/assets/<script>.webp',
+    '/assets/%5C..%5Cprivate.webp',
+  ]) {
+    await writeFile(fixtureConfigPath, JSON.stringify({ ...replacementConfig, defaultImage }, null, 2));
+    assert.throws(runGenerator, /defaultImage must be a safe root-relative path/);
+    assert.equal(await readFile(fixtureIndexPath, 'utf8'), escapedIndex, 'rejected config must not mutate HTML');
+  }
 
   const invalidConfig = { ...replacementConfig, canonicalOrigin: 'https://user:pass@example.test/path' };
   await writeFile(fixtureConfigPath, JSON.stringify(invalidConfig, null, 2));

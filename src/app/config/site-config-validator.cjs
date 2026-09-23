@@ -28,16 +28,15 @@ function exactOrigin(value) {
 }
 
 function safeRootRelativeImage(value) {
-  if (!value.startsWith('/') || value.startsWith('//') || /[\\?#]/.test(value)) {
-    throw new Error('defaultImage must be a safe root-relative path.');
-  }
   let decoded;
   try {
     decoded = decodeURIComponent(value);
   } catch {
     throw new Error('defaultImage must be a safe root-relative path.');
   }
-  if (decoded.split('/').some((segment) => segment === '.' || segment === '..')) {
+  const segments = decoded.split('/').slice(1);
+  if (decoded !== value || !/^\/assets\/[A-Za-z0-9._/-]+$/.test(decoded) ||
+      segments.some((segment) => !segment || segment === '.' || segment === '..')) {
     throw new Error('defaultImage must be a safe root-relative path.');
   }
   return value;
