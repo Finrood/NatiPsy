@@ -42,20 +42,14 @@ export class SeoService {
     // any caller can never split SEO equity across duplicate canonicals.
     const rawUrl = config.url || currentUrl;
     const targetUrl =
-      rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/')
-        ? rawUrl.slice(0, -1)
-        : rawUrl;
+      rawUrl.length > SITE_URL.length + 1 && rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
     const usingDefaultImage = !config.image;
     const targetImage = config.image || `${SITE_URL}/assets/NatiHero.webp`;
-    const targetImageWidth =
-      config.imageWidth ?? (usingDefaultImage ? 853 : undefined);
-    const targetImageHeight =
-      config.imageHeight ?? (usingDefaultImage ? 1280 : undefined);
-    const targetImageType =
-      config.imageType ?? (usingDefaultImage ? 'image/webp' : undefined);
+    const targetImageWidth = config.imageWidth ?? (usingDefaultImage ? 853 : undefined);
+    const targetImageHeight = config.imageHeight ?? (usingDefaultImage ? 1280 : undefined);
+    const targetImageType = config.imageType ?? (usingDefaultImage ? 'image/webp' : undefined);
     const targetImageAlt =
-      config.imageAlt ??
-      (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
+      config.imageAlt ?? (usingDefaultImage ? 'Natalia Ferreira - Psicóloga Clínica' : undefined);
 
     this.title.setTitle(config.title);
 
@@ -66,17 +60,11 @@ export class SeoService {
     // Open Graph
     this.updateArticleTags(config.tags);
     this.setMeta({ property: 'og:title' }, config.socialTitle || config.title);
-    this.setMeta(
-      { property: 'og:description' },
-      config.socialDescription || config.description,
-    );
+    this.setMeta({ property: 'og:description' }, config.socialDescription || config.description);
     this.setMeta({ property: 'og:url' }, targetUrl);
     this.setMeta({ property: 'og:image' }, targetImage);
     this.setMeta({ property: 'og:image:width' }, targetImageWidth?.toString());
-    this.setMeta(
-      { property: 'og:image:height' },
-      targetImageHeight?.toString(),
-    );
+    this.setMeta({ property: 'og:image:height' }, targetImageHeight?.toString());
     this.setMeta({ property: 'og:image:type' }, targetImageType);
     this.setMeta({ property: 'og:image:alt' }, targetImageAlt);
     this.setMeta({ property: 'og:type' }, config.type || 'website');
@@ -87,17 +75,12 @@ export class SeoService {
     this.setMeta({ name: 'twitter:card' }, 'summary_large_image');
     this.setMeta({ name: 'twitter:url' }, targetUrl);
     this.setMeta({ name: 'twitter:title' }, config.socialTitle || config.title);
-    this.setMeta(
-      { name: 'twitter:description' },
-      config.socialDescription || config.description,
-    );
+    this.setMeta({ name: 'twitter:description' }, config.socialDescription || config.description);
     this.setMeta({ name: 'twitter:image' }, targetImage);
     this.setMeta({ name: 'twitter:image:alt' }, targetImageAlt);
 
     // Update canonical link (SSR + browser)
-    let link: HTMLLinkElement | null = this.document.querySelector(
-      'link[rel="canonical"]',
-    );
+    let link: HTMLLinkElement | null = this.document.querySelector('link[rel="canonical"]');
     if (!link) {
       link = this.document.createElement('link');
       link.setAttribute('rel', 'canonical');
@@ -110,9 +93,7 @@ export class SeoService {
     selector: { name?: string; property?: string },
     content: string | undefined,
   ): void {
-    const attribute = selector.name
-      ? `name="${selector.name}"`
-      : `property="${selector.property}"`;
+    const attribute = selector.name ? `name="${selector.name}"` : `property="${selector.property}"`;
     if (content === undefined) {
       this.meta.getTag(attribute) && this.meta.removeTag(attribute);
       return;
@@ -129,16 +110,12 @@ export class SeoService {
     while (this.meta.getTag('property="article:tag"')) {
       this.meta.removeTag('property="article:tag"');
     }
-    tags?.forEach((tag) =>
-      this.meta.addTag({ property: 'article:tag', content: tag }),
-    );
+    tags?.forEach((tag) => this.meta.addTag({ property: 'article:tag', content: tag }));
   }
 
   setStructuredData(id: string, schema: object | object[]): void {
     const scriptId = `json-ld-${id}`;
-    let script = this.document.getElementById(
-      scriptId,
-    ) as HTMLScriptElement | null;
+    let script = this.document.getElementById(scriptId) as HTMLScriptElement | null;
     if (!script) {
       script = this.document.createElement('script');
       script.id = scriptId;

@@ -12,7 +12,10 @@ assert.match(styles, /font-display:\s*swap/);
 assert.match(styles, /unicode-range:[^;]*U\+0100/);
 assert.doesNotMatch(nginx, /fonts\.(?:googleapis|gstatic)\.com/);
 for (const subset of ['latin', 'latin-ext']) {
-  assert.ok(fs.statSync(`public/assets/fonts/montserrat-${subset}.woff2`).size > 1000, `${subset} font should be present`);
+  assert.ok(
+    fs.statSync(`public/assets/fonts/montserrat-${subset}.woff2`).size > 1000,
+    `${subset} font should be present`,
+  );
 }
 
 console.log('Self-hosted font contract passed.');

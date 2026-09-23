@@ -307,6 +307,18 @@ function escapeHtml(value) {
 }
 
 function replaceOnce(html, pattern, replacement) {
+  const attributeMarker = /^<(meta|link) (name|property|rel)="([^"]+)" (content|href)=/.exec(pattern.source);
+  if (attributeMarker) {
+    const [, tag, markerAttribute, markerValue, valueAttribute] = attributeMarker;
+    const tagPattern = new RegExp(`<${tag}\\b[^>]*\\b${markerAttribute}="${markerValue}"[^>]*>`, 's');
+    const valuePattern = new RegExp(`${valueAttribute}="[^"]*"`);
+    const target = html.match(tagPattern);
+    const desired = replacement.match(valuePattern);
+    if (!target || !desired || !valuePattern.test(target[0])) {
+      throw new Error(`Static metadata marker not found: ${pattern}`);
+    }
+    return html.replace(tagPattern, (tagMarkup) => tagMarkup.replace(valuePattern, desired[0]));
+  }
   if (!pattern.test(html)) {
     throw new Error(`Static metadata marker not found: ${pattern}`);
   }

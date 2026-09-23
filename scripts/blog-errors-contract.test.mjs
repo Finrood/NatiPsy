@@ -1,13 +1,31 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const service = readFileSync(new URL('../src/app/services/blog.service.ts', import.meta.url), 'utf8');
-const list = readFileSync(new URL('../src/app/components/blog-list/blog-list.component.ts', import.meta.url), 'utf8');
-const listTemplate = readFileSync(new URL('../src/app/components/blog-list/blog-list.component.html', import.meta.url), 'utf8');
-const post = readFileSync(new URL('../src/app/components/blog-post/blog-post.component.ts', import.meta.url), 'utf8');
-const postTemplate = readFileSync(new URL('../src/app/components/blog-post/blog-post.component.html', import.meta.url), 'utf8');
+const service = readFileSync(
+  new URL('../src/app/services/blog.service.ts', import.meta.url),
+  'utf8',
+);
+const list = readFileSync(
+  new URL('../src/app/components/blog-list/blog-list.component.ts', import.meta.url),
+  'utf8',
+);
+const listTemplate = readFileSync(
+  new URL('../src/app/components/blog-list/blog-list.component.html', import.meta.url),
+  'utf8',
+);
+const post = readFileSync(
+  new URL('../src/app/components/blog-post/blog-post.component.ts', import.meta.url),
+  'utf8',
+);
+const postTemplate = readFileSync(
+  new URL('../src/app/components/blog-post/blog-post.component.html', import.meta.url),
+  'utf8',
+);
 
-assert.match(service, /export type BlogErrorKind = 'not-found' \| 'offline' \| 'server' \| 'invalid-content'/);
+assert.match(
+  service,
+  /export type BlogErrorKind = 'not-found' \| 'offline' \| 'server' \| 'invalid-content'/,
+);
 assert.match(service, /status === 0/);
 assert.match(service, /status >= 500/);
 assert.match(service, /BlogService request failed/);

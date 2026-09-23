@@ -27,7 +27,8 @@ This fixture verifies crawlable pagination.
 
 const copyFilter = (source) => {
   const relative = source.slice(root.length + 1);
-  return relative !== '.git' &&
+  return (
+    relative !== '.git' &&
     relative !== 'node_modules' &&
     relative !== 'dist' &&
     relative !== '.angular' &&
@@ -36,7 +37,8 @@ const copyFilter = (source) => {
     !relative.startsWith('node_modules/') &&
     !relative.startsWith('dist/') &&
     !relative.startsWith('.angular/') &&
-    !relative.startsWith('coverage/');
+    !relative.startsWith('coverage/')
+  );
 };
 
 async function request(baseUrl, route) {
@@ -107,9 +109,13 @@ try {
     const rendered = html.split('<script id="ng-state"')[0];
     assert.equal(response.status, 200);
     assert.match(rendered, /<h1[^>]*>Blog<\/h1>/);
-    assert.match(rendered, /<link rel="canonical" href="https:\/\/psicologanataliaferreira\.com\/blog/);
+    assert.match(
+      rendered,
+      /<link rel="canonical" href="https:\/\/psicologanataliaferreira\.com\/blog/,
+    );
     assert.match(rendered, /href="\/blog\/fixture-\d{2}"/);
-    if (pageIndex < 2) assert.match(rendered, new RegExp(`href="/blog/page/${pageIndex + 2}(?:#|")`));
+    if (pageIndex < 2)
+      assert.match(rendered, new RegExp(`href="/blog/page/${pageIndex + 2}(?:#|")`));
     if (pageIndex === 2) assert.doesNotMatch(rendered, /href="\/blog\/page\/4"/);
   });
 
@@ -123,7 +129,10 @@ try {
 
   const legacy = await request(baseUrl, '/blog?page=2');
   assert.equal(legacy.response.status, 200);
-  assert.match(legacy.html, /<link rel="canonical" href="https:\/\/psicologanataliaferreira\.com\/blog\/page\/2"/);
+  assert.match(
+    legacy.html,
+    /<link rel="canonical" href="https:\/\/psicologanataliaferreira\.com\/blog\/page\/2"/,
+  );
 
   for (const invalidPath of ['/blog/page/0', '/blog/page/not-a-number', '/blog/page/4']) {
     const invalid = await request(baseUrl, invalidPath);

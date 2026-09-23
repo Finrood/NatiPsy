@@ -99,6 +99,7 @@ docker build --check .
 ```
 
 ## Running end-to-end tests
+
 The suite covers home/mobile navigation, filter URL state, article direct/client navigation, console/hydration warnings, and serious/critical axe violations.
 
 ## Production build and Docker

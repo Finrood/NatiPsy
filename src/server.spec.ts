@@ -8,7 +8,8 @@ describe('SSR server hardening', () => {
   });
 
   it('builds render URLs from configured origin rather than request headers', () => {
-    expect(buildRenderUrl(new URL('https://psicologanataliaferreira.com/'), '/blog/post?x=1'))
-      .toBe('https://psicologanataliaferreira.com/blog/post?x=1');
+    expect(buildRenderUrl(new URL('https://psicologanataliaferreira.com/'), '/blog/post?x=1')).toBe(
+      'https://psicologanataliaferreira.com/blog/post?x=1',
+    );
   });
 });

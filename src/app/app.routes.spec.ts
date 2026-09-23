@@ -8,8 +8,8 @@ import { BlogService } from './services/blog.service';
 
 describe('application routes', () => {
   it('keeps the article component out of the initial route module', async () => {
-    const blogRoute = routes.find(route => route.path === 'blog');
-    const articleRoute = blogRoute?.children?.find(route => route.path === ':slug');
+    const blogRoute = routes.find((route) => route.path === 'blog');
+    const articleRoute = blogRoute?.children?.find((route) => route.path === ':slug');
 
     expect(articleRoute?.component).toBeUndefined();
     expect(articleRoute?.loadComponent).toBeDefined();
@@ -19,23 +19,26 @@ describe('application routes', () => {
   });
 
   it('navigates through the lazy article route and renders the loaded article', async () => {
-    const articleRoute = routes.find((route) => route.path === 'blog')?.children?.find((route) => route.path === ':slug');
+    const articleRoute = routes
+      .find((route) => route.path === 'blog')
+      ?.children?.find((route) => route.path === ':slug');
     TestBed.configureTestingModule({
       providers: [
         provideRouter([{ path: 'blog/:slug', loadComponent: articleRoute!.loadComponent }]),
         {
           provide: BlogService,
           useValue: {
-            getPostBySlug: () => of({
-              slug: 'article',
-              title: 'Article',
-              date: new Date('2025-01-01'),
-              description: 'Description',
-              image: null,
-              categories: ['Carreira'],
-              content: '<p>Rendered article</p>',
-              readTime: 1,
-            }),
+            getPostBySlug: () =>
+              of({
+                slug: 'article',
+                title: 'Article',
+                date: new Date('2025-01-01'),
+                description: 'Description',
+                image: null,
+                categories: ['Carreira'],
+                content: '<p>Rendered article</p>',
+                readTime: 1,
+              }),
             getRelatedPosts: () => of([]),
           },
         },

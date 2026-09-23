@@ -8,17 +8,22 @@ let server;
 
 function request(path, host) {
   return new Promise((resolve, reject) => {
-    const req = http.request({
-      hostname: '127.0.0.1',
-      port,
-      path,
-      headers: { Host: host },
-    }, (response) => {
-      let body = '';
-      response.setEncoding('utf8');
-      response.on('data', (chunk) => { body += chunk; });
-      response.on('end', () => resolve({ status: response.statusCode, body }));
-    });
+    const req = http.request(
+      {
+        hostname: '127.0.0.1',
+        port,
+        path,
+        headers: { Host: host },
+      },
+      (response) => {
+        let body = '';
+        response.setEncoding('utf8');
+        response.on('data', (chunk) => {
+          body += chunk;
+        });
+        response.on('end', () => resolve({ status: response.statusCode, body }));
+      },
+    );
     req.on('error', reject);
     req.end();
   });

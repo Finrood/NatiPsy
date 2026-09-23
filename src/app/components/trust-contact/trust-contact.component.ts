@@ -17,7 +17,8 @@ export class TrustContactComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.seoService.updateMetaTags({
       title: 'Contato, privacidade e política editorial | Natalia Ferreira',
-      description: 'Informações sobre contato inicial, privacidade, autoria e revisão do conteúdo profissional de Natalia Ferreira dos Santos, Psicóloga, CRP 12/19892.',
+      description:
+        'Informações sobre contato inicial, privacidade, autoria e revisão do conteúdo profissional de Natalia Ferreira dos Santos, Psicóloga, CRP 12/19892.',
       keywords: 'contato psicóloga, privacidade, política editorial',
       url: `${SITE_URL}/contato-e-privacidade`,
     });

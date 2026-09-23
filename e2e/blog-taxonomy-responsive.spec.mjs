@@ -47,46 +47,47 @@ for (const width of [320, 390]) {
   });
 }
 
-test('sparse category pages are crawlable links with a self-canonical noindex policy', async ({ page }) => {
+test('sparse category pages are crawlable links with a self-canonical noindex policy', async ({
+  page,
+}) => {
   await page.goto('/blog/category/carreira');
 
   await expect(page.locator('article h3')).toHaveCount(1);
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-    'content',
-    'noindex,follow',
-  );
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     'https://psicologanataliaferreira.com/blog/category/carreira',
   );
 });
 
-test('visible taxonomy, generated JSON, and JSON-LD share one normalized source', async ({ page }) => {
+test('visible taxonomy, generated JSON, and JSON-LD share one normalized source', async ({
+  page,
+}) => {
   await page.goto(`/blog/${slug}`);
   await expect(page.locator('article h1')).toBeVisible();
 
   const visibleCategories = await page
     .locator('article header a[href^="/blog/category/"]')
     .allTextContents();
-  const visibleTags = (await page.getByLabel('Temas do artigo').locator('span').allTextContents())
-    .map((label) => label.trim().replace(/^#/, ''));
+  const visibleTags = (
+    await page.getByLabel('Temas do artigo').locator('span').allTextContents()
+  ).map((label) => label.trim().replace(/^#/, ''));
   const generated = await page.evaluate(async (postSlug) => {
     const response = await fetch(`/assets/content/blog/posts/${postSlug}.json`);
     return response.json();
   }, slug);
-  const schema = await page.locator('#json-ld-blog-post').evaluate(
-    (script) => JSON.parse(script.textContent)['@graph'][0],
-  );
+  const schema = await page
+    .locator('#json-ld-blog-post')
+    .evaluate((script) => JSON.parse(script.textContent)['@graph'][0]);
 
   expect(visibleCategories.map((label) => label.trim())).toEqual(generated.categories);
   expect(visibleTags).toEqual(generated.tags);
-  expect(schema.keywords.split(', ')).toEqual([
-    ...generated.categories,
-    ...generated.tags,
-  ]);
+  expect(schema.keywords.split(', ')).toEqual([...generated.categories, ...generated.tags]);
 });
 
-test('client-side category changes update cards, filter, metadata, and back navigation', async ({ page }) => {
+test('client-side category changes update cards, filter, metadata, and back navigation', async ({
+  page,
+}) => {
   const indexResponse = await page.request.get('/assets/content/blog/index.json');
   expect(indexResponse.ok()).toBe(true);
   const [careerPost] = await indexResponse.json();
@@ -120,7 +121,11 @@ test('client-side category changes update cards, filter, metadata, and back navi
     await route.fulfill({ response, body });
   });
   await page.route('**/assets/content/blog/index.json', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([careerPost, ...psychologyPosts]) }),
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([careerPost, ...psychologyPosts]),
+    }),
   );
 
   await page.goto('/blog/category/carreira');
@@ -131,7 +136,9 @@ test('client-side category changes update cards, filter, metadata, and back navi
     'https://psicologanataliaferreira.com/blog/category/carreira',
   );
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow');
-  await page.evaluate(() => { window.__taxonomyRouteMarker = 'same-document'; });
+  await page.evaluate(() => {
+    window.__taxonomyRouteMarker = 'same-document';
+  });
 
   await page.getByLabel('Filtrar por Categoria:').selectOption('Psicologia');
   await expect(page).toHaveURL(/\/blog\/category\/psicologia$/);

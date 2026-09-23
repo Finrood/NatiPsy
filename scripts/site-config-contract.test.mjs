@@ -5,10 +5,18 @@ import { join } from 'node:path';
 import { JSDOM } from 'jsdom';
 
 const root = process.cwd();
-const config = JSON.parse(await readFile(new URL('../src/app/config/site-config.json', import.meta.url), 'utf8'));
+const config = JSON.parse(
+  await readFile(new URL('../src/app/config/site-config.json', import.meta.url), 'utf8'),
+);
 const contact = await readFile(new URL('../src/app/config/contact.ts', import.meta.url), 'utf8');
-const typedConfig = await readFile(new URL('../src/app/config/site-config.ts', import.meta.url), 'utf8');
-const generator = await readFile(new URL('../src/scripts/generate-blog-index.js', import.meta.url), 'utf8');
+const typedConfig = await readFile(
+  new URL('../src/app/config/site-config.ts', import.meta.url),
+  'utf8',
+);
+const generator = await readFile(
+  new URL('../src/scripts/generate-blog-index.js', import.meta.url),
+  'utf8',
+);
 const server = await readFile(new URL('../src/server.ts', import.meta.url), 'utf8');
 const index = await readFile(new URL('../src/index.html', import.meta.url), 'utf8');
 const robots = await readFile(new URL('../public/robots.txt', import.meta.url), 'utf8');
@@ -20,8 +28,16 @@ const { REQUIRED_KEYS, deriveAllowedHosts, validateSiteConfig } = require(valida
 
 assert.match(config.canonicalOrigin, /^https:\/\/[^/]+$/);
 assert.equal(config.locale, 'pt-BR');
-assert.equal(config.allowedHosts, undefined, 'allowed hosts must be derived, not duplicated in JSON');
-assert.equal(config.whatsappUrl, undefined, 'contact URLs must be derived from validated primitives');
+assert.equal(
+  config.allowedHosts,
+  undefined,
+  'allowed hosts must be derived, not duplicated in JSON',
+);
+assert.equal(
+  config.whatsappUrl,
+  undefined,
+  'contact URLs must be derived from validated primitives',
+);
 assert.match(typedConfig, /site-config-validator\.cjs/);
 assert.match(typedConfig, /SITE_CONFIG_ALLOWED_HOSTS/);
 assert.doesNotMatch(JSON.stringify(config), /password|secret|token|privateKey/i);
@@ -44,7 +60,10 @@ assert.equal(validated.whatsappUrl, `https://wa.me/${config.whatsappNumber.slice
 for (const field of REQUIRED_KEYS) {
   const missing = { ...config };
   delete missing[field];
-  assert.throws(() => validateSiteConfig(missing), new RegExp(`Missing site configuration field: ${field}`));
+  assert.throws(
+    () => validateSiteConfig(missing),
+    new RegExp(`Missing site configuration field: ${field}`),
+  );
   assert.throws(
     () => validateSiteConfig({ ...config, [field]: 42 }),
     new RegExp(`Invalid site configuration field: ${field}`),
@@ -52,25 +71,41 @@ for (const field of REQUIRED_KEYS) {
 }
 
 const invalidShapes = [
-  ['canonicalOrigin credentials/path', { canonicalOrigin: 'https://user:pass@example.test/path' }, /canonicalOrigin/],
+  [
+    'canonicalOrigin credentials/path',
+    { canonicalOrigin: 'https://user:pass@example.test/path' },
+    /canonicalOrigin/,
+  ],
   ['malformed canonicalOrigin', { canonicalOrigin: 'not a URL' }, /canonicalOrigin/],
   ['locale', { locale: 'not_a_locale' }, /locale/],
   ['time zone', { timeZone: 'Mars/Olympus' }, /timeZone/],
   ['short phone', { whatsappNumber: '+55123' }, /E\.164/],
   ['formatted phone', { whatsappNumber: '+55 (48) 98432-3764' }, /E\.164/],
   ['unrelated Instagram host', { instagramUrl: 'https://example.test/person' }, /instagram\.com/],
-  ['Instagram credentials', { instagramUrl: 'https://user:pass@instagram.com/person/' }, /credential-free/],
+  [
+    'Instagram credentials',
+    { instagramUrl: 'https://user:pass@instagram.com/person/' },
+    /credential-free/,
+  ],
   ['malformed Instagram URL', { instagramUrl: 'not a URL' }, /instagram\.com/],
   ['invalid email', { email: 'not-an-email' }, /valid email/],
   ['absolute image', { defaultImage: 'https://example.test/image.webp' }, /root-relative/],
   ['traversing image', { defaultImage: '/assets/../secret.webp' }, /root-relative/],
   ['encoded traversing image', { defaultImage: '/assets/%2e%2e/secret.webp' }, /root-relative/],
-  ['attribute injection image', { defaultImage: '/assets/hero" onerror="alert(1).webp' }, /root-relative/],
+  [
+    'attribute injection image',
+    { defaultImage: '/assets/hero" onerror="alert(1).webp' },
+    /root-relative/,
+  ],
   ['markup image', { defaultImage: '/assets/<script>.webp' }, /root-relative/],
   ['encoded backslash image', { defaultImage: '/assets/%5C..%5Cprivate.webp' }, /root-relative/],
   ['literal backslash image', { defaultImage: '/assets/\\..\\private.webp' }, /root-relative/],
   ['whitespace image', { defaultImage: '/assets/hero image.webp' }, /root-relative/],
-  ['double-encoded traversal image', { defaultImage: '/assets/%252e%252e/private.webp' }, /root-relative/],
+  [
+    'double-encoded traversal image',
+    { defaultImage: '/assets/%252e%252e/private.webp' },
+    /root-relative/,
+  ],
   ['unknown key', { extraPublicValue: 'x' }, /Unknown site configuration field/],
   ['secret key', { apiToken: 'never-commit-this' }, /Secret-shaped site configuration key/],
 ];
@@ -123,7 +158,10 @@ try {
     instagramUrl: 'https://www.instagram.com/example/',
   };
   await writeFile(fixtureConfigPath, JSON.stringify(replacementConfig, null, 2));
-  await writeFile(join(fixtureContentDir, 'example.md'), `---\ntitle: Example\ndate: 2026-01-01\ndescription: Example\ncategories:\n  - Carreira\n---\n\nContent\n`);
+  await writeFile(
+    join(fixtureContentDir, 'example.md'),
+    `---\ntitle: Example\ndate: 2026-01-01\ndescription: Example\ncategories:\n  - Carreira\n---\n\nContent\n`,
+  );
 
   runGenerator();
   const generatedFiles = await Promise.all([
@@ -167,7 +205,10 @@ try {
   const escapedIndex = await readFile(fixtureIndexPath, 'utf8');
   const document = new JSDOM(escapedIndex).window.document;
   assert.equal(document.querySelectorAll('[onerror], #config-injection').length, 0);
-  assert.equal(document.querySelector('meta[name="author"]')?.getAttribute('content'), injectionProbe.brandName);
+  assert.equal(
+    document.querySelector('meta[name="author"]')?.getAttribute('content'),
+    injectionProbe.brandName,
+  );
   assert.match(escapedIndex, /&quot; onerror=&quot;/);
   assert.match(escapedIndex, /&lt;script/);
 
@@ -176,12 +217,22 @@ try {
     '/assets/<script>.webp',
     '/assets/%5C..%5Cprivate.webp',
   ]) {
-    await writeFile(fixtureConfigPath, JSON.stringify({ ...replacementConfig, defaultImage }, null, 2));
+    await writeFile(
+      fixtureConfigPath,
+      JSON.stringify({ ...replacementConfig, defaultImage }, null, 2),
+    );
     assert.throws(runGenerator, /defaultImage must be a safe root-relative path/);
-    assert.equal(await readFile(fixtureIndexPath, 'utf8'), escapedIndex, 'rejected config must not mutate HTML');
+    assert.equal(
+      await readFile(fixtureIndexPath, 'utf8'),
+      escapedIndex,
+      'rejected config must not mutate HTML',
+    );
   }
 
-  const invalidConfig = { ...replacementConfig, canonicalOrigin: 'https://user:pass@example.test/path' };
+  const invalidConfig = {
+    ...replacementConfig,
+    canonicalOrigin: 'https://user:pass@example.test/path',
+  };
   await writeFile(fixtureConfigPath, JSON.stringify(invalidConfig, null, 2));
   assert.throws(runGenerator, /canonicalOrigin must be an exact http\(s\) origin/);
 } finally {

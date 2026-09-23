@@ -1,9 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import {
-  ActivatedRoute,
-  convertToParamMap,
-  provideRouter,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -56,18 +52,23 @@ describe('BlogPostComponent', () => {
         { id: 'second', text: 'Second', level: 2 },
       ],
     };
-    expect(component.tocGroups.map(({ heading, children }) => [heading.id, children.map((child) => child.id)]))
-      .toEqual([['first', ['child']], ['second', []]]);
+    expect(
+      component.tocGroups.map(({ heading, children }) => [
+        heading.id,
+        children.map((child) => child.id),
+      ]),
+    ).toEqual([
+      ['first', ['child']],
+      ['second', []],
+    ]);
   });
 
   it('should strip scripts and event handlers from rendered html', () => {
-    const dirty =
-      '<p>Hello</p><script>alert("xss")</script><img src="x" onerror="alert(1)">';
+    const dirty = '<p>Hello</p><script>alert("xss")</script><img src="x" onerror="alert(1)">';
     const trusted = component.toSafeHtml(dirty) as {
       changingThisBreaksApplicationSecurity: string;
     };
-    const html =
-      trusted?.changingThisBreaksApplicationSecurity ?? String(trusted);
+    const html = trusted?.changingThisBreaksApplicationSecurity ?? String(trusted);
 
     expect(html).not.toContain('<script');
     expect(html).not.toContain('onerror');
@@ -80,16 +81,18 @@ describe('BlogPostComponent', () => {
       headline: '</script><script>alert(1)</script>',
     });
 
-    const script = document.getElementById(
-      'json-ld-blog-post',
-    ) as HTMLScriptElement;
+    const script = document.getElementById('json-ld-blog-post') as HTMLScriptElement;
     expect(script.text).not.toContain('</script>');
     expect(JSON.parse(script.text).headline).toContain('</script>');
   });
 
   it('uses dedicated SEO titles and social metadata without regressing the H1 title', () => {
-    expect(buildBlogPageTitle('Editorial title', 'Concise discovery title')).toBe('Concise discovery title');
-    expect(buildBlogPageTitle('Short | Blog Natália Ferreira').match(/Blog Natália Ferreira/g)).toHaveLength(1);
+    expect(buildBlogPageTitle('Editorial title', 'Concise discovery title')).toBe(
+      'Concise discovery title',
+    );
+    expect(
+      buildBlogPageTitle('Short | Blog Natália Ferreira').match(/Blog Natália Ferreira/g),
+    ).toHaveLength(1);
 
     component.updateMetaAndStructuredData({
       slug: 'article',
@@ -111,7 +114,9 @@ describe('BlogPostComponent', () => {
     expect(TestBed.inject(Title).getTitle()).toBe('Concise discovery title');
     expect(TestBed.inject(Meta).getTag('property="og:title"')?.content).toBe('Social title');
     expect(TestBed.inject(Meta).getTag('name="twitter:title"')?.content).toBe('Social title');
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_URL}/blog/article`);
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      `${SITE_URL}/blog/article`,
+    );
   });
 });
 
@@ -236,8 +241,7 @@ describe('BlogPostComponent reused route state', () => {
           provide: BlogService,
           useValue: {
             getPostBySlug: () => of(post('b')),
-            getRelatedPosts: () =>
-              throwError(() => new Error('related unavailable')),
+            getRelatedPosts: () => throwError(() => new Error('related unavailable')),
           },
         },
       ],

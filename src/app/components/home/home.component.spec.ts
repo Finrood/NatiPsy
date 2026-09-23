@@ -3,8 +3,8 @@ import { homepageStructuredData } from './home.component';
 describe('homepage structured data', () => {
   it('uses linked entities without inventing location or credential types', () => {
     const graph = homepageStructuredData()['@graph'];
-    const service = graph.find((entity) => entity['@type'] === 'Service')! as any;
-    const person = graph.find((entity) => entity['@type'] === 'Person')! as any;
+    const service = graph.find((entity) => entity['@type'] === 'Service')!;
+    const person = graph.find((entity) => entity['@type'] === 'Person')!;
 
     expect(graph.map((entity) => entity['@id'])).toEqual([
       'https://psicologanataliaferreira.com/#website',

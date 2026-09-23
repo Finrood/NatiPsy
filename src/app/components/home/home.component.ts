@@ -59,7 +59,7 @@ export function homepageStructuredData() {
     ServicesComponent,
     ApproachComponent,
     AdvantagesComponent,
-    BlogPreviewComponent
+    BlogPreviewComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -73,7 +73,7 @@ export function homepageStructuredData() {
         <app-blog-preview id="blog"></app-blog-preview>
       </div>
     </div>
-  `
+  `,
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private readonly seoService = inject(SeoService);
@@ -83,7 +83,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.seoService.updateMetaTags({
       title: `Psicóloga ${PERSON_NAME} | Terapia Online - ${SITE_CONFIG.credential}`,
       description: SITE_CONFIG.siteDescription,
-      keywords: 'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
+      keywords:
+        'psicóloga online, terapia online, psicoterapia, terapia sistêmica, terapia de casal, psicóloga florianópolis',
       url: `${SITE_URL}/`,
       imageWidth: 853,
       imageHeight: 1280,

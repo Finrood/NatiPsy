@@ -24,14 +24,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import DOMPurify from 'dompurify';
 import { SeoService } from '../../services/seo.service';
 import { merge, Observable, of, Subject } from 'rxjs';
-import {
-  catchError,
-  distinctUntilChanged,
-  map,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs/operators';
+import { catchError, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { PERSON_NAME, PROFESSIONAL_NAME, SITE_URL } from '../../config/contact';
 
 const BLOG_TITLE_SUFFIX = ' | Blog Natália Ferreira';
@@ -103,13 +96,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       tap((slug) => (this.currentSlug = slug)),
     );
 
-    if (this.isBrowser)
-      window.addEventListener('hashchange', this.onHashChange);
-    this.route.fragment
-      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(() => {
-        if (this.isBrowser) setTimeout(() => this.resolveFragment(), 0);
-      });
+    if (this.isBrowser) window.addEventListener('hashchange', this.onHashChange);
+    this.route.fragment.pipe(distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => {
+      if (this.isBrowser) setTimeout(() => this.resolveFragment(), 0);
+    });
     merge(routeSlug$, this.retry$)
       .pipe(
         tap((slug) => {
@@ -139,9 +129,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.post = state.post ? this.normalizePost(state.post) : null;
         this.relatedPosts = state.relatedPosts;
-        this.safeContent = this.post
-          ? this.toSafeHtml(this.post.content as string)
-          : null;
+        this.safeContent = this.post ? this.toSafeHtml(this.post.content as string) : null;
 
         if (this.post) {
           this.updateMetaAndStructuredData(this.post);
@@ -167,8 +155,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.retry$.complete();
     this.fragmentObserver?.disconnect();
-    if (this.isBrowser)
-      window.removeEventListener('hashchange', this.onHashChange);
+    if (this.isBrowser) window.removeEventListener('hashchange', this.onHashChange);
     this.seoService.removeStructuredData('blog-post');
   }
 
@@ -217,8 +204,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
       this.fragmentObserver?.disconnect();
       target.scrollIntoView({ behavior: 'auto', block: 'start' });
-      if (!target.hasAttribute('tabindex'))
-        target.setAttribute('tabindex', '-1');
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
     };
 
@@ -253,9 +239,10 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   }
 
   handleErrorState(error: unknown): void {
-    const blogError = error instanceof BlogServiceError
-      ? error
-      : new BlogServiceError('invalid-content', 'render post error', { cause: error });
+    const blogError =
+      error instanceof BlogServiceError
+        ? error
+        : new BlogServiceError('invalid-content', 'render post error', { cause: error });
     this.error = BLOG_ERROR_MESSAGES[blogError.kind];
     this.retryable = blogError.kind !== 'not-found';
     this.post = null;
@@ -286,7 +273,9 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       description: seoDescription,
       socialTitle: post.socialTitle || post.seoTitle || post.title,
       socialDescription: post.socialDescription || post.seoDescription || post.description,
-      keywords: [...(post.categories ?? []), ...(post.tags ?? [])].join(', ') + ', psicologia, terapia, natalia ferreira',
+      keywords:
+        [...(post.categories ?? []), ...(post.tags ?? [])].join(', ') +
+        ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       imageWidth: post.imageWidth,
       imageHeight: post.imageHeight,
@@ -296,7 +285,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
       type: 'article',
       publishedTime: post.date ? post.date.toISOString() : undefined,
       author: post.author?.name || PERSON_NAME,
-      tags: [...(post.categories ?? []), ...(post.tags ?? [])]
+      tags: [...(post.categories ?? []), ...(post.tags ?? [])],
     });
 
     this.seoService.setStructuredData('blog-post', {

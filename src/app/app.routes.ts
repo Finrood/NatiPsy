@@ -4,14 +4,13 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () =>
-      import('./components/home/home.component').then((m) => m.HomeComponent),
+    loadComponent: () => import('./components/home/home.component').then((m) => m.HomeComponent),
   },
   {
     path: 'terapia-online',
     loadComponent: () =>
       import('./components/service-page/service-page.component').then(
-        (m) => m.ServicePageComponent
+        (m) => m.ServicePageComponent,
       ),
     data: { pageKey: 'therapyOnline' },
   },
@@ -19,7 +18,7 @@ export const routes: Routes = [
     path: 'orientacao-profissional',
     loadComponent: () =>
       import('./components/service-page/service-page.component').then(
-        (m) => m.ServicePageComponent
+        (m) => m.ServicePageComponent,
       ),
     data: { pageKey: 'careerGuidance' },
   },
@@ -27,7 +26,7 @@ export const routes: Routes = [
     path: 'contato-e-privacidade',
     loadComponent: () =>
       import('./components/trust-contact/trust-contact.component').then(
-        (m) => m.TrustContactComponent
+        (m) => m.TrustContactComponent,
       ),
   },
   {
@@ -36,38 +35,28 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./components/blog-list/blog-list.component').then(
-            (m) => m.BlogListComponent
-          ),
+          import('./components/blog-list/blog-list.component').then((m) => m.BlogListComponent),
       },
       {
         path: 'page/:page',
         loadComponent: () =>
-          import('./components/blog-list/blog-list.component').then(
-            (m) => m.BlogListComponent,
-          ),
+          import('./components/blog-list/blog-list.component').then((m) => m.BlogListComponent),
       },
       {
         path: 'category/:category',
         loadComponent: () =>
-          import('./components/blog-list/blog-list.component').then(
-            (m) => m.BlogListComponent
-          ),
+          import('./components/blog-list/blog-list.component').then((m) => m.BlogListComponent),
       },
       {
         path: ':slug',
         loadComponent: () =>
-          import('./components/blog-post/blog-post.component').then(
-            (m) => m.BlogPostComponent
-          ),
+          import('./components/blog-post/blog-post.component').then((m) => m.BlogPostComponent),
       },
     ],
   },
   {
     path: '**',
     loadComponent: () =>
-      import('./components/not-found/not-found.component').then(
-        (m) => m.NotFoundComponent
-      ),
+      import('./components/not-found/not-found.component').then((m) => m.NotFoundComponent),
   },
 ];

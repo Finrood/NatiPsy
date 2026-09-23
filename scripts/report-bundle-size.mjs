@@ -18,9 +18,11 @@ const html = fs.readFileSync(indexPath, 'utf8');
 const entryAssets = [
   ...html.matchAll(/<script[^>]+src="([^"]+)"/g),
   ...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g),
-].map(match => match[1]).filter(asset => !asset.startsWith('http'));
+]
+  .map((match) => match[1])
+  .filter((asset) => !asset.startsWith('http'));
 
-const initialAssets = new Set(entryAssets.map(asset => asset.replace(/^\//, '')));
+const initialAssets = new Set(entryAssets.map((asset) => asset.replace(/^\//, '')));
 const queue = [...initialAssets];
 while (queue.length > 0) {
   const asset = queue.shift();
@@ -37,7 +39,7 @@ while (queue.length > 0) {
   }
 }
 
-const files = [...initialAssets].map(asset => {
+const files = [...initialAssets].map((asset) => {
   const filePath = path.resolve(distDir, asset);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Initial asset ${asset} is missing from ${distDir}.`);
@@ -53,7 +55,7 @@ const lazyFiles = Object.entries(outputs)
     bytes: fs.statSync(path.resolve(distDir, asset)).size,
     entryPoint: output.entryPoint ?? null,
   }))
-  .filter(file => file.bytes > 0);
+  .filter((file) => file.bytes > 0);
 const lazyBytes = lazyFiles.reduce((total, file) => total + file.bytes, 0);
 const report = {
   distDir,
@@ -78,7 +80,9 @@ if (!fs.existsSync(baselinePath)) {
   const increasePercent = ((initialBytes - baseline.initialBytes) / baseline.initialBytes) * 100;
   console.log(`Initial bundle change: ${increasePercent.toFixed(2)}%`);
   if (increasePercent > policy.regression.maxIncreasePercent) {
-    console.error(`Initial bundle increased beyond ${policy.regression.maxIncreasePercent}% policy.`);
+    console.error(
+      `Initial bundle increased beyond ${policy.regression.maxIncreasePercent}% policy.`,
+    );
     process.exitCode = 1;
   }
 }
