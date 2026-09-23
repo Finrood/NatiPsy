@@ -26,6 +26,9 @@ jobs:
           node-version: 22.22.3
           cache: npm
 
+      - name: Set up pinned npm
+        run: npm install --global npm@10.9.9 --no-audit --no-fund
+
       - name: Install locked dependencies
         run: npm ci
 

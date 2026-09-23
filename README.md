@@ -1,10 +1,10 @@
 # NatiPsy
 
-This project uses Angular 22 with SSR/prerendered routes.
+This project uses Angular CLI 22.1.7 with SSR/prerendered routes.
 
 ## Requirements
 
-Use Node.js `22.22.3+`, `24.15.0+`, or `26.0.0+` (the Angular-supported lines) and npm 10+.
+Use Node.js `22.22.3` and npm `10.9.9`. Select the Node version in `.nvmrc` before installing dependencies.
 
 ## Development server
 
@@ -68,7 +68,7 @@ The Angular SSR server is optional; the production Docker image serves the prere
 
 ## Running unit tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+To execute unit tests with the Angular Vitest runner, use the following command:
 
 ```bash
 npm test -- --watch=false
