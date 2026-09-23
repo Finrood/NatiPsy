@@ -37,6 +37,22 @@ import {
 } from 'rxjs/operators';
 import { SITE_URL } from '../../config/contact';
 
+const BLOG_TITLE_SUFFIX = ' | Blog Natália Ferreira';
+
+export function buildBlogPageTitle(editorialTitle: string, seoTitle?: string): string {
+  const dedicatedTitle = seoTitle?.trim();
+  if (dedicatedTitle) return dedicatedTitle.slice(0, 60);
+
+  const baseTitle = editorialTitle.trim();
+  if (baseTitle.toLowerCase().endsWith(BLOG_TITLE_SUFFIX.toLowerCase())) {
+    return baseTitle.slice(0, 60);
+  }
+
+  const availableTitleLength = 60 - BLOG_TITLE_SUFFIX.length;
+  if (baseTitle.length <= availableTitleLength) return `${baseTitle}${BLOG_TITLE_SUFFIX}`;
+  return `${baseTitle.slice(0, availableTitleLength - 1).trimEnd()}…${BLOG_TITLE_SUFFIX}`;
+}
+
 @Component({
   selector: 'app-blog-post',
   standalone: true,
@@ -171,12 +187,15 @@ export class BlogPostComponent implements OnInit, OnDestroy {
 
   updateMetaAndStructuredData(post: BlogPost): void {
     const imageUrl = blogAbsoluteImageUrl(post.image);
+    const pageTitle = buildBlogPageTitle(post.title, post.seoTitle);
+    const seoDescription = post.seoDescription || post.description;
 
     this.seoService.updateMetaTags({
-      title: `${post.title} | Blog Natália Ferreira`,
-      description: post.description,
-      keywords:
-        post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
+      title: pageTitle,
+      description: seoDescription,
+      socialTitle: post.socialTitle || post.seoTitle || post.title,
+      socialDescription: post.socialDescription || post.seoDescription || post.description,
+      keywords: post.categories.join(', ') + ', psicologia, terapia, natalia ferreira',
       image: imageUrl,
       imageWidth: post.imageWidth,
       imageHeight: post.imageHeight,
@@ -196,7 +215,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
           '@type': 'BlogPosting',
           headline: post.title,
           name: post.title,
-          description: post.description,
+          description: seoDescription,
           image: imageUrl,
           datePublished: post.date.toISOString(),
           author: {

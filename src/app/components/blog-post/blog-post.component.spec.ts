@@ -7,9 +7,11 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { BlogPostComponent } from './blog-post.component';
+import { BlogPostComponent, buildBlogPageTitle } from './blog-post.component';
 import { SeoService } from '../../services/seo.service';
 import { BlogService } from '../../services/blog.service';
+import { Meta, Title } from '@angular/platform-browser';
+import { SITE_URL } from '../../config/contact';
 import { ReplaySubject, of, throwError, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -61,6 +63,31 @@ describe('BlogPostComponent', () => {
     ) as HTMLScriptElement;
     expect(script.text).not.toContain('</script>');
     expect(JSON.parse(script.text).headline).toContain('</script>');
+  });
+
+  it('uses dedicated SEO titles and social metadata without regressing the H1 title', () => {
+    expect(buildBlogPageTitle('Editorial title', 'Concise discovery title')).toBe('Concise discovery title');
+    expect(buildBlogPageTitle('Short | Blog Natália Ferreira').match(/Blog Natália Ferreira/g)).toHaveLength(1);
+
+    component.updateMetaAndStructuredData({
+      slug: 'article',
+      title: 'Editorial title',
+      seoTitle: 'Concise discovery title',
+      seoDescription: 'Concise description',
+      socialTitle: 'Social title',
+      socialDescription: 'Social description',
+      date: new Date('2025-01-01'),
+      description: 'Editorial description',
+      image: null,
+      categories: ['Carreira'],
+      content: '<p>content</p>',
+      readTime: 1,
+    });
+
+    expect(TestBed.inject(Title).getTitle()).toBe('Concise discovery title');
+    expect(TestBed.inject(Meta).getTag('property="og:title"')?.content).toBe('Social title');
+    expect(TestBed.inject(Meta).getTag('name="twitter:title"')?.content).toBe('Social title');
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_URL}/blog/article`);
   });
 });
 

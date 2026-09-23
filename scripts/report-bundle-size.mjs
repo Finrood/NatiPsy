@@ -25,9 +25,13 @@ const queue = [...initialAssets];
 while (queue.length > 0) {
   const asset = queue.shift();
   const output = outputs[asset];
-  if (!output) throw new Error(`Initial asset ${asset} is missing from ${statsPath}.`);
+  if (!output) {
+    throw new Error(`Initial asset ${asset} is missing from ${statsPath}.`);
+  }
   for (const imported of output.imports || []) {
-    if (imported.kind !== 'import-statement' || initialAssets.has(imported.path)) continue;
+    if (imported.kind !== 'import-statement' || initialAssets.has(imported.path)) {
+      continue;
+    }
     initialAssets.add(imported.path);
     queue.push(imported.path);
   }
@@ -35,7 +39,9 @@ while (queue.length > 0) {
 
 const files = [...initialAssets].map(asset => {
   const filePath = path.resolve(distDir, asset);
-  if (!fs.existsSync(filePath)) throw new Error(`Initial asset ${asset} is missing from ${distDir}.`);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Initial asset ${asset} is missing from ${distDir}.`);
+  }
   return { asset, bytes: fs.statSync(filePath).size };
 });
 const initialBytes = files.reduce((total, file) => total + file.bytes, 0);

@@ -80,7 +80,9 @@ test("article direct load and client navigation expose one valid article schema"
   ).toBe(true);
 
   await page.goto("/blog");
-  await page.locator(`a[href="${article}"]`).first().click();
+  const articleLink = page.locator('a[href="/blog/carreira-mulheres-negras-fadiga-racial"]').first();
+  await expect(articleLink).toHaveAccessibleName(/Mulheres Negras/i);
+  await articleLink.click();
   await expect(page.locator("article h1")).toBeVisible();
   await expect(page.locator("#json-ld-blog-post")).toHaveCount(1);
 });
