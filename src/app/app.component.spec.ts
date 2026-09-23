@@ -16,10 +16,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'NatiPsy' title`, () => {
+  it(`should use the configured brand title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('NatiPsy');
+    expect(app.title).toEqual('Natalia Ferreira');
   });
 
   it('should render the top menu and footer', () => {

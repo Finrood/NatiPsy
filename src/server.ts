@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import bootstrap from './main.server';
+import { SITE_CONFIG, SITE_CONFIG_ALLOWED_HOSTS } from './app/config/site-runtime';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -21,7 +22,7 @@ const NO_INDEX_META =
 /** Angular/esbuild output hashes aren't hex-only (e.g. main-TARQSBXP.js). */
 const HASHED_ASSET = /-[A-Za-z0-9_-]{8}(\.[cm]?js|\.css)$/;
 
-const configuredOrigin = process.env['PUBLIC_ORIGIN'] || 'https://psicologanataliaferreira.com';
+const configuredOrigin = process.env['PUBLIC_ORIGIN'] || SITE_CONFIG.canonicalOrigin;
 
 export function validatePublicOrigin(value: string): URL {
   const origin = new URL(value);
@@ -43,13 +44,7 @@ const canonicalHostname = publicOrigin.hostname.toLowerCase();
 const alternateHostname = canonicalHostname.startsWith('www.')
   ? canonicalHostname.slice(4)
   : `www.${canonicalHostname}`;
-const allowedHosts = [
-  'localhost',
-  '127.0.0.1',
-  '::1',
-  canonicalHostname,
-  alternateHostname,
-];
+const allowedHosts = [...new Set([...SITE_CONFIG_ALLOWED_HOSTS, '::1', canonicalHostname, alternateHostname])];
 const allowedHostnames = new Set(allowedHosts);
 
 export function normalizeHostHeader(value: string | undefined): string | null {

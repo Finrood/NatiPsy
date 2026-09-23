@@ -36,7 +36,7 @@ import {
   formatBlogDate,
 } from '../../models/blog-post.model';
 import { SeoService } from '../../services/seo.service';
-import { SITE_URL } from '../../config/contact';
+import { PERSON_NAME, SITE_URL } from '../../config/contact';
 
 export type BlogSortBy = keyof Pick<BlogPost, 'date' | 'title'>;
 export type BlogSortDirection = 'asc' | 'desc';
@@ -446,24 +446,24 @@ export class BlogListComponent implements OnInit {
         const categoryUrl = categorySlug
           ? `/blog/category/${categorySlug}`
           : null;
-        this.seoService.updateMetaTags({
-          title:
-            categoryLabel
-              ? `${categoryLabel} | Blog Natalia Ferreira`
+        if (categorySlug || this.router.url.split(/[?#]/)[0].startsWith('/blog')) {
+          this.seoService.updateMetaTags({
+            title: categoryLabel
+              ? `${categoryLabel} | Blog ${PERSON_NAME}`
               : requestedPage === 1
-              ? 'Blog | Psicóloga Natalia Ferreira'
-              : `Blog — Página ${requestedPage} | Psicóloga Natalia Ferreira`,
-          description:
-            'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
-          keywords:
-            'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
-          url: `${SITE_URL}${categoryUrl ?? (requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog')}`,
-          // Category landing pages remain crawlable through internal links but
-          // are noindex while the registry has fewer than two posts per page.
-          robots:
-            (isCategoryRoute && content.posts.length < 2) || hasAlternateView
-              ? 'noindex,follow' : undefined,
-        });
+                ? `Blog | Psicóloga ${PERSON_NAME}`
+                : `Blog — Página ${requestedPage} | Psicóloga ${PERSON_NAME}`,
+            description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
+            keywords:
+              'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
+            url: `${SITE_URL}${categoryUrl ?? (requestedPage > 1 ? `/blog/page/${requestedPage}` : '/blog')}`,
+            // Category pages stay crawlable but noindex until they contain enough posts.
+            robots:
+              (isCategoryRoute && content.posts.length < 2) || hasAlternateView
+                ? 'noindex,follow'
+                : undefined,
+          });
+        }
         const visiblePosts = pageError
           ? []
           : paginateItems(
@@ -541,11 +541,9 @@ export class BlogListComponent implements OnInit {
   ngOnInit(): void {
     if (this.router.url.split(/[?#]/)[0] === '/blog') {
       this.seoService.updateMetaTags({
-        title: 'Blog | Psicóloga Natalia Ferreira',
-        description:
-          'Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por Natalia Ferreira, Psicóloga Clínica.',
-        keywords:
-          'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
+        title: `Blog | Psicóloga ${PERSON_NAME}`,
+        description: `Artigos sobre saúde mental, relacionamentos, carreira e desenvolvimento pessoal por ${PERSON_NAME}, Psicóloga Clínica.`,
+        keywords: 'blog psicologia, artigos saúde mental, psicóloga blog, carreira, mulheres negras, bem-estar',
         url: `${SITE_URL}/blog`,
       });
     }

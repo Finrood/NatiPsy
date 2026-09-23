@@ -54,6 +54,7 @@
     "smoke:production": "node scripts/deploy-smoke-check.mjs",
     "test:bundle-budget": "node ./scripts/bundle-budget-contract.test.mjs",
     "toolchain:check": "node ./scripts/toolchain-contract.test.mjs",
+    "test:site-config": "node scripts/site-config-contract.test.mjs",
     "serve:ssr:NatiPsy": "node dist/nati-psy/server/server.mjs"
   },
   "private": true,
