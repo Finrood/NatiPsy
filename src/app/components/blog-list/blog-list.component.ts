@@ -83,6 +83,8 @@ interface BlogContentState {
   loading: boolean;
   error: string | null;
   categoryError: string | null;
+  errorRetryable: boolean;
+  categoryRetryable: boolean;
 }
 
 interface BlogListViewModel extends BlogContentState, BlogQueryState {
@@ -107,6 +109,8 @@ const initialContentState: BlogContentState = {
   loading: true,
   error: null,
   categoryError: null,
+  errorRetryable: false,
+  categoryRetryable: false,
 };
 
 function errorMessage(error: unknown): string {
@@ -114,6 +118,10 @@ function errorMessage(error: unknown): string {
     return BLOG_ERROR_MESSAGES[error.kind];
   }
   return 'Não foi possível carregar este conteúdo.';
+}
+
+function canRetry(error: unknown): boolean {
+  return !(error instanceof BlogServiceError && error.kind === 'not-found');
 }
 
 function firstQueryValue(value: unknown): unknown {
@@ -288,15 +296,15 @@ export class BlogListComponent implements OnInit {
                 filters.sortDirection,
               )
               .pipe(
-                map((posts) => ({ value: posts, error: null as string | null })),
+                map((posts) => ({ value: posts, error: null as string | null, retryable: false })),
                 catchError((error: unknown) =>
-                  of({ value: [] as BlogPost[], error: errorMessage(error) }),
+                  of({ value: [] as BlogPost[], error: errorMessage(error), retryable: canRetry(error) }),
                 ),
               ),
             categories: this.blogService.getAllCategories().pipe(
-              map((categories) => ({ value: categories, error: null as string | null })),
+              map((categories) => ({ value: categories, error: null as string | null, retryable: false })),
               catchError((error: unknown) =>
-                of({ value: [] as string[], error: errorMessage(error) }),
+                of({ value: [] as string[], error: errorMessage(error), retryable: canRetry(error) }),
               ),
             ),
           }).pipe(
@@ -306,6 +314,8 @@ export class BlogListComponent implements OnInit {
               loading: false,
               error: posts.error,
               categoryError: categories.error,
+              errorRetryable: posts.retryable,
+              categoryRetryable: categories.retryable,
             })),
             startWith(initialContentState as BlogContentState),
           ),
@@ -417,6 +427,7 @@ export class BlogListComponent implements OnInit {
           ...normalizedQuery,
           ...content,
           error: pageError ?? content.error,
+          errorRetryable: !pageError && content.errorRetryable,
           totalItems,
           totalPages,
           displayedPosts: visiblePosts,
@@ -451,6 +462,12 @@ export class BlogListComponent implements OnInit {
   }
   get categoryError(): string | null {
     return this.viewModel().categoryError;
+  }
+  get errorRetryable(): boolean {
+    return this.viewModel().errorRetryable;
+  }
+  get categoryRetryable(): boolean {
+    return this.viewModel().categoryRetryable;
   }
   get currentPage(): number {
     return this.viewModel().page;
