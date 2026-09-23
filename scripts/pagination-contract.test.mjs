@@ -13,7 +13,10 @@ assert.match(generator, /\/blog\/page\/\$\{page\}/);
 assert.match(component, /return page === 1 \? '\/blog' : `\/blog\/page\/\$\{page\}`/);
 assert.match(component, /export function paginateItems/);
 assert.match(component, /export function paginationWindow/);
-assert.match(component, /hasAlternateView \? 'noindex,follow'/);
+assert.match(
+  component,
+  /robots:\s*\(isCategoryRoute && content\.posts\.length < 2\) \|\| hasAlternateView\s*\? 'noindex,follow'/,
+);
 assert.match(template, /<a \[routerLink\]="pageUrl\(pageNum\)"/);
 assert.doesNotMatch(template, /<button[^>]*onPageChange/);
 
