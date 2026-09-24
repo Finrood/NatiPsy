@@ -6,19 +6,29 @@ This is the single authoritative file for project findings. Do not create a seco
 
 | Field | Value |
 | --- | --- |
-| Audit date | 2026-09-12 |
-| Audited branch | `master` |
-| Audited commit | `23d203a` |
-| Remote state | `master` equals `origin/master`; `git pull --ff-only` reported “Already up to date” |
+| Last reconciled | 2026-09-24 |
+| Verified code baseline | `master` at `9ca4eda2cd73001cfbb5f93c7e0eaced6f7fe903`, before this documentation-only update |
+| Original audit baseline | 2026-09-12 at `23d203a`; retained below as historical evidence |
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
-| Current open findings | **43** (`AUD-001` through `AUD-043`) |
-| Historical findings | **23**: 20 resolved, 3 carried into the current backlog |
-| New findings in this audit | **40** |
-| Total unique findings documented | **63** (23 historical + 40 new) |
+| Current AUD findings | **46** (`AUD-001` through `AUD-046`): **35 RESOLVED, 5 PARTIAL, 3 REOPENED, 3 OPEN** |
+| Current actionable findings | **11**: `AUD-001`, `AUD-002`, `AUD-014`, `AUD-024`, `AUD-031`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-044`, `AUD-045`, `AUD-046` |
+| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, and PR #72 was closed as superseded without a merge |
+| Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
+| Total unique findings documented | **66** (23 historical + 40 from the 2026-09-12 audit + 3 added on 2026-09-24) |
 
-“Open” means the correction is not present on `master`. A PR being open does not make a finding resolved. Change a finding to `RESOLVED` only after its PR is merged into `master` and its acceptance checks pass there.
+`RESOLVED` means the merged implementation and relevant checks have no known remaining acceptance gap. `PARTIAL` means material work is merged but an explicit operational, external, visual, or owner-dependent acceptance check remains unverified. `REOPENED` means new live/build evidence contradicts a prior acceptance claim. `OPEN` means a newly identified problem has no completed fix. A merged PR is implementation evidence, not automatic closure.
 
-## Verified baseline
+## Current verification (2026-09-24)
+
+- The [Quality run on the verified code baseline](https://github.com/Finrood/NatiPsy/actions/runs/35924531455) passed. A separate clean checkout passed the pinned install, lint, format check, production build, 60 unit tests, and 42 local Chromium tests. The OSV policy scanned 751 locked packages successfully; a fresh npm audit reported zero production or development advisories.
+- The public site serves matching main/style asset hashes, and its feed, sitemap, and robots file match the generated files byte-for-byte. The production smoke and robots checks passed from the review environment. All eight sitemap URLs returned 200; an unknown URL returned a real 404. The RSS feed returns 200 with `application/rss+xml`, short revalidating cache, security headers, and valid XML.
+- The separate [GitHub-hosted Production smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/production-smoke.yml) has **no green run**: its latest runs fail at the first URL because Cloudflare returns 403 to that runner. Availability from the review environment does not close the external-monitoring/alert acceptance in AUD-001. The [Production robots smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/robots-smoke.yml) is green.
+- The browser suite run directly against production passed **29/42**, not 42/42. Twelve failures share a pre-hydration interaction timing pattern; a controlled reproduction lost an early category selection, then the same action worked after hydration. The remaining failure is a Cloudflare-injected analytics script blocked by CSP. These are tracked under AUD-044 and reopened AUD-024, rather than misreported as 13 unrelated defects.
+- A live internal-link crawl found the homepage category chip pointing to a 404 (AUD-040). The prerendered article exposes nine table-of-contents links but zero corresponding heading IDs until hydration (AUD-039). Cloudflare email obfuscation turns the public email link into a 404 when JavaScript is unavailable (AUD-045). GitHub reports `master` as unprotected, so the green Quality workflow is not enforced for future merges (AUD-046).
+
+## Historical baseline (2026-09-12; not current)
+
+The following measurements explain the original findings. They must not be read as the current build, dependency, or production state.
 
 - Production build: passed with Node `v26.8.2`; 3 routes prerendered. Initial browser payload is **492.26 kB raw / 131.59 kB estimated transfer**. `main` is 212.02 kB raw. The documentation-only audit expansion changed the styles artifact again, reinforcing AUD-034.
 - Unit tests: **24 passed in 13 files** with Node `v26.8.2`. The shell’s Node `v22.22.2` cannot start Angular 22 because Angular requires at least `22.22.3`, proving the toolchain is not pinned adequately.
@@ -29,22 +39,41 @@ This is the single authoritative file for project findings. Do not create a seco
 - Live HTTP checks, repeated after the interrupted audit: `/`, `/blog`, `/sitemap.xml`, and an unknown route return **Cloudflare 523**. `/robots.txt` returns a Cloudflare-generated policy, not `public/robots.txt`.
 - Repository coverage: all tracked application, template, style, content, configuration, container, script, and test files were inspected. Generated bundles and asset dimensions were checked separately.
 
-## Priority and execution rules
+## Priority and follow-up rules
 
-- `P0`: production availability or crawl-control incident. Diagnose immediately.
+- `P0`: current production availability or crawl-control incident. Diagnose immediately.
 - `P1`: high-impact correctness, security, data, SEO, or delivery risk.
 - `P2`: material performance, maintainability, accessibility, or UX issue.
 - `P3`: useful polish or strategic improvement with lower urgency.
-- Implement one finding per branch and PR using the specified branch name.
-- Start every finding branch from a clean, current `origin/master`, never from another unmerged finding branch.
-- Do not merge PRs. Do not silently expand a PR into adjacent findings.
-- Do not fabricate clinical, credential, address, review, or business information. Where owner input is required, implement only the safe infrastructure and put the unanswered decision in the PR checklist.
+- Reproduce the current gap on the verified baseline before implementing a follow-up. Previously merged PRs must not be recreated.
+- Keep each remaining fix scoped, test the live/prerendered behavior named in its acceptance criteria, and close it only when the evidence is recorded here.
+- Do not fabricate clinical, credential, address, review, or business information. Where owner input is required, implement only the safe infrastructure and record the unanswered decision.
 
 ## Current actionable findings
 
+| Finding | State | Remaining acceptance or next action |
+| --- | --- | --- |
+| AUD-001 | PARTIAL / P1 | Restore a green external production monitor, document its alert destination, and retain origin/edge evidence. |
+| AUD-002 | PARTIAL / P2 | Record the owner-approved crawler policy and Cloudflare override decision; current live robots and automated smoke are correct. |
+| AUD-014 | PARTIAL / P2 | Record owner confirmation for published business facts and external structured-data validator results. |
+| AUD-024 | REOPENED / P2 | Reconcile Cloudflare's injected analytics beacon with the deliberately restrictive CSP without broadly weakening it. |
+| AUD-031 | PARTIAL / P2 | Record four-viewport visual review and performance/CLS acceptance. |
+| AUD-033 | PARTIAL / P3 | Record Search Console verification/inspection, sitemap submission, and the ongoing editorial review decision. |
+| AUD-039 | REOPENED / P2 | Preserve safe heading IDs in prerendered HTML so all TOC fragments resolve without client hydration. |
+| AUD-040 | REOPENED / P2 | Point the shared card's category chip to the real `/blog/category/:slug` route and correct its test. |
+| AUD-044 | OPEN / P1 | Prevent first-load interactions from being silently lost before hydration. |
+| AUD-045 | OPEN / P2 | Stop Cloudflare email obfuscation from producing a broken no-JavaScript contact link. |
+| AUD-046 | OPEN / P2 | Enforce the passing Quality check on `master` with branch protection or a ruleset. |
+
+## Finding record
+
+The original `Evidence` and `Why this matters` paragraphs below describe the 2026-09-12 pre-fix state. The status line and current verification above take precedence for present-day state. Every original implementation has a merged PR; AUD-043's implementation is in PR #44 even though its dedicated PR #72 was superseded.
+
 ### AUD-001 — Production origin is unreachable through Cloudflare
 
-- **Status / priority:** `OPEN / P0`
+- **Status / priority:** `PARTIAL / P1`
+- **Implementation PR:** [#30](https://github.com/Finrood/NatiPsy/pull/30)
+- **Current gap (2026-09-24):** The origin is reachable and the direct four-path smoke passes, but GitHub-hosted Production smoke still receives Cloudflare 403 (latest run: https://github.com/Finrood/NatiPsy/actions/runs/35855439968). An independent green monitor, alert destination, and origin/edge evidence are not recorded.
 - **Branch:** `codex/aud-001-production-origin-523`
 - **Area:** Production, reliability, SEO
 - **Evidence:** On 2026-09-12, repeated requests to the home page, `/blog`, `/sitemap.xml`, the article route, and an unknown route returned Cloudflare HTTP `523` with `error code: 523`. Only Cloudflare’s managed `/robots.txt` was available.
@@ -54,7 +83,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-002 — Cloudflare’s managed robots file hides the repository sitemap directive
 
-- **Status / priority:** `OPEN / P0`
+- **Status / priority:** `PARTIAL / P2`
+- **Implementation PR:** [#31](https://github.com/Finrood/NatiPsy/pull/31)
+- **Current gap (2026-09-24):** Live `/robots.txt` now matches the repository and includes the sitemap, and the scheduled robots workflow passes. The owner-approved crawler policy and exact Cloudflare override decision have not been recorded.
 - **Branch:** `codex/aud-002-live-robots-sitemap`
 - **Area:** Deployment, crawl control, SEO
 - **Evidence:** `public/robots.txt` allows crawling and declares `Sitemap: https://psicologanataliaferreira.com/sitemap.xml`. The live `/robots.txt` is a much larger Cloudflare-generated content-signals file and contains no `Sitemap:` line.
@@ -64,7 +95,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-003 — The deployed Nginx contract creates soft 404s and contradicts the SSR contract
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#32](https://github.com/Finrood/NatiPsy/pull/32)
 - **Branch:** `codex/aud-003-deployment-contract-404`
 - **Area:** Docker, Nginx, SSR, SEO
 - **Files:** `Dockerfile:18-28`, `nginx.conf:25-36`, `src/server.ts:102-130`, `package.json:11`
@@ -75,7 +107,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-004 — The header is transparent on the initial SSR/hydrated render
 
-- **Status / priority:** `OPEN / P1` (reopens historical 4.4)
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#33](https://github.com/Finrood/NatiPsy/pull/33)
 - **Branch:** `codex/aud-004-header-initial-background`
 - **Area:** Design, hydration, accessibility
 - **Files:** `src/app/components/top-menu/top-menu.component.html:1-7`
@@ -86,7 +119,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-005 — Blog query parameters cannot be cleared and invalid values are not normalized
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#34](https://github.com/Finrood/NatiPsy/pull/34)
 - **Branch:** `codex/aud-005-blog-query-normalization`
 - **Area:** Functional correctness, URL state, SEO
 - **Files:** `src/app/components/blog-list/blog-list.component.ts:63-70,129-176`
@@ -97,7 +131,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-006 — Blog-list state orchestration permits stale work and still relies on manual change detection
 
-- **Status / priority:** `OPEN / P1` (carries historical 5.1)
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#35](https://github.com/Finrood/NatiPsy/pull/35)
 - **Branch:** `codex/aud-006-blog-reactive-state`
 - **Area:** Angular architecture, reliability
 - **Files:** `src/app/components/blog-list/blog-list.component.ts:24-133`
@@ -108,7 +143,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-007 — Date-only blog dates shift to the previous day and render in English
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#36](https://github.com/Finrood/NatiPsy/pull/36)
 - **Branch:** `codex/aud-007-blog-date-locale`
 - **Area:** Content correctness, localization, hydration
 - **Files:** `src/app/services/blog.service.ts:36-44,63-70,172-179`, `src/app/components/blog-list/blog-list.component.html:134-137`, `src/app/components/blog-post/blog-post.component.html:95-100`
@@ -119,7 +155,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-008 — Raw Markdown sources are copied into the public production bundle
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#37](https://github.com/Finrood/NatiPsy/pull/37)
 - **Branch:** `codex/aud-008-private-content-sources`
 - **Area:** Content pipeline, privacy, release safety
 - **Files:** `angular.json:23-27`, `src/scripts/generate-blog-index.js:6-9`, `public/assets/content/blog/*.md`
@@ -130,7 +167,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-009 — The blog generator validates weakly, fails open, and accepts unsafe paths
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#38](https://github.com/Finrood/NatiPsy/pull/38)
 - **Branch:** `codex/aud-009-blog-generator-validation`
 - **Area:** Build scripts, data integrity, security
 - **Files:** `src/scripts/generate-blog-index.js:98-203`
@@ -141,7 +179,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-010 — Dependency audit reports seven known vulnerabilities
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#39](https://github.com/Finrood/NatiPsy/pull/39)
 - **Branch:** `codex/aud-010-dependency-advisories`
 - **Area:** Supply chain, security
 - **Files:** `package.json`, `package-lock.json`
@@ -152,7 +191,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-011 — Missing `.dockerignore` sends a 384 MB context and can overwrite container dependencies
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#40](https://github.com/Finrood/NatiPsy/pull/40)
 - **Branch:** `codex/aud-011-dockerignore-context`
 - **Area:** Docker, build performance, reproducibility, secret hygiene
 - **Files:** `Dockerfile:7-13`; missing `.dockerignore`
@@ -163,7 +203,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-012 — SEO metadata leaks across routes and publishes false social-image attributes
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#41](https://github.com/Finrood/NatiPsy/pull/41)
 - **Branch:** `codex/aud-012-seo-meta-lifecycle`
 - **Area:** SEO, social sharing, SPA correctness
 - **Files:** `src/app/services/seo.service.ts:7-87`, `src/index.html:13-29`
@@ -174,7 +215,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-013 — Article route reuse can leave stale content, related posts, and JSON-LD
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#42](https://github.com/Finrood/NatiPsy/pull/42)
 - **Branch:** `codex/aud-013-blog-jsonld-lifecycle`
 - **Area:** Structured data, SPA correctness
 - **Files:** `src/app/components/blog-post/blog-post.component.ts:44-74,149-191`, `src/app/services/seo.service.ts:101-119`
@@ -185,7 +227,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-014 — Person and professional-service structured data contain semantically invalid claims
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `PARTIAL / P2`
+- **Implementation PR:** [#43](https://github.com/Finrood/NatiPsy/pull/43)
+- **Current gap (2026-09-24):** The merged structured-data graph and prerendered JSON-LD parse, but external validator results and explicit confirmation of published business facts are not recorded.
 - **Branch:** `codex/aud-014-structured-data-entities`
 - **Area:** SEO, schema, trust
 - **Files:** `src/app/components/hero/hero.component.ts:16-37`, `src/app/components/about-me/about-me.component.ts:16-33`
@@ -196,7 +240,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-015 — No CI protects build, tests, generated files, security, or deployment behavior
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#44](https://github.com/Finrood/NatiPsy/pull/44)
 - **Branch:** `codex/aud-015-ci-quality-gates`
 - **Area:** Delivery, reliability
 - **Files:** missing `.github/workflows/*`
@@ -207,7 +252,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-016 — Tests are mostly smoke tests and README advertises an e2e target that does not exist
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `RESOLVED / P1`
+- **Implementation PR:** [#45](https://github.com/Finrood/NatiPsy/pull/45)
 - **Branch:** `codex/aud-016-test-strategy-e2e`
 - **Area:** Testing, documentation, accessibility
 - **Files:** `src/**/*.spec.ts`, `angular.json:90-97`, `README.md:39-55`
@@ -218,7 +264,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-017 — Sorting mutates the shared post cache and changes later related-post results
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#46](https://github.com/Finrood/NatiPsy/pull/46)
 - **Branch:** `codex/aud-017-blog-cache-immutability`
 - **Area:** Logic, reliability
 - **Files:** `src/app/services/blog.service.ts:81-118,191-217`
@@ -229,7 +276,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-018 — Concurrent first-use calls can fetch the blog index twice
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#47](https://github.com/Finrood/NatiPsy/pull/47)
 - **Branch:** `codex/aud-018-blog-index-request-cache`
 - **Area:** Performance, SSR reliability
 - **Files:** `src/app/services/blog.service.ts:47-79,120-129`, `src/app/components/blog-list/blog-list.component.ts:63-74`
@@ -240,7 +288,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-019 — BlogPost and DOMPurify remain in the initial homepage bundle
 
-- **Status / priority:** `OPEN / P2` (remaining work from historical 2.1)
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#48](https://github.com/Finrood/NatiPsy/pull/48)
 - **Branch:** `codex/aud-019-lazy-blog-post-route`
 - **Area:** Performance, routing
 - **Files:** `src/app/app.routes.ts:1-28`, `src/app/components/blog-post/blog-post.component.ts:6-8`
@@ -251,7 +300,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-020 — The homepage embeds the entire blog archive instead of a focused preview
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#49](https://github.com/Finrood/NatiPsy/pull/49)
 - **Branch:** `codex/aud-020-blog-preview-archive-separation`
 - **Area:** UX, information architecture, performance, semantics
 - **Files:** `src/app/components/home/home.component.ts:14-32`, `src/app/components/blog-list/*`
@@ -262,7 +312,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-021 — Blog images violate declared aspect ratios and archive LCP priority guidance
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#50](https://github.com/Finrood/NatiPsy/pull/50)
 - **Branch:** `codex/aud-021-responsive-blog-images`
 - **Area:** Performance, layout stability, UX
 - **Files:** `src/app/components/blog-list/blog-list.component.html:112-123`, `src/app/components/blog-post/blog-post.component.html:52-60,149-155`
@@ -273,7 +324,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-022 — Article title and description are too long for search/social presentation
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#51](https://github.com/Finrood/NatiPsy/pull/51)
 - **Branch:** `codex/aud-022-blog-seo-fields`
 - **Area:** SEO, content modeling
 - **Files:** `public/assets/content/blog/carreira-mulheres-negras-fadiga-racial.md:1-20`, `src/app/models/blog-post.model.ts`, `src/app/components/blog-post/blog-post.component.ts:149-190`
@@ -284,7 +336,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-023 — Google Fonts makes builds and first visits depend on a third party
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#52](https://github.com/Finrood/NatiPsy/pull/52)
 - **Branch:** `codex/aud-023-self-host-fonts`
 - **Area:** Privacy, performance, reliability, CSP
 - **Files:** `src/index.html:34-44`, `src/styles.css:20-22`, `nginx.conf:30,53,69`
@@ -295,7 +348,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-024 — Content Security Policy and security-header coverage are broader and less consistent than needed
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `REOPENED / P2`
+- **Implementation PR:** [#53](https://github.com/Finrood/NatiPsy/pull/53)
+- **Current gap (2026-09-24):** On production, Cloudflare injects `static.cloudflareinsights.com/beacon.min.js`; the live CSP blocks it and logs a console error, contradicting the no-violation acceptance criterion. Disable unwanted injection or permit only the exact required origins if analytics is intentionally retained.
 - **Branch:** `codex/aud-024-nginx-security-headers`
 - **Area:** Security, Nginx
 - **Files:** `nginx.conf:25-76`, `src/index.html:41`
@@ -306,7 +361,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-025 — The optional Express SSR server has a prefix-unsafe path guard and incomplete proxy hardening
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#54](https://github.com/Finrood/NatiPsy/pull/54)
 - **Branch:** `codex/aud-025-ssr-server-hardening`
 - **Area:** Backend, security, reliability
 - **Files:** `src/server.ts:52-79,107-140`
@@ -317,7 +373,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-026 — Container images and runtime lack reproducibility and health/hardening controls
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#55](https://github.com/Finrood/NatiPsy/pull/55)
 - **Branch:** `codex/aud-026-container-repro-hardening`
 - **Area:** Docker, operations, security
 - **Files:** `Dockerfile`, `docker-compose.yml`
@@ -328,7 +385,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-027 — Node/npm/Angular versions and dependency roles are not reproducible or minimal
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#56](https://github.com/Finrood/NatiPsy/pull/56)
 - **Branch:** `codex/aud-027-toolchain-dependency-hygiene`
 - **Area:** Tooling, maintainability, supply chain
 - **Files:** `package.json`, `package-lock.json`; missing `.nvmrc`/`.node-version`
@@ -339,7 +397,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-028 — There is no lint or formatting gate
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#57](https://github.com/Finrood/NatiPsy/pull/57)
 - **Branch:** `codex/aud-028-lint-format`
 - **Area:** Code quality, simplicity
 - **Files:** missing ESLint/Prettier configuration; project TypeScript/templates/styles
@@ -350,7 +409,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-029 — Bundle budgets allow major regressions and bundle composition is not tracked
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#58](https://github.com/Finrood/NatiPsy/pull/58)
 - **Branch:** `codex/aud-029-performance-budgets`
 - **Area:** Performance, CI
 - **Files:** `angular.json:43-55`, build tooling
@@ -361,7 +421,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-030 — Remaining accessibility defects affect contrast, keyboard efficiency, announcements, and motion
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#59](https://github.com/Finrood/NatiPsy/pull/59)
 - **Branch:** `codex/aud-030-accessibility-interactions`
 - **Area:** Accessibility, UX
 - **Files:** `src/app/components/top-menu/top-menu.component.html:52-70`, `src/app/components/blog-list/blog-list.component.html:81-155`, `src/app/components/blog-post/blog-post.component.html:34-45`, interactive templates and `src/styles.css:24-34`
@@ -372,7 +433,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-031 — Mobile homepage hierarchy hides the primary conversion action far below the fold
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `PARTIAL / P2`
+- **Implementation PR:** [#60](https://github.com/Finrood/NatiPsy/pull/60)
+- **Current gap (2026-09-24):** The responsive source change and focused contract merged, but the four requested viewport screenshots, no-overlap review, and Lighthouse/CLS acceptance were not recorded.
 - **Branch:** `codex/aud-031-mobile-home-conversion`
 - **Area:** Responsive design, UX, conversion
 - **Files:** `src/app/components/hero/hero.component.html`, `src/app/components/services/services.component.html`, home composition
@@ -383,7 +446,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-032 — Brand assets are inefficient and favicon coverage is malformed/incomplete
 
-- **Status / priority:** `OPEN / P3`
+- **Status / priority:** `RESOLVED / P3`
+- **Implementation PR:** [#61](https://github.com/Finrood/NatiPsy/pull/61)
 - **Branch:** `codex/aud-032-assets-favicon-manifest`
 - **Area:** Assets, performance, browser UX, branding
 - **Files:** `public/assets/icons/*`, `public/assets/logo*`, `public/favicon.ico`, `src/index.html:31-32`
@@ -394,7 +458,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-033 — Search classification lacks focused pages, freshness, and an evidence-based trust/content workflow
 
-- **Status / priority:** `OPEN / P3`
+- **Status / priority:** `PARTIAL / P3`
+- **Implementation PR:** [#62](https://github.com/Finrood/NatiPsy/pull/62)
+- **Current gap (2026-09-24):** The new pages and sitemap are live, but Search Console ownership/submission/URL-inspection evidence and the quarterly editorial review decision are not recorded.
 - **Branch:** `codex/aud-033-search-content-architecture`
 - **Area:** SEO strategy, information architecture, content UX
 - **Files:** routes, navigation, sitemap, blog content, footer/about/service content
@@ -405,7 +471,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-034 — Tailwind scans documentation, so editing the audit changes production CSS
 
-- **Status / priority:** `OPEN / P3`
+- **Status / priority:** `RESOLVED / P3`
+- **Implementation PR:** [#63](https://github.com/Finrood/NatiPsy/pull/63)
 - **Branch:** `codex/aud-034-tailwind-source-boundary`
 - **Area:** Build determinism, CSS performance
 - **Files:** `src/styles.css:1-2`, Tailwind source detection
@@ -416,7 +483,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-035 — Nginx misses valid Angular hashes and can emit duplicate cache directives
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#64](https://github.com/Finrood/NatiPsy/pull/64)
 - **Branch:** `codex/aud-035-nginx-hashed-cache-regex`
 - **Area:** Nginx, caching, performance
 - **Files:** `nginx.conf:38-70`, compare `src/server.ts:21-22`
@@ -427,7 +495,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-036 — Blog data is serialized twice in hydration state
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#65](https://github.com/Finrood/NatiPsy/pull/65)
 - **Branch:** `codex/aud-036-single-hydration-cache`
 - **Area:** Angular hydration, performance, maintainability
 - **Files:** `src/app/app.config.ts:18-23`, `src/app/services/blog.service.ts:8-9,47-79,134-166`, generated prerendered HTML
@@ -438,7 +507,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-037 — Client-side route changes do not move or announce focus
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#66](https://github.com/Finrood/NatiPsy/pull/66)
 - **Branch:** `codex/aud-037-route-focus-announcements`
 - **Area:** Accessibility, SPA navigation, UX
 - **Files:** `src/app/app.component.ts`, `src/app/app.component.html`, `src/app/app.routes.ts`, route headings and navigation
@@ -449,7 +519,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-038 — Pagination is button-only, non-prerendered, and unbounded
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#67](https://github.com/Finrood/NatiPsy/pull/67)
 - **Branch:** `codex/aud-038-crawlable-blog-pagination`
 - **Area:** SEO, archive UX, scalability
 - **Files:** `src/app/components/blog-list/blog-list.component.ts:132-176`, `src/app/components/blog-list/blog-list.component.html:166-194`, `src/app/services/seo.service.ts`, `src/routes.txt`, `src/scripts/generate-blog-index.js`
@@ -460,7 +531,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-039 — The article layout hides the title and offers no long-form navigation
 
-- **Status / priority:** `OPEN / P3`
+- **Status / priority:** `REOPENED / P2`
+- **Implementation PR:** [#68](https://github.com/Finrood/NatiPsy/pull/68)
+- **Current gap (2026-09-24):** The prerendered article has nine TOC fragment links but zero matching heading IDs; IDs appear only after hydration. Angular's server-side sanitizer strips the generator's IDs. Direct fragment links must work in static HTML, including without JavaScript.
 - **Branch:** `codex/aud-039-article-reading-experience`
 - **Area:** Design, content UX, accessibility, deep linking
 - **Files:** `src/app/components/blog-post/blog-post.component.html`, `src/app/components/blog-post/blog-post.component.css`, `src/scripts/generate-blog-index.js`, blog post model/output
@@ -471,7 +544,9 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-040 — Categories and tags are conflated into an unbounded taxonomy
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `REOPENED / P2`
+- **Implementation PR:** [#69](https://github.com/Finrood/NatiPsy/pull/69)
+- **Current gap (2026-09-24):** The homepage shared card links to `/blog/categoria/carreira` (404) although the registered route is `/blog/category/carreira` (200). The card unit test currently asserts the wrong URL, so both implementation and regression coverage need correction.
 - **Branch:** `codex/aud-040-blog-taxonomy-model`
 - **Area:** Content architecture, UX, search classification, data modeling
 - **Files:** blog frontmatter, `src/app/models/blog-post.model.ts`, `src/scripts/generate-blog-index.js`, blog list/post templates and filtering
@@ -482,7 +557,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-041 — Blog failures expose English technical text and provide no retry path
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#70](https://github.com/Finrood/NatiPsy/pull/70)
 - **Branch:** `codex/aud-041-blog-error-recovery`
 - **Area:** Reliability, localization, UX, error handling
 - **Files:** `src/app/services/blog.service.ts:21-34,80-129,154-190`, blog list/post components and templates
@@ -493,7 +569,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-042 — Canonical site identity is duplicated across runtime and generated files
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Implementation PR:** [#71](https://github.com/Finrood/NatiPsy/pull/71)
 - **Branch:** `codex/aud-042-central-site-config`
 - **Area:** Reuse, configuration integrity, SEO, maintainability
 - **Files:** `src/app/config/contact.ts`, `src/scripts/generate-blog-index.js`, `src/index.html`, `src/server.ts`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, structured-data components
@@ -504,7 +581,8 @@ This is the single authoritative file for project findings. Do not create a seco
 
 ### AUD-043 — The blog has no subscribable content feed
 
-- **Status / priority:** `OPEN / P3`
+- **Status / priority:** `RESOLVED / P3`
+- **Implementation PR:** [#44](https://github.com/Finrood/NatiPsy/pull/44); dedicated [#72](https://github.com/Finrood/NatiPsy/pull/72) was closed as superseded
 - **Branch:** `codex/aud-043-rss-feed`
 - **Area:** Feature, content distribution, retention
 - **Files:** `src/scripts/generate-blog-index.js`, `src/index.html`, generated public assets, `nginx.conf`
@@ -512,6 +590,36 @@ This is the single authoritative file for project findings. Do not create a seco
 - **Why this matters:** Readers, feed applications, newsletter automations, and some content-discovery tools have no standards-based way to subscribe to new articles. A feed is a distribution and retention improvement, not a guaranteed Google ranking factor; its value is independent of unsupported SEO promises.
 - **Best fix:** Extend the tested content generator to create one deterministic RSS 2.0 or Atom feed from the same validated, published-post collection. Include site title/description, canonical absolute item URL, stable permalink GUID/ID, author where appropriate, publication date, and an escaped plain-text summary; exclude drafts and invalid posts. Use the newest real publication/update date instead of the build clock, cap item count with a documented constant, and generate atom/self metadata required by the selected format. Add `<link rel="alternate" type="application/rss+xml" ...>` (or Atom equivalent) to prerendered heads. Configure and test the correct content type and a short revalidating cache policy in both supported servers.
 - **Acceptance:** A feed validator accepts the generated file; XML-special characters and Unicode fixtures round-trip safely; posts are newest-first with stable IDs and no draft; two unchanged builds are byte-identical; the autodiscovery URL returns 200 with the correct MIME/cache headers; a new published fixture appears once and an unpublished fixture never appears.
+
+### AUD-044 — Visible controls can lose first-load input before hydration
+
+- **Status / priority:** `OPEN / P1`
+- **Proposed branch:** `codex/aud-044-prehydration-interactions`
+- **Area:** Hydration, UX, accessibility, production browser testing
+- **Evidence:** In a live Chromium session, selecting “Carreira” immediately after the prerendered archive appeared left the URL at `/blog`; hydration then reset the visible selection. The same action worked after a short readiness wait. Twelve of 42 production-targeted browser tests failed with this timing pattern, while the local build passed all 42. `withEventReplay()` is already configured, so merely adding it is not a fix.
+- **Why this matters:** A person can see an enabled control, interact, and silently lose the action on a slower first load; early article clicks can fall back to full navigation instead of the expected client behavior.
+- **Best fix:** Provide a reliable, explicit hydrated-ready state and either keep interactive controls unavailable until ready or implement a progressive fallback that honors input before JavaScript attaches. Preserve useful server-rendered content. Separate tests of post-hydration behavior from an explicit slow-network pre-hydration test.
+- **Acceptance:** Under throttled first load, a visible enabled filter choice and article navigation are never silently lost; URL and UI agree after hydration; keyboard and screen-reader behavior remain correct; an explicit browser test covers the early window; the normal post-hydration browser suite passes against production without arbitrary sleeps.
+
+### AUD-045 — Cloudflare email obfuscation breaks the no-JavaScript contact link
+
+- **Status / priority:** `OPEN / P2`
+- **Proposed branch:** `codex/aud-045-email-edge-fallback`
+- **Area:** Cloudflare, contact, progressive enhancement
+- **Evidence:** The repository emits a public `mailto:` link. Cloudflare rewrites the live link to `/cdn-cgi/l/email-protection#...`; in a browser with JavaScript disabled that destination returns 404 on the home, blog, service, trust, and article pages.
+- **Why this matters:** A public contact method should not become a broken internal link for no-JavaScript visitors or crawlers. The address is already intentionally public in source, so edge obfuscation does not justify the broken fallback.
+- **Best fix:** Disable Cloudflare Email Address Obfuscation for this site or exempt these deliberate contact links. Retain a real `mailto:` in served HTML; do not replace it with an untested JavaScript-only workaround.
+- **Acceptance:** The live response and browser with JavaScript disabled expose the intended `mailto:` link on every public page; no `/cdn-cgi/l/email-protection` link remains; normal browser contact behavior and CSP remain intact.
+
+### AUD-046 — Master quality checks are not enforced by branch protection
+
+- **Status / priority:** `OPEN / P2`
+- **Proposed branch:** `codex/aud-046-enforce-quality-gate`
+- **Area:** GitHub repository governance, CI
+- **Evidence:** The Quality workflow passes on current `master`, but GitHub's branch API reports `protected: false` for `master`. A future direct push or merge can bypass the tests; AUD-015's CI exists but is advisory.
+- **Why this matters:** The post-merge regression protection depends on convention rather than enforcement.
+- **Best fix:** Configure a repository ruleset or branch protection for `master` requiring the Quality status check and blocking direct pushes, while preserving an intentional recovery/admin process. Use the actual emitted check name rather than an assumed label.
+- **Acceptance:** GitHub reports active protection/ruleset coverage for `master`; a deliberately failing PR cannot merge through the normal path; the current green Quality check satisfies the rule; the recovery exception is documented without silently bypassing checks.
 
 ## Historical findings and revalidation
 
@@ -566,72 +674,8 @@ Additional version/build references:
 - [Docker build context and `.dockerignore`](https://docs.docker.com/build/building/context/#dockerignore-files)
 - [Tailwind CSS source detection and `@source`](https://tailwindcss.com/docs/detecting-classes-in-source-files)
 
-## Luna xhigh implementation prompt
+## Current follow-up workflow
 
-Copy the prompt below into a fresh ChatGPT/Codex Luna xhigh task with the repository available and GitHub CLI authenticated.
+This ledger replaces the completed 2026-09-12 implementation prompt. The original 43 finding branches/PRs have been reconciled above; do not rerun that prompt or recreate those branches. Work only from the 11 non-`RESOLVED` entries, verify the current code and live environment first, and update each item's status and evidence after its acceptance criteria actually pass. A merged PR alone does not turn a `PARTIAL` or `REOPENED` item into `RESOLVED`.
 
-```text
-You are an autonomous senior engineer working in the NatiPsy repository. Your job is to process every current OPEN finding in PROJECT_IMPROVEMENTS.md, one finding at a time, creating one independent branch and one ready-for-review GitHub PR per finding. The human will review all PRs later. Do not merge any PR.
-
-Authoritative source and scope
-1. PROJECT_IMPROVEMENTS.md is the only authoritative finding ledger. Read it completely before acting.
-2. Process only current `AUD-*` entries whose status is OPEN, in priority order P0, P1, P2, P3 and then numeric ID order. Ignore historical rows except for context.
-3. At the audited baseline there are exactly 43 OPEN findings: AUD-001 through AUD-043. Before starting, recount them. If the file has changed, trust the file, report the new count, and process the current OPEN set.
-4. One finding equals one branch, one focused implementation, one commit series, and one PR. Use the exact branch name written in that finding.
-
-Safety and Git discipline
-1. Before starting, confirm that the authoritative audit update containing AUD-001 through AUD-043 is already committed on `origin/master`. If it exists only as an uncommitted/local file, stop and ask the owner to publish that baseline first; otherwise every PR would duplicate or omit the ledger.
-2. Start by running `git status --short --branch`, `git fetch --prune`, switch to `master`, and run `git pull --ff-only`.
-3. If the worktree contains user changes, do not discard, reset, stash, or overwrite them. Stop that repository operation and clearly report the conflicting paths.
-4. Before EACH finding: switch to `master`, fast-forward from `origin/master`, verify clean state, then create the finding branch from `origin/master`. Never branch from a previous finding branch and never make one PR depend silently on another unmerged PR.
-5. Never force-push, rewrite shared history, delete branches, merge PRs, expose secrets, weaken security merely to make tests pass, or make production/DNS/Cloudflare mutations without explicit credentials and authorization.
-6. Keep unrelated formatting, dependency updates, and refactors out of the PR. If a finding has a dependency on an unmerged finding, implement a self-contained compatible solution against master or clearly mark the dependency in the PR; do not create a hidden stacked branch.
-7. Until AUD-027 is merged, the repository has no version pin. Use a Node version officially supported by Angular 22 (`^22.22.3`, `^24.15.0`, or `^26.0.0`); prefer the current Node 24 LTS line. Record `node --version` and `npm --version` in every PR’s test evidence.
-8. Make the run idempotent and resumable. Before beginning each AUD ID, inspect matching local/remote branches and `gh pr list --state all --head <exact-branch>`. If a valid ready PR already exists, verify its base/head and recorded checks, add it to the execution ledger, and move on without opening a duplicate. If only a branch exists, inspect and continue it safely; never overwrite unknown work or force-push.
-9. After every successful push and PR creation, immediately checkpoint the AUD ID, branch, commit SHA, PR URL/state, checks, blockers, and owner actions in the temporary execution ledger. Remote PR state is the fallback source of truth if a local checkpoint is lost.
-
-Per-finding workflow
-1. Read the entire finding: evidence, why, best fix, acceptance criteria, files, and cautions.
-2. Inspect the current code and git history around affected lines. Reproduce the issue before editing when it is reproducible. Record the pre-fix evidence.
-3. Write a short implementation checklist mapped directly to every acceptance criterion. Do not ask the human routine questions; make conservative, evidence-based choices within the finding’s scope.
-4. Implement the smallest complete fix. Reuse existing helpers and patterns. Keep TypeScript strict, Angular SSR/hydration safe, semantic HTML, WCAG AA, Portuguese UI language, and the documented static/SSR deployment decision.
-5. Add meaningful regression tests that fail for the old behavior and pass for the new one. Verify HTTP mocks and negative/error cases. Do not add empty component-construction tests as evidence of completion.
-6. Run the narrow tests first, then all applicable checks. At minimum use the project-pinned Node/npm, `npm ci` when dependency state requires it, `npm test -- --watch=false`, `npm run build -- --configuration=production`, lint/format once those scripts exist, and finding-specific checks. Run Docker/e2e/a11y/security checks when the finding affects them.
-7. For visual/UX changes, capture before/after screenshots at 320×568, 390×844, 768×1024, and 1440×900. Check keyboard navigation, reduced motion, contrast, overflow, console warnings, and hydration. Attach or describe evidence in the PR without committing disposable screenshots unless the repository intentionally tracks them.
-8. For SEO, verify direct prerendered HTML as well as client route transitions. Ensure canonical/meta/JSON-LD/robots/status behavior is observable in the output, not merely in TypeScript source.
-9. For dependency changes, review changelogs and lockfile diff. Never use `npm audit fix --force`. For generated content, prove deterministic generation and commit required generated artifacts.
-10. For owner-dependent clinical, legal, credential, address, content, or Cloudflare decisions, do not invent values and do not claim external work happened. Implement safe code/tests/docs that are possible, place `OWNER ACTION REQUIRED` with an exact checklist in the PR, and mark any unmet acceptance item honestly.
-11. Review `git diff` for scope, secrets, generated junk, and accidental reformatting. Commit with a message such as `fix(audit): AUD-005 normalize blog query state`.
-12. Push the branch and open a READY (not draft) PR. Do not merge it.
-13. Verify the created PR with `gh pr view`: base must be `master`, head must be the finding's exact branch, state must be open, and the body must contain the required evidence/checklists. Record its canonical URL before continuing automatically to the next finding.
-
-Required PR format
-- Title: `[AUD-NNN] Concise finding title`
-- Body sections:
-  - Finding: link/reference to the exact PROJECT_IMPROVEMENTS.md heading
-  - Problem reproduced: concrete pre-fix evidence
-  - Solution: what changed and why this is the safest design
-  - Scope boundaries: what adjacent work was intentionally excluded
-  - Acceptance criteria: copy every criterion as a checked/unchecked list with evidence
-  - Tests run: exact commands and results
-  - Visual/SEO/HTTP evidence: when applicable
-  - Risks and rollback
-  - Dependencies/conflicts with other AUD PRs
-  - OWNER ACTION REQUIRED: only when truly necessary
-
-Failure and continuation policy
-1. A failed test is not a reason to skip validation. Diagnose it. If it is pre-existing, prove that by running it on master and document both results.
-2. If GitHub, registry, browser, Docker, or an external service is temporarily unavailable, retry with bounded backoff, preserve the finished local branch/commit, record the exact blocker, and continue with findings that do not depend on it. Return later to push/open missing PRs.
-3. If a finding cannot be honestly completed without external owner action, still create the best scoped repo change only if it has independent value; otherwise create no fake fix. Record it as BLOCKED in the final ledger with the precise external action required.
-4. Continue automatically after each PR. Do not wait for review and do not stop after a subset.
-5. If the session, context, or usage allowance is interrupted, resume by rereading the authoritative file, the temporary ledger, remote branches, and GitHub PRs. Reconcile by AUD ID and exact branch name, then continue at the first unattempted finding. Do not redo completed work and do not ask the human to review intermediate PRs.
-
-Tracking without causing 43 audit-file conflicts
-1. Do not change an audit item from OPEN to RESOLVED inside its implementation branch. Unmerged code is not resolved on master.
-2. Maintain a temporary execution ledger outside the repository with: AUD ID, branch, commit, PR URL, check results, owner action, and blocker.
-3. After all implementation PRs are opened or honestly blocked, return to current `origin/master` and create one additional branch `codex/audit-pr-tracker`.
-4. On that tracker branch only, update PROJECT_IMPROVEMENTS.md metadata and each finding with `Implementation PR: <URL>` and status `PR OPEN` or `BLOCKED`; keep acceptance details and historical counts intact. Open a final ready PR titled `[AUDIT] Track implementation PRs for AUD-001–AUD-043`. Do not mark any finding RESOLVED and do not merge this PR.
-
-Final report
-When every finding has been attempted and the tracker PR is open, return one table sorted by AUD ID with branch, PR URL, commit, tests, status (PR OPEN/BLOCKED), owner action, and dependency/conflict notes. State totals that reconcile exactly: findings attempted, PRs opened, blocked without PR, failed checks, and tracker PR. Do not say “all done” unless every OPEN ID appears exactly once in the table and every claimed passing check actually ran.
-```
+For any new gap, assign the next `AUD-` ID here rather than creating a second backlog. Keep external operational evidence, owner-dependent decisions, and release-monitor status explicit.
