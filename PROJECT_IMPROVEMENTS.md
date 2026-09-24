@@ -12,7 +12,7 @@ This is the single authoritative file for project findings. Do not create a seco
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
 | Current AUD findings | **47** (`AUD-001` through `AUD-047`): **41 RESOLVED, 6 PARTIAL, 0 REOPENED, 0 OPEN** |
 | Current actionable findings | **6**: `AUD-001`, `AUD-024`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-044` (mostly post-deployment verification) |
-| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, PR #72 was closed as superseded, and follow-up fixes merged in [PR #74](https://github.com/Finrood/NatiPsy/pull/74) |
+| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, PR #72 was closed as superseded, follow-up fixes merged in [PR #74](https://github.com/Finrood/NatiPsy/pull/74), and AUD-047 is in [PR #76](https://github.com/Finrood/NatiPsy/pull/76) |
 | Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
 | Total unique findings documented | **67** (23 historical + 40 from the 2026-09-12 audit + 4 added on 2026-09-24) |
 
@@ -628,6 +628,7 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 ### AUD-047 — GitHub Actions use deprecated Node 20 action runtimes
 
 - **Status / priority:** `RESOLVED / P3`
+- **Implementation PR:** [#76](https://github.com/Finrood/NatiPsy/pull/76)
 - **Area:** CI maintenance and reproducibility
 - **Evidence (2026-09-24):** The green [master Quality run](https://github.com/Finrood/NatiPsy/actions/runs/36067894274) warned that `actions/checkout@v4` and `actions/setup-node@v4` target Node 20 and were forcibly run on Node 24. The warning applies to all workflows using those action versions, independently of the application's pinned Node 22.22.3.
 - **Fix:** Upgrade all workflow references to `checkout@v5` and `setup-node@v5`, whose action runtime is Node 24. Retain the explicit `cache: npm` only on Quality; set `package-manager-cache: false` in the lightweight workflows to prevent setup-node v5 from silently adding caching because `packageManager` exists in `package.json`. Update the workflow contract test. Keep application Node/npm pinned as before.
