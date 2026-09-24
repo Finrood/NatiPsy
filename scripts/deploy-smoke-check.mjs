@@ -41,7 +41,15 @@ export async function runSmokeCheck(baseUrl = process.env.SMOKE_BASE_URL) {
         signal: AbortSignal.timeout(10_000),
       });
       const body = await response.text();
-      validateSmokeResponse(path, response.status, body);
+      try {
+        validateSmokeResponse(path, response.status, body);
+      } catch (error) {
+        const ray = response.headers.get('cf-ray');
+        const server = response.headers.get('server');
+        throw new Error(
+          `${error.message} (host=${url.hostname}, server=${server ?? 'unknown'}, cf-ray=${ray ?? 'none'})`,
+        );
+      }
       console.log(`PASS ${response.status} ${url}`);
     } catch (error) {
       if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {

@@ -79,7 +79,7 @@ import { BlogPost, blogDateOnly, blogImageUrl, formatBlogDate } from '../../mode
         <div class="mt-4 flex flex-wrap gap-2">
           @for (category of post.categoryDetails; track category.slug) {
             <a
-              [routerLink]="['/blog/categoria', category.slug]"
+              [routerLink]="['/blog/category', category.slug]"
               class="text-xs px-2 py-1 bg-primary-pink/80 text-primary-blue font-medium rounded-full hover:bg-primary-pink focus:outline-none focus:ring-2 focus:ring-primary-blue"
               >{{ category.label }}</a
             >

@@ -24,6 +24,7 @@
             <select
               id="category-filter"
               name="category"
+              [disabled]="!controlsReady()"
               [ngModel]="selectedCategory"
               (ngModelChange)="onCategoryChange($event)"
               class="block w-full max-w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition"
@@ -61,6 +62,7 @@
               <select
                 id="sort-by"
                 name="sortBy"
+                [disabled]="!controlsReady()"
                 [ngModel]="sortBy"
                 (ngModelChange)="onSortChange($event)"
                 class="block w-full sm:w-auto appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-base text-gray-900 shadow-sm focus:border-primary-blue focus:outline-none focus:ring-1 focus:ring-primary-blue sm:text-sm transition"
@@ -89,6 +91,7 @@
             <button
               (click)="onSortDirectionToggle()"
               type="button"
+              [disabled]="!controlsReady()"
               class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-blue focus:ring-offset-0 transition"
               [attr.aria-label]="
                 'Mudar ordem para ' + (sortDirection === 'desc' ? 'Ascendente' : 'Descendente')
@@ -146,7 +149,7 @@
           <button
             type="button"
             class="ml-3 font-semibold underline"
-            [disabled]="retryingCategories"
+            [disabled]="!controlsReady() || retryingCategories"
             (click)="retryCategories()"
           >
             Tentar novamente
@@ -191,7 +194,7 @@
           <button
             type="button"
             class="mt-5 rounded-md bg-primary-blue px-5 py-2 font-semibold text-white hover:bg-blue-700"
-            [disabled]="retryingList"
+            [disabled]="!controlsReady() || retryingList"
             (click)="retry()"
           >
             Tentar novamente
@@ -228,6 +231,7 @@
           <button
             type="button"
             (click)="onCategoryChange('')"
+            [disabled]="!controlsReady()"
             class="mt-4 text-primary-blue hover:underline"
           >
             Mostrar todas as categorias

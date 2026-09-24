@@ -4,7 +4,9 @@ import {
   Input,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
   inject,
+  signal,
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
@@ -198,6 +200,14 @@ function queryIsCanonical(
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogListComponent implements OnInit {
+  // Server-rendered controls stay disabled until Angular has attached their
+  // handlers. Native article/category links remain usable before hydration.
+  protected readonly controlsReady = signal(false);
+
+  constructor() {
+    afterNextRender(() => this.controlsReady.set(true));
+  }
+
   private readonly blogService = inject(BlogService);
   private readonly seoService = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
