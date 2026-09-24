@@ -39,9 +39,24 @@ export async function runSmokeCheck(baseUrl = process.env.SMOKE_BASE_URL) {
       const response = await fetch(url, {
         redirect: 'manual',
         signal: AbortSignal.timeout(10_000),
+        headers: {
+          Accept: path.endsWith('.xml')
+            ? 'application/xml,text/xml;q=0.9,*/*;q=0.8'
+            : 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+          'User-Agent':
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 NatiPsyProductionSmoke/1.0',
+        },
       });
       const body = await response.text();
-      validateSmokeResponse(path, response.status, body);
+      try {
+        validateSmokeResponse(path, response.status, body);
+      } catch (error) {
+        const ray = response.headers.get('cf-ray');
+        const server = response.headers.get('server');
+        throw new Error(
+          `${error.message} (host=${url.hostname}, server=${server ?? 'unknown'}, cf-ray=${ray ?? 'none'})`,
+        );
+      }
       console.log(`PASS ${response.status} ${url}`);
     } catch (error) {
       if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {

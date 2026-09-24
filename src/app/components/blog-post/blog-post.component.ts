@@ -129,7 +129,9 @@ export class BlogPostComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.post = state.post ? this.normalizePost(state.post) : null;
         this.relatedPosts = state.relatedPosts;
-        this.safeContent = this.post ? this.toSafeHtml(this.post.content as string) : null;
+        this.safeContent = this.post
+          ? this.toSafeHtml(this.post.content as string, this.post.headings)
+          : null;
 
         if (this.post) {
           this.updateMetaAndStructuredData(this.post);
@@ -227,15 +229,25 @@ export class BlogPostComponent implements OnInit, OnDestroy {
    * Sanitize rendered Markdown HTML before binding it to the view.
    * `marked` passes raw HTML straight through, so its output must be
    * cleaned before bypassing Angular's built-in sanitizer. DOMPurify needs
-   * a DOM and therefore only runs in the browser; on the server (SSR /
-   * prerender) Angular's default HTML sanitizer is applied instead, which
-   * requires no bypass.
+   * a DOM and therefore only runs in the browser. On the server, Angular's
+   * sanitizer removes heading IDs; restore only the generator's safe slug IDs
+   * after sanitization so static fragment URLs work before hydration.
    */
-  toSafeHtml(html: string): SafeHtml | string {
+  toSafeHtml(html: string, headings: BlogHeading[] = []): SafeHtml {
     if (this.isBrowser) {
       return this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(html));
     }
-    return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+    let headingIndex = 0;
+    const withHeadingIds = sanitized.replace(/<h([23])\b([^>]*)>/gi, (opening, level: string) => {
+      const heading = headings[headingIndex++];
+      if (heading?.level !== Number(level) || !/^[a-z0-9][a-z0-9-]*$/.test(heading.id)) {
+        return opening;
+      }
+      if (/\bid\s*=/.test(opening)) return opening;
+      return `${opening.slice(0, -1)} id="${heading.id}">`;
+    });
+    return this.sanitizer.bypassSecurityTrustHtml(withHeadingIds);
   }
 
   handleErrorState(error: unknown): void {

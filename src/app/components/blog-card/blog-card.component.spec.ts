@@ -49,7 +49,7 @@ describe('BlogCardComponent', () => {
     fixture.componentInstance.post = post;
     fixture.detectChanges();
 
-    const category = fixture.nativeElement.querySelector('a[href="/blog/categoria/carreira"]');
+    const category = fixture.nativeElement.querySelector('a[href="/blog/category/carreira"]');
     expect(category?.textContent.trim()).toBe('Carreira');
   });
 });

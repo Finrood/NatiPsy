@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { JSDOM } from 'jsdom';
 
 const generator = readFileSync(
   new URL('../src/scripts/generate-blog-index.js', import.meta.url),
@@ -39,4 +40,20 @@ assert.match(component, /scrollIntoView\(\{ behavior: 'auto', block: 'start' \}\
 assert.match(component, /window\.addEventListener\('hashchange'/);
 assert.match(styles, /scroll-margin-top: 6rem/);
 
+const staticArticle = readFileSync(
+  new URL(
+    '../dist/nati-psy/browser/blog/carreira-mulheres-negras-fadiga-racial/index.html',
+    import.meta.url,
+  ),
+  'utf8',
+);
+const document = new JSDOM(staticArticle).window.document;
+const tocLinks = [...document.querySelectorAll('nav[aria-label="Neste artigo"] a[href*="#"]')];
+assert.equal(tocLinks.length, 9);
+for (const link of tocLinks) {
+  const id = decodeURIComponent(new URL(link.href, 'https://example.test').hash.slice(1));
+  const target = document.getElementById(id);
+  assert.ok(target, `Missing prerendered heading for ${id}`);
+  assert.match(target.tagName, /^H[23]$/);
+}
 console.log('Article reading structure contract passed.');
