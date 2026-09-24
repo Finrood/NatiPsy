@@ -10,8 +10,8 @@ This is the single authoritative file for project findings. Do not create a seco
 | Verified code baseline | `master` at `9ca4eda2cd73001cfbb5f93c7e0eaced6f7fe903`, before this documentation-only update |
 | Original audit baseline | 2026-09-12 at `23d203a`; retained below as historical evidence |
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
-| Current AUD findings | **46** (`AUD-001` through `AUD-046`): **35 RESOLVED, 5 PARTIAL, 3 REOPENED, 3 OPEN** |
-| Current actionable findings | **11**: `AUD-001`, `AUD-002`, `AUD-014`, `AUD-024`, `AUD-031`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-044`, `AUD-045`, `AUD-046` |
+| Current AUD findings | **46** (`AUD-001` through `AUD-046`): **33 RESOLVED, 7 PARTIAL, 3 REOPENED, 3 OPEN** |
+| Current actionable findings | **13**: `AUD-001`, `AUD-002`, `AUD-014`, `AUD-022`, `AUD-024`, `AUD-031`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-042`, `AUD-044`, `AUD-045`, `AUD-046` |
 | Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, and PR #72 was closed as superseded without a merge |
 | Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
 | Total unique findings documented | **66** (23 historical + 40 from the 2026-09-12 audit + 3 added on 2026-09-24) |
@@ -25,6 +25,7 @@ This is the single authoritative file for project findings. Do not create a seco
 - The separate [GitHub-hosted Production smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/production-smoke.yml) has **no green run**: its latest runs fail at the first URL because Cloudflare returns 403 to that runner. Availability from the review environment does not close the external-monitoring/alert acceptance in AUD-001. The [Production robots smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/robots-smoke.yml) is green.
 - The browser suite run directly against production passed **29/42**, not 42/42. Twelve failures share a pre-hydration interaction timing pattern; a controlled reproduction lost an early category selection, then the same action worked after hydration. The remaining failure is a Cloudflare-injected analytics script blocked by CSP. These are tracked under AUD-044 and reopened AUD-024, rather than misreported as 13 unrelated defects.
 - A live internal-link crawl found the homepage category chip pointing to a 404 (AUD-040). The prerendered article exposes nine table-of-contents links but zero corresponding heading IDs until hydration (AUD-039). Cloudflare email obfuscation turns the public email link into a 404 when JavaScript is unavailable (AUD-045). GitHub reports `master` as unprotected, so the green Quality workflow is not enforced for future merges (AUD-046).
+- The merged PR descriptions for AUD-022 and AUD-042 explicitly leave approval of the discovery text and public identity unchecked. Automated implementation checks do not substitute for those owner decisions.
 
 ## Historical baseline (2026-09-12; not current)
 
@@ -56,11 +57,13 @@ The following measurements explain the original findings. They must not be read 
 | AUD-001 | PARTIAL / P1 | Restore a green external production monitor, document its alert destination, and retain origin/edge evidence. |
 | AUD-002 | PARTIAL / P2 | Record the owner-approved crawler policy and Cloudflare override decision; current live robots and automated smoke are correct. |
 | AUD-014 | PARTIAL / P2 | Record owner confirmation for published business facts and external structured-data validator results. |
+| AUD-022 | PARTIAL / P2 | Record approval of the Portuguese SEO/social discovery text; implementation and metadata tests pass. |
 | AUD-024 | REOPENED / P2 | Reconcile Cloudflare's injected analytics beacon with the deliberately restrictive CSP without broadly weakening it. |
 | AUD-031 | PARTIAL / P2 | Record four-viewport visual review and performance/CLS acceptance. |
 | AUD-033 | PARTIAL / P3 | Record Search Console verification/inspection, sitemap submission, and the ongoing editorial review decision. |
 | AUD-039 | REOPENED / P2 | Preserve safe heading IDs in prerendered HTML so all TOC fragments resolve without client hydration. |
 | AUD-040 | REOPENED / P2 | Point the shared card's category chip to the real `/blog/category/:slug` route and correct its test. |
+| AUD-042 | PARTIAL / P2 | Record approval of the displayed name, credential, phone, and public identity selected in the central config. |
 | AUD-044 | OPEN / P1 | Prevent first-load interactions from being silently lost before hydration. |
 | AUD-045 | OPEN / P2 | Stop Cloudflare email obfuscation from producing a broken no-JavaScript contact link. |
 | AUD-046 | OPEN / P2 | Enforce the passing Quality check on `master` with branch protection or a ruleset. |
@@ -324,8 +327,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-022 — Article title and description are too long for search/social presentation
 
-- **Status / priority:** `RESOLVED / P2`
+- **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#51](https://github.com/Finrood/NatiPsy/pull/51)
+- **Current gap (2026-09-24):** The Portuguese discovery text is implemented and metadata checks pass, but PR #51 explicitly leaves owner approval of its wording unchecked.
 - **Branch:** `codex/aud-022-blog-seo-fields`
 - **Area:** SEO, content modeling
 - **Files:** `public/assets/content/blog/carreira-mulheres-negras-fadiga-racial.md:1-20`, `src/app/models/blog-post.model.ts`, `src/app/components/blog-post/blog-post.component.ts:149-190`
@@ -569,8 +573,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-042 — Canonical site identity is duplicated across runtime and generated files
 
-- **Status / priority:** `RESOLVED / P2`
+- **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#71](https://github.com/Finrood/NatiPsy/pull/71)
+- **Current gap (2026-09-24):** The central config and generated/runtime consistency checks pass, but PR #71 explicitly leaves owner approval of the displayed name, credential, phone, and public identity unchecked.
 - **Branch:** `codex/aud-042-central-site-config`
 - **Area:** Reuse, configuration integrity, SEO, maintainability
 - **Files:** `src/app/config/contact.ts`, `src/scripts/generate-blog-index.js`, `src/index.html`, `src/server.ts`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, structured-data components
@@ -676,6 +681,6 @@ Additional version/build references:
 
 ## Current follow-up workflow
 
-This ledger replaces the completed 2026-09-12 implementation prompt. The original 43 finding branches/PRs have been reconciled above; do not rerun that prompt or recreate those branches. Work only from the 11 non-`RESOLVED` entries, verify the current code and live environment first, and update each item's status and evidence after its acceptance criteria actually pass. A merged PR alone does not turn a `PARTIAL` or `REOPENED` item into `RESOLVED`.
+This ledger replaces the completed 2026-09-12 implementation prompt. The original 43 finding branches/PRs have been reconciled above; do not rerun that prompt or recreate those branches. Work only from the 13 non-`RESOLVED` entries, verify the current code and live environment first, and update each item's status and evidence after its acceptance criteria actually pass. A merged PR alone does not turn a `PARTIAL` or `REOPENED` item into `RESOLVED`.
 
 For any new gap, assign the next `AUD-` ID here rather than creating a second backlog. Keep external operational evidence, owner-dependent decisions, and release-monitor status explicit.
