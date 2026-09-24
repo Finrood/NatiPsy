@@ -7,11 +7,11 @@ This is the single authoritative file for project findings. Do not create a seco
 | Field | Value |
 | --- | --- |
 | Last reconciled | 2026-09-24 |
-| Verified code baseline | `master` at `9ca4eda2cd73001cfbb5f93c7e0eaced6f7fe903`, before this documentation-only update |
+| Verified code baseline | `master` at `1cd974925bb69bf99deb0c0018c44f232f4736e9`; follow-up fixes on `codex/finish-audit-20260924` await merge and owner deployment |
 | Original audit baseline | 2026-09-12 at `23d203a`; retained below as historical evidence |
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
-| Current AUD findings | **46** (`AUD-001` through `AUD-046`): **33 RESOLVED, 7 PARTIAL, 3 REOPENED, 3 OPEN** |
-| Current actionable findings | **13**: `AUD-001`, `AUD-002`, `AUD-014`, `AUD-022`, `AUD-024`, `AUD-031`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-042`, `AUD-044`, `AUD-045`, `AUD-046` |
+| Current AUD findings | **46** (`AUD-001` through `AUD-046`): **40 RESOLVED, 6 PARTIAL, 0 REOPENED, 0 OPEN** |
+| Current actionable findings | **6**: `AUD-001`, `AUD-024`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-044` (mostly post-deployment verification) |
 | Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, and PR #72 was closed as superseded without a merge |
 | Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
 | Total unique findings documented | **66** (23 historical + 40 from the 2026-09-12 audit + 3 added on 2026-09-24) |
@@ -22,10 +22,11 @@ This is the single authoritative file for project findings. Do not create a seco
 
 - The [Quality run on the verified code baseline](https://github.com/Finrood/NatiPsy/actions/runs/35924531455) passed. A separate clean checkout passed the pinned install, lint, format check, production build, 60 unit tests, and 42 local Chromium tests. The OSV policy scanned 751 locked packages successfully; a fresh npm audit reported zero production or development advisories.
 - The public site serves matching main/style asset hashes, and its feed, sitemap, and robots file match the generated files byte-for-byte. The production smoke and robots checks passed from the review environment. All eight sitemap URLs returned 200; an unknown URL returned a real 404. The RSS feed returns 200 with `application/rss+xml`, short revalidating cache, security headers, and valid XML.
-- The separate [GitHub-hosted Production smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/production-smoke.yml) has **no green run**: its latest runs fail at the first URL because Cloudflare returns 403 to that runner. Availability from the review environment does not close the external-monitoring/alert acceptance in AUD-001. The [Production robots smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/robots-smoke.yml) is green.
-- The browser suite run directly against production passed **29/42**, not 42/42. Twelve failures share a pre-hydration interaction timing pattern; a controlled reproduction lost an early category selection, then the same action worked after hydration. The remaining failure is a Cloudflare-injected analytics script blocked by CSP. These are tracked under AUD-044 and reopened AUD-024, rather than misreported as 13 unrelated defects.
-- A live internal-link crawl found the homepage category chip pointing to a 404 (AUD-040). The prerendered article exposes nine table-of-contents links but zero corresponding heading IDs until hydration (AUD-039). Cloudflare email obfuscation turns the public email link into a 404 when JavaScript is unavailable (AUD-045). GitHub reports `master` as unprotected, so the green Quality workflow is not enforced for future merges (AUD-046).
-- The merged PR descriptions for AUD-022 and AUD-042 explicitly leave approval of the discovery text and public identity unchecked. Automated implementation checks do not substitute for those owner decisions.
+- The [GitHub-hosted Production smoke workflow](https://github.com/Finrood/NatiPsy/actions/workflows/production-smoke.yml) still receives Cloudflare 403 from Bot Fight Mode (correlated in Cloudflare Security Analytics with runner IP `52.234.40.200` and Ray IDs `a403792aee0f7af4-SJC` / `a403792bfadb5585-SJC`). The owner explicitly declined outage alerts. The follow-up removes the daily schedule, retains a manual smoke command, and reports Cloudflare Ray IDs on failure. Do not claim a green GitHub-hosted uptime monitor or weaken Bot Fight Mode globally.
+- The pre-fix production browser suite passed **29/42**. Follow-up code addresses the twelve pre-hydration failures by keeping filter controls disabled until ready while retaining native article links, and the remaining CSP violation by permitting only Cloudflare's chosen analytics beacon. The local follow-up build passed 48 browser tests, 60 unit tests, lint, formatting, article-fragment and security-header checks. Production acceptance awaits the owner's deployment.
+- The follow-up also corrects the broken category URL and preserves all nine prerendered article heading IDs. A four-viewport homepage review (320, 390, 768, 1440 px) found no horizontal overflow or overlapping primary CTA; a local mobile Lighthouse run recorded accessibility/SEO 100, CLS 0, and performance 78. These code fixes have not yet been deployed.
+- Cloudflare Email Address Obfuscation is off. The six live sitemap pages now contain a real `mailto:` link and no `/cdn-cgi/l/email-protection` link. Google Search Console domain ownership is verified by a DNS TXT record; the sitemap was resubmitted on 24 September, and indexing was requested for `/blog` and the article. Google's index/coverage updates remain asynchronous.
+- GitHub reports `master` protected with required `quality` check, up-to-date branch requirement, pull requests without a human approval requirement, linear history, conversation resolution, and force-push/deletion disabled. Administrators retain an explicit recovery path, not a routine bypass. The owner approved the public identity, SEO wording, crawler policy, category classification, and quarterly editorial review.
 
 ## Historical baseline (2026-09-12; not current)
 
@@ -54,19 +55,12 @@ The following measurements explain the original findings. They must not be read 
 
 | Finding | State | Remaining acceptance or next action |
 | --- | --- | --- |
-| AUD-001 | PARTIAL / P1 | Restore a green external production monitor, document its alert destination, and retain origin/edge evidence. |
-| AUD-002 | PARTIAL / P2 | Record the owner-approved crawler policy and Cloudflare override decision; current live robots and automated smoke are correct. |
-| AUD-014 | PARTIAL / P2 | Record owner confirmation for published business facts and external structured-data validator results. |
-| AUD-022 | PARTIAL / P2 | Record approval of the Portuguese SEO/social discovery text; implementation and metadata tests pass. |
-| AUD-024 | REOPENED / P2 | Reconcile Cloudflare's injected analytics beacon with the deliberately restrictive CSP without broadly weakening it. |
-| AUD-031 | PARTIAL / P2 | Record four-viewport visual review and performance/CLS acceptance. |
-| AUD-033 | PARTIAL / P3 | Record Search Console verification/inspection, sitemap submission, and the ongoing editorial review decision. |
-| AUD-039 | REOPENED / P2 | Preserve safe heading IDs in prerendered HTML so all TOC fragments resolve without client hydration. |
-| AUD-040 | REOPENED / P2 | Point the shared card's category chip to the real `/blog/category/:slug` route and correct its test. |
-| AUD-042 | PARTIAL / P2 | Record approval of the displayed name, credential, phone, and public identity selected in the central config. |
-| AUD-044 | OPEN / P1 | Prevent first-load interactions from being silently lost before hydration. |
-| AUD-045 | OPEN / P2 | Stop Cloudflare email obfuscation from producing a broken no-JavaScript contact link. |
-| AUD-046 | OPEN / P2 | Enforce the passing Quality check on `master` with branch protection or a ruleset. |
+| AUD-001 | PARTIAL / P1 | Manual smoke remains; GitHub runner is challenged by Cloudflare. No scheduled outage alerts, per owner decision. |
+| AUD-024 | PARTIAL / P2 | Retained Cloudflare Analytics has an exact CSP allowlist in the follow-up; verify live after deployment. |
+| AUD-033 | PARTIAL / P3 | Search Console is verified and sitemap resubmitted; await processing/indexing and decide when to activate the canonical-host redirect after deployment. |
+| AUD-039 | PARTIAL / P2 | Nine static article fragments pass locally; verify live after deployment. |
+| AUD-040 | PARTIAL / P2 | Category link and test are fixed locally; verify live after deployment. |
+| AUD-044 | PARTIAL / P1 | Slow-load and no-JavaScript browser tests pass locally; verify production after deployment. |
 
 ## Finding record
 
@@ -76,7 +70,7 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 - **Status / priority:** `PARTIAL / P1`
 - **Implementation PR:** [#30](https://github.com/Finrood/NatiPsy/pull/30)
-- **Current gap (2026-09-24):** The origin is reachable and the direct four-path smoke passes, but GitHub-hosted Production smoke still receives Cloudflare 403 (latest run: https://github.com/Finrood/NatiPsy/actions/runs/35855439968). An independent green monitor, alert destination, and origin/edge evidence are not recorded.
+- **Current gap (2026-09-24):** The origin is reachable and the direct four-path smoke passes. GitHub-hosted Production smoke receives Cloudflare 403 because Bot Fight Mode challenges the runner; Cloudflare Security Analytics correlates its IP and Ray IDs. The owner explicitly chose **no outage alerts**, so the follow-up removes the daily schedule, retains manual invocation, and adds diagnostic Ray IDs. Do not claim this is a working external monitor. Cloudflare Free Bot Fight Mode has no narrow bypass for this runner; disabling it globally would be an unwarranted security reduction.
 - **Branch:** `codex/aud-001-production-origin-523`
 - **Area:** Production, reliability, SEO
 - **Evidence:** On 2026-09-12, repeated requests to the home page, `/blog`, `/sitemap.xml`, the article route, and an unknown route returned Cloudflare HTTP `523` with `error code: 523`. Only Cloudflare’s managed `/robots.txt` was available.
@@ -86,9 +80,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-002 — Cloudflare’s managed robots file hides the repository sitemap directive
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#31](https://github.com/Finrood/NatiPsy/pull/31)
-- **Current gap (2026-09-24):** Live `/robots.txt` now matches the repository and includes the sitemap, and the scheduled robots workflow passes. The owner-approved crawler policy and exact Cloudflare override decision have not been recorded.
+- **Closure evidence (2026-09-24):** The owner approved the current crawler policy. Live `/robots.txt` exactly exposes `User-agent: *`, `Allow: /`, `Disallow: /404`, and the canonical sitemap; Cloudflare's managed override is not replacing it, and the scheduled robots smoke passes. Search Console's robots exclusion is the intentionally blocked raw Markdown source asset, not a public HTML page.
 - **Branch:** `codex/aud-002-live-robots-sitemap`
 - **Area:** Deployment, crawl control, SEO
 - **Evidence:** `public/robots.txt` allows crawling and declares `Sitemap: https://psicologanataliaferreira.com/sitemap.xml`. The live `/robots.txt` is a much larger Cloudflare-generated content-signals file and contains no `Sitemap:` line.
@@ -230,9 +224,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-014 — Person and professional-service structured data contain semantically invalid claims
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#43](https://github.com/Finrood/NatiPsy/pull/43)
-- **Current gap (2026-09-24):** The merged structured-data graph and prerendered JSON-LD parse, but external validator results and explicit confirmation of published business facts are not recorded.
+- **Closure evidence (2026-09-24):** The owner confirmed the published business facts. The generated homepage JSON-LD parsed as a linked `WebPage` graph in Schema.org Validator with zero errors and zero warnings. Google's Rich Results Test detected no eligible rich-result item, which is expected for this `WebSite`/`WebPage`/`Person`/`Service` graph and is not a validation error. Do not invent an address, rating, or issuer.
 - **Branch:** `codex/aud-014-structured-data-entities`
 - **Area:** SEO, schema, trust
 - **Files:** `src/app/components/hero/hero.component.ts:16-37`, `src/app/components/about-me/about-me.component.ts:16-33`
@@ -327,9 +321,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-022 — Article title and description are too long for search/social presentation
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#51](https://github.com/Finrood/NatiPsy/pull/51)
-- **Current gap (2026-09-24):** The Portuguese discovery text is implemented and metadata checks pass, but PR #51 explicitly leaves owner approval of its wording unchecked.
+- **Closure evidence (2026-09-24):** The owner approved the implemented Portuguese discovery wording; generated metadata and focused tests pass.
 - **Branch:** `codex/aud-022-blog-seo-fields`
 - **Area:** SEO, content modeling
 - **Files:** `public/assets/content/blog/carreira-mulheres-negras-fadiga-racial.md:1-20`, `src/app/models/blog-post.model.ts`, `src/app/components/blog-post/blog-post.component.ts:149-190`
@@ -352,9 +346,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-024 — Content Security Policy and security-header coverage are broader and less consistent than needed
 
-- **Status / priority:** `REOPENED / P2`
+- **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#53](https://github.com/Finrood/NatiPsy/pull/53)
-- **Current gap (2026-09-24):** On production, Cloudflare injects `static.cloudflareinsights.com/beacon.min.js`; the live CSP blocks it and logs a console error, contradicting the no-violation acceptance criterion. Disable unwanted injection or permit only the exact required origins if analytics is intentionally retained.
+- **Current gap (2026-09-24):** The owner chose to retain Cloudflare Web Analytics. The follow-up allows only `https://static.cloudflareinsights.com/beacon.min.js` in `script-src`; a focused header test passes. The old live CSP still blocks the beacon until deployment; check production console and CSP afterward.
 - **Branch:** `codex/aud-024-nginx-security-headers`
 - **Area:** Security, Nginx
 - **Files:** `nginx.conf:25-76`, `src/index.html:41`
@@ -437,9 +431,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-031 — Mobile homepage hierarchy hides the primary conversion action far below the fold
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#60](https://github.com/Finrood/NatiPsy/pull/60)
-- **Current gap (2026-09-24):** The responsive source change and focused contract merged, but the four requested viewport screenshots, no-overlap review, and Lighthouse/CLS acceptance were not recorded.
+- **Closure evidence (2026-09-24):** The follow-up browser suite reviewed 320×568, 390×844, 768×1024, and 1440×900; the primary CTA was visible in the early mobile viewport, with no horizontal overflow or service-card/WhatsApp overlap. Mobile Lighthouse recorded accessibility and SEO 100, CLS 0, and performance 78 (simulated LCP about 4.4 s, a future performance opportunity, not a hidden perfect score). A local Montserrat preload and narrow-screen layout adjustments are included for the owner's next deployment.
 - **Branch:** `codex/aud-031-mobile-home-conversion`
 - **Area:** Responsive design, UX, conversion
 - **Files:** `src/app/components/hero/hero.component.html`, `src/app/components/services/services.component.html`, home composition
@@ -464,7 +458,7 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 - **Status / priority:** `PARTIAL / P3`
 - **Implementation PR:** [#62](https://github.com/Finrood/NatiPsy/pull/62)
-- **Current gap (2026-09-24):** The new pages and sitemap are live, but Search Console ownership/submission/URL-inspection evidence and the quarterly editorial review decision are not recorded.
+- **Current gap (2026-09-24):** Search Console domain ownership was verified with a Cloudflare DNS TXT record. The canonical sitemap was resubmitted on 24 September; its previous read on 22 September still reported three pages, so processing remains pending. The homepage is indexed; `/blog` and the article passed live URL inspection as available to Google, but are not indexed yet, and indexing requests were accepted. Historical exclusions include old Hostgator soft 404s/5xx; the robots-blocked example is the deliberately blocked raw Markdown asset. The owner approved a quarterly manual editorial review of service/trust copy, citations, identity, privacy/crisis boundaries, and real material-review dates; do not auto-stamp freshness. A validated but **undeployed** Cloudflare rule would 301 exact `www` and HTTP apex requests to HTTPS apex while preserving path/query; activating it changes production traffic before the owner's planned deployment, so it remains a deliberate follow-up, not a completed fix. Reinspect coverage and canonical hosts after deployment.
 - **Branch:** `codex/aud-033-search-content-architecture`
 - **Area:** SEO strategy, information architecture, content UX
 - **Files:** routes, navigation, sitemap, blog content, footer/about/service content
@@ -535,9 +529,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-039 — The article layout hides the title and offers no long-form navigation
 
-- **Status / priority:** `REOPENED / P2`
+- **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#68](https://github.com/Finrood/NatiPsy/pull/68)
-- **Current gap (2026-09-24):** The prerendered article has nine TOC fragment links but zero matching heading IDs; IDs appear only after hydration. Angular's server-side sanitizer strips the generator's IDs. Direct fragment links must work in static HTML, including without JavaScript.
+- **Current gap (2026-09-24):** The follow-up restores only the trusted generator's heading IDs after sanitization. The generated HTML now contains a matching target for all nine TOC fragments and the static article contract passes; live verification awaits deployment.
 - **Branch:** `codex/aud-039-article-reading-experience`
 - **Area:** Design, content UX, accessibility, deep linking
 - **Files:** `src/app/components/blog-post/blog-post.component.html`, `src/app/components/blog-post/blog-post.component.css`, `src/scripts/generate-blog-index.js`, blog post model/output
@@ -548,9 +542,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-040 — Categories and tags are conflated into an unbounded taxonomy
 
-- **Status / priority:** `REOPENED / P2`
+- **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#69](https://github.com/Finrood/NatiPsy/pull/69)
-- **Current gap (2026-09-24):** The homepage shared card links to `/blog/categoria/carreira` (404) although the registered route is `/blog/category/carreira` (200). The card unit test currently asserts the wrong URL, so both implementation and regression coverage need correction.
+- **Current gap (2026-09-24):** The shared card and regression test now use the registered `/blog/category/carreira` route. It passes locally; the old link remains live until deployment. The owner approved the existing category/tag classification.
 - **Branch:** `codex/aud-040-blog-taxonomy-model`
 - **Area:** Content architecture, UX, search classification, data modeling
 - **Files:** blog frontmatter, `src/app/models/blog-post.model.ts`, `src/scripts/generate-blog-index.js`, blog list/post templates and filtering
@@ -573,9 +567,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-042 — Canonical site identity is duplicated across runtime and generated files
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#71](https://github.com/Finrood/NatiPsy/pull/71)
-- **Current gap (2026-09-24):** The central config and generated/runtime consistency checks pass, but PR #71 explicitly leaves owner approval of the displayed name, credential, phone, and public identity unchecked.
+- **Closure evidence (2026-09-24):** The owner confirmed the displayed name, credential, phone, and public identity. Central configuration and generated/runtime consistency checks pass.
 - **Branch:** `codex/aud-042-central-site-config`
 - **Area:** Reuse, configuration integrity, SEO, maintainability
 - **Files:** `src/app/config/contact.ts`, `src/scripts/generate-blog-index.js`, `src/index.html`, `src/server.ts`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, structured-data components
@@ -598,7 +592,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-044 — Visible controls can lose first-load input before hydration
 
-- **Status / priority:** `OPEN / P1`
+- **Status / priority:** `PARTIAL / P1`
+- **Follow-up:** `codex/finish-audit-20260924`
+- **Current gap (2026-09-24):** Filter controls remain disabled in server HTML until client hydration; ordinary article links still navigate without JavaScript. Throttled pre-hydration and no-JavaScript browser tests pass locally. Re-run the production browser suite after deployment before closing.
 - **Proposed branch:** `codex/aud-044-prehydration-interactions`
 - **Area:** Hydration, UX, accessibility, production browser testing
 - **Evidence:** In a live Chromium session, selecting “Carreira” immediately after the prerendered archive appeared left the URL at `/blog`; hydration then reset the visible selection. The same action worked after a short readiness wait. Twelve of 42 production-targeted browser tests failed with this timing pattern, while the local build passed all 42. `withEventReplay()` is already configured, so merely adding it is not a fix.
@@ -608,7 +604,8 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-045 — Cloudflare email obfuscation breaks the no-JavaScript contact link
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Closure evidence (2026-09-24):** Cloudflare Email Address Obfuscation was switched off. Live HTML on all six sitemap pages contains the public `mailto:psinataliaferreira@gmail.com` link and no `/cdn-cgi/l/email-protection` link; a no-JavaScript browser therefore retains the native email action.
 - **Proposed branch:** `codex/aud-045-email-edge-fallback`
 - **Area:** Cloudflare, contact, progressive enhancement
 - **Evidence:** The repository emits a public `mailto:` link. Cloudflare rewrites the live link to `/cdn-cgi/l/email-protection#...`; in a browser with JavaScript disabled that destination returns 404 on the home, blog, service, trust, and article pages.
@@ -618,7 +615,8 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-046 — Master quality checks are not enforced by branch protection
 
-- **Status / priority:** `OPEN / P2`
+- **Status / priority:** `RESOLVED / P2`
+- **Closure evidence (2026-09-24):** GitHub's branch API reports `master` protected. The required check is the observed `quality` job from GitHub Actions, strict/up-to-date mode is on, a pull request is required with zero human approvals, conversations must be resolved, linear history is enforced, and force-push/deletion is disabled. Administrators are exempt solely as an intentional recovery path; this follow-up must merge through the normal passing check.
 - **Proposed branch:** `codex/aud-046-enforce-quality-gate`
 - **Area:** GitHub repository governance, CI
 - **Evidence:** The Quality workflow passes on current `master`, but GitHub's branch API reports `protected: false` for `master`. A future direct push or merge can bypass the tests; AUD-015's CI exists but is advisory.
@@ -681,6 +679,6 @@ Additional version/build references:
 
 ## Current follow-up workflow
 
-This ledger replaces the completed 2026-09-12 implementation prompt. The original 43 finding branches/PRs have been reconciled above; do not rerun that prompt or recreate those branches. Work only from the 13 non-`RESOLVED` entries, verify the current code and live environment first, and update each item's status and evidence after its acceptance criteria actually pass. A merged PR alone does not turn a `PARTIAL` or `REOPENED` item into `RESOLVED`.
+This ledger replaces the completed 2026-09-12 implementation prompt. The original 43 finding branches/PRs have been reconciled above; do not rerun that prompt or recreate those branches. Work only from the six non-`RESOLVED` entries, verify the current code and live environment first, and update each item's status and evidence after its acceptance criteria actually pass. A merged PR alone does not turn a `PARTIAL` item into `RESOLVED`.
 
 For any new gap, assign the next `AUD-` ID here rather than creating a second backlog. Keep external operational evidence, owner-dependent decisions, and release-monitor status explicit.
