@@ -10,8 +10,8 @@ const workflow = await readFile(
 test('quality workflow is read-only and cancels superseded runs', () => {
   assert.match(workflow, /permissions:\s*\n\s+contents: read/);
   assert.match(workflow, /cancel-in-progress: true/);
-  assert.match(workflow, /actions\/checkout@v4/);
-  assert.match(workflow, /actions\/setup-node@v4/);
+  assert.match(workflow, /actions\/checkout@v5/);
+  assert.match(workflow, /actions\/setup-node@v5/);
 });
 
 test('quality workflow protects generation, audit, tests, build, contracts, and Docker', () => {

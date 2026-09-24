@@ -10,11 +10,11 @@ This is the single authoritative file for project findings. Do not create a seco
 | Verified code baseline | `master` at `c18de1267a43b1ee798d7a549c2c211ecabba5db` after [PR #74](https://github.com/Finrood/NatiPsy/pull/74); owner deployment remains pending |
 | Original audit baseline | 2026-09-12 at `23d203a`; retained below as historical evidence |
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
-| Current AUD findings | **46** (`AUD-001` through `AUD-046`): **40 RESOLVED, 6 PARTIAL, 0 REOPENED, 0 OPEN** |
+| Current AUD findings | **47** (`AUD-001` through `AUD-047`): **41 RESOLVED, 6 PARTIAL, 0 REOPENED, 0 OPEN** |
 | Current actionable findings | **6**: `AUD-001`, `AUD-024`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-044` (mostly post-deployment verification) |
 | Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, PR #72 was closed as superseded, and follow-up fixes merged in [PR #74](https://github.com/Finrood/NatiPsy/pull/74) |
 | Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
-| Total unique findings documented | **66** (23 historical + 40 from the 2026-09-12 audit + 3 added on 2026-09-24) |
+| Total unique findings documented | **67** (23 historical + 40 from the 2026-09-12 audit + 4 added on 2026-09-24) |
 
 `RESOLVED` means the merged implementation and relevant checks have no known remaining acceptance gap. `PARTIAL` means material work is merged but an explicit operational, external, visual, or owner-dependent acceptance check remains unverified. `REOPENED` means new live/build evidence contradicts a prior acceptance claim. `OPEN` means a newly identified problem has no completed fix. A merged PR is implementation evidence, not automatic closure.
 
@@ -27,6 +27,7 @@ This is the single authoritative file for project findings. Do not create a seco
 - The follow-up also corrects the broken category URL and preserves all nine prerendered article heading IDs. A four-viewport homepage review (320, 390, 768, 1440 px) found no horizontal overflow or overlapping primary CTA; a local mobile Lighthouse run recorded accessibility/SEO 100, CLS 0, and performance 78. These code fixes have not yet been deployed.
 - Cloudflare Email Address Obfuscation is off. The six live sitemap pages now contain a real `mailto:` link and no `/cdn-cgi/l/email-protection` link. Google Search Console domain ownership is verified by a DNS TXT record; the sitemap was resubmitted on 24 September. Live URL inspection found `/blog`, both service pages, the contact/privacy page, and the article available to Google, and indexing requests for all five were accepted. Google's index/coverage updates remain asynchronous.
 - GitHub reports `master` protected with required `quality` check, up-to-date branch requirement, pull requests without a human approval requirement, linear history, conversation resolution, and force-push/deletion disabled. Administrators retain an explicit recovery path, not a routine bypass. The owner approved the public identity, SEO wording, crawler policy, category classification, and quarterly editorial review.
+- The post-merge Quality run on [PR #75's master commit](https://github.com/Finrood/NatiPsy/actions/runs/36067894274) passed but reported GitHub's Node 20 action-runtime deprecation for `checkout@v4` and `setup-node@v4`. AUD-047 upgrades the workflows to the officially supported Node 24-based v5 actions, without changing the pinned application Node/npm versions or enabling unrequested caching.
 
 ## Historical baseline (2026-09-12; not current)
 
@@ -623,6 +624,14 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 - **Why this matters:** The post-merge regression protection depends on convention rather than enforcement.
 - **Best fix:** Configure a repository ruleset or branch protection for `master` requiring the Quality status check and blocking direct pushes, while preserving an intentional recovery/admin process. Use the actual emitted check name rather than an assumed label.
 - **Acceptance:** GitHub reports active protection/ruleset coverage for `master`; a deliberately failing PR cannot merge through the normal path; the current green Quality check satisfies the rule; the recovery exception is documented without silently bypassing checks.
+
+### AUD-047 — GitHub Actions use deprecated Node 20 action runtimes
+
+- **Status / priority:** `RESOLVED / P3`
+- **Area:** CI maintenance and reproducibility
+- **Evidence (2026-09-24):** The green [master Quality run](https://github.com/Finrood/NatiPsy/actions/runs/36067894274) warned that `actions/checkout@v4` and `actions/setup-node@v4` target Node 20 and were forcibly run on Node 24. The warning applies to all workflows using those action versions, independently of the application's pinned Node 22.22.3.
+- **Fix:** Upgrade all workflow references to `checkout@v5` and `setup-node@v5`, whose action runtime is Node 24. Retain the explicit `cache: npm` only on Quality; set `package-manager-cache: false` in the lightweight workflows to prevent setup-node v5 from silently adding caching because `packageManager` exists in `package.json`. Update the workflow contract test. Keep application Node/npm pinned as before.
+- **Acceptance:** PR and post-merge Quality, Nginx, and container jobs pass without the Node 20 action-runtime warning; manual smoke and scheduled robots workflow retain their prior triggers and permissions.
 
 ## Historical findings and revalidation
 
