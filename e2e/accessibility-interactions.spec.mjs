@@ -18,6 +18,7 @@ test('mobile menu has visible keyboard focus and returns it on close', async ({ 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   const toggle = page.getByRole('button', { name: 'Abrir menu principal' });
+  await expect(toggle).toBeEnabled();
   await toggle.focus();
   await expect(toggle).toBeFocused();
   const focusStyle = await toggle.evaluate((element) => {
@@ -33,6 +34,7 @@ test('mobile menu has visible keyboard focus and returns it on close', async ({ 
 
 test('article network failure is announced without exposing backend details', async ({ page }) => {
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   await page.route('**/assets/content/blog/posts/*.json', (route) =>
     route.abort('internetdisconnected'),
   );
@@ -46,6 +48,7 @@ test('article network failure is announced without exposing backend details', as
 test('reduced motion preference suppresses loading animation', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   await page.route('**/assets/content/blog/posts/*.json', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     await route.continue();

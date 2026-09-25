@@ -38,7 +38,7 @@ for (const file of nearMisses) {
 const cachePolicies = nginx.match(/add_header Cache-Control/g) ?? [];
 assert.equal(
   cachePolicies.length,
-  9,
+  11,
   'Nginx should declare one Cache-Control policy for each cache-controlled location',
 );
 assert.equal(

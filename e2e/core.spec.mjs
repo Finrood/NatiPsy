@@ -25,6 +25,7 @@ test('mobile navigation opens and returns focus to its trigger', async ({ page }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   const toggle = page.getByRole('button', { name: 'Abrir menu principal' });
+  await expect(toggle).toBeEnabled();
   await toggle.click();
   await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible();
   await expect(page.locator('#mobile-menu a').first()).toBeFocused();
@@ -63,6 +64,7 @@ test('article direct load and client navigation expose one valid article schema'
   expect(schema['@graph'].some((entity) => entity['@type'] === 'BreadcrumbList')).toBe(true);
 
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   const articleLink = page
     .locator('a[href="/blog/carreira-mulheres-negras-fadiga-racial"]')
     .first();
@@ -74,6 +76,7 @@ test('article direct load and client navigation expose one valid article schema'
 
 test('client route navigation focuses the new page heading and announces it', async ({ page }) => {
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   await page.locator('a[href="/blog/carreira-mulheres-negras-fadiga-racial"]').first().click();
   await expect(page.locator('article h1')).toBeFocused();
   await expect(page.locator('#route-announcer')).toContainText('Navegação concluída');

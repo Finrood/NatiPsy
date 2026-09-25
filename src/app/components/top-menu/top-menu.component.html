@@ -61,7 +61,8 @@
     <!-- Mobile Menu Toggle Button -->
     <button
       type="button"
-      class="lg:hidden focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-md p-1"
+      class="lg:hidden focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-md p-1 disabled:opacity-60 disabled:cursor-wait"
+      [disabled]="!menuReady()"
       [ngClass]="
         isMenuOpen() ? 'text-white focus:ring-white' : 'text-primary-blue focus:ring-primary-blue'
       "
