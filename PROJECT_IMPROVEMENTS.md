@@ -12,7 +12,7 @@ This is the single authoritative file for project findings. Do not create a seco
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
 | Current AUD findings | **47** (`AUD-001` through `AUD-047`): **41 RESOLVED, 6 PARTIAL, 0 REOPENED, 0 OPEN** |
 | Current actionable findings | **6**: `AUD-001`, `AUD-003`, `AUD-023`, `AUD-024`, `AUD-033`, `AUD-044` |
-| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by PR #44 and PR #72 closed as superseded; follow-ups #74–#76 merged. The 2026-09-25 post-deployment correction is in `codex/postdeploy-hardening-20260924`. |
+| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by PR #44 and PR #72 closed as superseded; follow-ups #74–#76 merged. The 2026-09-25 post-deployment correction is [PR #77](https://github.com/Finrood/NatiPsy/pull/77). |
 | Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
 | Total unique findings documented | **67** (23 historical + 40 from the 2026-09-12 audit + 4 added on 2026-09-24) |
 
