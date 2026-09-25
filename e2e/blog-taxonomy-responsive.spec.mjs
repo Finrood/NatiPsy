@@ -22,6 +22,7 @@ for (const width of [320, 390]) {
   test(`taxonomy remains bounded and usable at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto('/blog');
+    await expect(page.locator('#category-filter')).toBeEnabled();
 
     await expect(page.getByLabel('Filtrar por Categoria:')).toBeVisible();
     const categoryLink = page.locator('article a[href="/blog/category/carreira"]');

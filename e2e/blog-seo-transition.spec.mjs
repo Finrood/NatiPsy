@@ -74,6 +74,7 @@ test('article metadata falls back cleanly when optional discovery fields are abs
   });
 
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   await page.locator(`a[href="${articlePath}"]`).first().click();
   await expect(page.locator('article h1')).toBeVisible();
 

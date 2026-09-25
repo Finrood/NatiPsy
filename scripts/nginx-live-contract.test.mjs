@@ -71,12 +71,21 @@ test(
 
     try {
       mkdirSync(join(containerRoot, 'blog/entry'), { recursive: true });
+      mkdirSync(join(containerRoot, 'blog/category/carreira'), { recursive: true });
+      for (const route of ['terapia-online', 'orientacao-profissional', 'contato-e-privacidade']) {
+        mkdirSync(join(containerRoot, route), { recursive: true });
+        writeFileSync(join(containerRoot, route, 'index.html'), `<main>${route}</main>`);
+      }
       mkdirSync(join(containerRoot, '404'), { recursive: true });
       writeFileSync(join(containerRoot, 'index.html'), '<main id="home">home</main>');
       writeFileSync(join(containerRoot, 'blog/index.html'), '<main id="blog">blog</main>');
       writeFileSync(
         join(containerRoot, 'blog/entry/index.html'),
         '<article><h1>entry</h1></article>',
+      );
+      writeFileSync(
+        join(containerRoot, 'blog/category/carreira/index.html'),
+        '<main>carreira</main>',
       );
       writeFileSync(join(containerRoot, '404/index.html'), '<h1>Not found</h1>');
       writeFileSync(join(containerRoot, 'app-12345678.js'), 'console.log(1);');
@@ -121,6 +130,8 @@ test(
       assert.equal(archiveRedirect.headers.get('location'), '/blog');
       assertSecurityHeaders(archiveRedirect);
       assert.match(archiveRedirect.headers.get('cache-control') || '', /no-cache/);
+      const archiveQuery = await fetch(`${baseUrl}/blog/?source=test`, { redirect: 'manual' });
+      assert.equal(archiveQuery.headers.get('location'), '/blog?source=test');
 
       const archive = await fetch(`${baseUrl}/blog`);
       assert.equal(archive.status, 200);
@@ -130,10 +141,28 @@ test(
       assert.equal(articleRedirect.status, 301);
       assert.equal(articleRedirect.headers.get('location'), '/blog/entry');
       assertSecurityHeaders(articleRedirect);
+      const articleQuery = await fetch(`${baseUrl}/blog/entry/?source=test`, {
+        redirect: 'manual',
+      });
+      assert.equal(articleQuery.headers.get('location'), '/blog/entry?source=test');
 
       const article = await fetch(`${baseUrl}/blog/entry`);
       assert.equal(article.status, 200);
       assert.match(await article.text(), /<h1>entry<\/h1>/);
+
+      for (const route of [
+        'terapia-online',
+        'orientacao-profissional',
+        'contato-e-privacidade',
+        'blog/category/carreira',
+      ]) {
+        const canonical = await fetch(`${baseUrl}/${route}`);
+        assert.equal(canonical.status, 200, route);
+        const slash = await fetch(`${baseUrl}/${route}/?source=test`, { redirect: 'manual' });
+        assert.equal(slash.status, 301, route);
+        assert.equal(slash.headers.get('location'), `/${route}?source=test`);
+        assertSecurityHeaders(slash);
+      }
 
       const asset = await fetch(`${baseUrl}/app-12345678.js`);
       assert.equal(asset.status, 200);
@@ -145,6 +174,13 @@ test(
       assertSecurityHeaders(unknown);
       assert.equal(unknown.headers.get('x-robots-tag'), 'noindex, nofollow');
       assert.match(await unknown.text(), /Not found/);
+
+      for (const route of ['/404', '/404/']) {
+        const response = await fetch(`${baseUrl}${route}`);
+        assert.equal(response.status, 404, route);
+        assert.equal(response.headers.get('x-robots-tag'), 'noindex, nofollow');
+        assert.match(await response.text(), /Not found/);
+      }
 
       const malformed = await fetch(`${baseUrl}/blog/%2`);
       assert.ok([400, 404].includes(malformed.status));

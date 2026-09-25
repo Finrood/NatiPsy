@@ -99,6 +99,7 @@ for (const failure of failures) {
     });
 
     await page.goto('/blog');
+    await expect(page.locator('#category-filter')).toBeEnabled();
     await page.locator(`a[href="${articlePath}"]`).first().click();
 
     const alert = page.getByRole('alert');
@@ -149,6 +150,7 @@ test('article retry succeeds and rapid duplicate clicks start one request', asyn
   });
 
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   await page.locator(`a[href="${articlePath}"]`).first().click();
   const retry = page.getByRole('button', { name: 'Tentar novamente' });
   await expect(retry).toBeVisible();

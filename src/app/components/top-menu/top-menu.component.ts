@@ -10,6 +10,7 @@ import {
   ChangeDetectorRef,
   HostListener,
   signal,
+  afterNextRender,
 } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -32,6 +33,8 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   /** Reactive UI state: signals notify OnPush views directly, replacing
    * manual `markForCheck` bookkeeping for these flags. */
   readonly isMenuOpen = signal(false);
+  // A prerendered toggle has no click handler until hydration finishes.
+  readonly menuReady = signal(false);
   readonly isScrolled = signal(false);
   readonly isHidden = signal(false);
   lastScrollPosition = 0;
@@ -52,6 +55,10 @@ export class TopMenuComponent implements OnInit, OnDestroy {
     'sobre-mim': 'Sobre Mim',
     blog: 'Blog',
   };
+
+  constructor() {
+    afterNextRender(() => this.menuReady.set(true));
+  }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {

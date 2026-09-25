@@ -26,9 +26,13 @@ assert.match(headers, /frame-ancestors 'self'/);
 assert.match(headers, /Permissions-Policy/);
 assert.match(headers, /connect-src 'self';/);
 assert.match(headers, /script-src[^;]*https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/);
+assert.match(
+  headers,
+  /script-src[^;]*https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js\//,
+);
 assert.doesNotMatch(
   headers,
-  /script-src[^;]*https:\/\/(?!static\.cloudflareinsights\.com\/beacon\.min\.js)/,
+  /script-src[^;]*https:\/\/(?!static\.cloudflareinsights\.com\/beacon\.min\.js(?:\/|\s|;))/,
 );
 assert.doesNotMatch(headers, /connect-src[^;]*https:/);
 assert.doesNotMatch(headers, /img-src[^;]*\shttps:/);

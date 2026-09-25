@@ -41,6 +41,11 @@ assert.match(
   /\[attr\.aria-expanded\]="isMenuOpen\(\)\.toString\(\)"/,
   'mobile menu toggle must expose its expanded state',
 );
+assert.match(
+  topMenu,
+  /\[disabled\]="!menuReady\(\)"/,
+  'menu should not promise interaction before hydration',
+);
 
 assert.match(blogList, /role="alert"/, 'blog list errors must be announced as alerts');
 assert.match(blogPost, /role="alert"/, 'blog post errors must be announced as alerts');

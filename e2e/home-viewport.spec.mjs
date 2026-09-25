@@ -58,3 +58,38 @@ for (const [width, height] of [
     await page.screenshot({ path: `test-results/home-${width}x${height}.png`, fullPage: false });
   });
 }
+
+for (const [width, height] of [
+  [320, 568],
+  [390, 844],
+  [768, 1024],
+  [1440, 900],
+]) {
+  test(`a cold delayed font does not shift the homepage at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await page.addInitScript(() => {
+      window.__measuredCLS = 0;
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (!entry.hadRecentInput) window.__measuredCLS += entry.value;
+        }
+      }).observe({ type: 'layout-shift', buffered: true });
+    });
+    await page.route('**/assets/fonts/montserrat-latin.woff2', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await route.continue();
+    });
+
+    const fontResponse = page.waitForResponse((response) =>
+      response.url().endsWith('/assets/fonts/montserrat-latin.woff2'),
+    );
+    await page.goto('/');
+    await fontResponse;
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+    expect(await page.evaluate(() => window.__measuredCLS)).toBeLessThan(0.1);
+  });
+}

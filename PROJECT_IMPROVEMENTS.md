@@ -6,19 +6,28 @@ This is the single authoritative file for project findings. Do not create a seco
 
 | Field | Value |
 | --- | --- |
-| Last reconciled | 2026-09-24 |
-| Verified code baseline | `master` at `c18de1267a43b1ee798d7a549c2c211ecabba5db` after [PR #74](https://github.com/Finrood/NatiPsy/pull/74); owner deployment remains pending |
+| Last reconciled | 2026-09-25 |
+| Verified code baseline | Deployed `master` at `5120636c7d18674c26a1da674b31ab070595133e` after PRs #74–#76; this post-deployment correction is not yet deployed |
 | Original audit baseline | 2026-09-12 at `23d203a`; retained below as historical evidence |
 | Scope | Angular frontend and SSR, content pipeline, tests, dependencies, Docker, Compose, Nginx, production HTTP behavior, accessibility, responsive design, UX, performance, security, reliability, SEO, structured data, and content architecture |
 | Current AUD findings | **47** (`AUD-001` through `AUD-047`): **41 RESOLVED, 6 PARTIAL, 0 REOPENED, 0 OPEN** |
-| Current actionable findings | **6**: `AUD-001`, `AUD-024`, `AUD-033`, `AUD-039`, `AUD-040`, `AUD-044` (mostly post-deployment verification) |
-| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by merged PR #44, PR #72 was closed as superseded, follow-up fixes merged in [PR #74](https://github.com/Finrood/NatiPsy/pull/74), and AUD-047 is in [PR #76](https://github.com/Finrood/NatiPsy/pull/76) |
+| Current actionable findings | **6**: `AUD-001`, `AUD-003`, `AUD-023`, `AUD-024`, `AUD-033`, `AUD-044` |
+| Implementation PR coverage | `AUD-001`–`AUD-042` merged as PRs #30–#71; `AUD-043` was implemented by PR #44 and PR #72 closed as superseded; follow-ups #74–#76 merged. The 2026-09-25 post-deployment correction is [PR #77](https://github.com/Finrood/NatiPsy/pull/77). |
 | Historical findings | **23**: 20 resolved, 3 carried into the 2026-09-12 backlog |
 | Total unique findings documented | **67** (23 historical + 40 from the 2026-09-12 audit + 4 added on 2026-09-24) |
 
 `RESOLVED` means the merged implementation and relevant checks have no known remaining acceptance gap. `PARTIAL` means material work is merged but an explicit operational, external, visual, or owner-dependent acceptance check remains unverified. `REOPENED` means new live/build evidence contradicts a prior acceptance claim. `OPEN` means a newly identified problem has no completed fix. A merged PR is implementation evidence, not automatic closure.
 
-## Current verification (2026-09-24)
+## Current verification (2026-09-25)
+
+- The owner deployed `master` at `5120636`. Cloudflare Tunnel briefly returned 1033 during the deployment but recovered; public home, blog, service, trust, article, feed, sitemap, robots, and unknown-route checks now respond as intended. All six sitemap pages, seven internal page links, 23 referenced assets, and six social-preview images passed a live crawl. The real email link, article fragments, and category page passed live checks, closing AUD-039 and AUD-040.
+- The canonical-host Cloudflare Redirect Rule is active. Live HTTP apex, HTTP `www`, and HTTPS `www` requests return one 301 to HTTPS apex with path and query preserved. HTTPS apex remains 200. No outage alerts were configured, per owner decision.
+- Search Console processed the resubmitted sitemap on 24 September and found all six pages. Its page-indexing report was last updated on 20 September, before this deployment; indexing outcomes remain asynchronous and cannot yet be declared complete.
+- The deployed CSP blocks Cloudflare's versioned `/beacon.min.js/v...` Analytics script because it allows only the exact `/beacon.min.js` path. Cold homepage visits also measured CLS 0.143–0.228 at three viewports from the Montserrat font swap. The correction branch narrowly allows both exact and slash-prefix beacon paths and uses `font-display: optional`; delayed-font browser regressions pass at all four viewports. Deployment is required before live closure.
+- The deployed Nginx serves direct `/404` as 200 and no-slash-canonical service/category routes with a trailing slash as 200. The correction branch makes these a real 404 and single 301 respectively, preserving query strings; the Docker-backed Nginx contract passes. The branch also disables the mobile menu until hydration and waits for blog hydration in tests that require client navigation. The old deployed version's production suite passed 33/48; the corrected local suite now has 53 passing tests, but production must be retested after deployment.
+- GitHub-hosted Production smoke still encounters Cloudflare Bot Fight Mode's 403 challenge; the owner declined scheduled outage alerts. Manual smoke remains available. `master` branch protection requires the `quality` check and a PR, with linear history and no human approval requirement.
+
+## Previous verification (2026-09-24; superseded by the deployment above)
 
 - The [Quality run on the verified code baseline](https://github.com/Finrood/NatiPsy/actions/runs/35924531455) passed. A separate clean checkout passed the pinned install, lint, format check, production build, 60 unit tests, and 42 local Chromium tests. The OSV policy scanned 751 locked packages successfully; a fresh npm audit reported zero production or development advisories.
 - The public site serves matching main/style asset hashes, and its feed, sitemap, and robots file match the generated files byte-for-byte. The production smoke and robots checks passed from the review environment. All eight sitemap URLs returned 200; an unknown URL returned a real 404. The RSS feed returns 200 with `application/rss+xml`, short revalidating cache, security headers, and valid XML.
@@ -57,11 +66,11 @@ The following measurements explain the original findings. They must not be read 
 | Finding | State | Remaining acceptance or next action |
 | --- | --- | --- |
 | AUD-001 | PARTIAL / P1 | Manual smoke remains; GitHub runner is challenged by Cloudflare. No scheduled outage alerts, per owner decision. |
-| AUD-024 | PARTIAL / P2 | Retained Cloudflare Analytics has an exact CSP allowlist in the follow-up; verify live after deployment. |
-| AUD-033 | PARTIAL / P3 | Search Console is verified and sitemap resubmitted; await processing/indexing and decide when to activate the canonical-host redirect after deployment. |
-| AUD-039 | PARTIAL / P2 | Nine static article fragments pass locally; verify live after deployment. |
-| AUD-040 | PARTIAL / P2 | Category link and test are fixed locally; verify live after deployment. |
-| AUD-044 | PARTIAL / P1 | Slow-load and no-JavaScript browser tests pass locally; verify production after deployment. |
+| AUD-003 | PARTIAL / P1 | Direct `/404` and trailing-slash service/category status corrections pass Nginx tests; deploy and verify live. |
+| AUD-023 | PARTIAL / P2 | Cold-visit font swap caused live CLS above 0.1; deploy the tested `font-display: optional` correction and remeasure. |
+| AUD-024 | PARTIAL / P2 | Deploy the exact-plus-prefix Cloudflare beacon CSP rule and verify the live browser has no violation. |
+| AUD-033 | PARTIAL / P3 | Canonical-host redirect is live; await current Search Console indexing data for the six processed sitemap pages. |
+| AUD-044 | PARTIAL / P1 | Deploy mobile-toggle readiness and hydration-aware SPA tests, then rerun the production suite. |
 
 ## Finding record
 
@@ -93,8 +102,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-003 — The deployed Nginx contract creates soft 404s and contradicts the SSR contract
 
-- **Status / priority:** `RESOLVED / P1`
+- **Status / priority:** `PARTIAL / P1`
 - **Implementation PR:** [#32](https://github.com/Finrood/NatiPsy/pull/32)
+- **Current gap (2026-09-25):** Unknown paths correctly return a branded 404, but the explicit `/404` path returns 200, and the slash variants of the service, trust, and category pages return 200 despite no-slash canonicals. The correction branch returns 404 for `/404` and `/404/` and 301 for those slash variants, preserving query strings; container tests pass. Live verification awaits deployment.
 - **Branch:** `codex/aud-003-deployment-contract-404`
 - **Area:** Docker, Nginx, SSR, SEO
 - **Files:** `Dockerfile:18-28`, `nginx.conf:25-36`, `src/server.ts:102-130`, `package.json:11`
@@ -335,8 +345,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-023 — Google Fonts makes builds and first visits depend on a third party
 
-- **Status / priority:** `RESOLVED / P2`
+- **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#52](https://github.com/Finrood/NatiPsy/pull/52)
+- **Current gap (2026-09-25):** Self-hosting remains correct, but the initial `font-display: swap` policy shifts the live homepage after a cold font load (CLS 0.143–0.228 at three measured widths). The correction branch uses `optional`; a delayed-font browser regression passes. The historical `swap` recommendation below is superseded; remeasure production after deployment.
 - **Branch:** `codex/aud-023-self-host-fonts`
 - **Area:** Privacy, performance, reliability, CSP
 - **Files:** `src/index.html:34-44`, `src/styles.css:20-22`, `nginx.conf:30,53,69`
@@ -349,7 +360,7 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 - **Status / priority:** `PARTIAL / P2`
 - **Implementation PR:** [#53](https://github.com/Finrood/NatiPsy/pull/53)
-- **Current gap (2026-09-24):** The owner chose to retain Cloudflare Web Analytics. The follow-up allows only `https://static.cloudflareinsights.com/beacon.min.js` in `script-src`; a focused header test passes. The old live CSP still blocks the beacon until deployment; check production console and CSP afterward.
+- **Current gap (2026-09-25):** The owner chose to retain Cloudflare Web Analytics. Live Cloudflare injects a versioned `/beacon.min.js/v...` URL; the deployed exact-path CSP blocks it. The correction branch allows only the exact path and its slash-terminated prefix, with a focused security-header test. Verify the live browser after deployment.
 - **Branch:** `codex/aud-024-nginx-security-headers`
 - **Area:** Security, Nginx
 - **Files:** `nginx.conf:25-76`, `src/index.html:41`
@@ -459,7 +470,7 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 - **Status / priority:** `PARTIAL / P3`
 - **Implementation PR:** [#62](https://github.com/Finrood/NatiPsy/pull/62)
-- **Current gap (2026-09-24):** Search Console domain ownership was verified with a Cloudflare DNS TXT record. The canonical sitemap was resubmitted on 24 September; its previous read on 22 September still reported three pages, so processing remains pending. The homepage is indexed; `/blog`, `/terapia-online`, `/orientacao-profissional`, `/contato-e-privacidade`, and the article all passed live URL inspection as available to Google, and indexing requests for all five were accepted. Historical exclusions include old Hostgator soft 404s/5xx; the robots-blocked example is the deliberately blocked raw Markdown asset. The owner approved a quarterly manual editorial review of service/trust copy, citations, identity, privacy/crisis boundaries, and real material-review dates; do not auto-stamp freshness. A validated but **undeployed** Cloudflare Redirect Rule would 301 exact `www` and HTTP apex requests to HTTPS apex while preserving path/query: filter `(http.host eq "www.psicologanataliaferreira.com") or (http.host eq "psicologanataliaferreira.com" and not ssl)`, target `concat("https://psicologanataliaferreira.com", http.request.uri.path)`, preserve query string. Activating it changes production traffic before the owner's planned deployment, so it remains a deliberate follow-up, not a completed fix. Reinspect coverage and canonical hosts after deployment.
+- **Current gap (2026-09-25):** Search Console domain ownership is verified. It processed the canonical sitemap on 24 September and found all six submitted pages, but the page-indexing report was last updated on 20 September, before deployment. The homepage was indexed before deployment; the other five pages passed live URL inspection and their indexing requests were accepted. Historical exclusions include old Hostgator soft 404s/5xx; the robots-blocked example is deliberately blocked raw Markdown. The owner approved quarterly manual editorial review and real material-review dates; do not auto-stamp freshness. The Cloudflare Redirect Rule is now active: exact `www` and HTTP apex requests 301 to HTTPS apex with path/query preserved, verified on both schemes and a deep link. Await fresh indexing data before claiming search coverage is complete.
 - **Branch:** `codex/aud-033-search-content-architecture`
 - **Area:** SEO strategy, information architecture, content UX
 - **Files:** routes, navigation, sitemap, blog content, footer/about/service content
@@ -530,9 +541,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-039 — The article layout hides the title and offers no long-form navigation
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#68](https://github.com/Finrood/NatiPsy/pull/68)
-- **Current gap (2026-09-24):** The follow-up restores only the trusted generator's heading IDs after sanitization. The generated HTML now contains a matching target for all nine TOC fragments and the static article contract passes; live verification awaits deployment.
+- **Closure evidence (2026-09-25):** The deployed article has nine table-of-contents links and nine matching heading IDs; browser navigation and focus checks pass. The 320–1440 px viewport suite passes locally.
 - **Branch:** `codex/aud-039-article-reading-experience`
 - **Area:** Design, content UX, accessibility, deep linking
 - **Files:** `src/app/components/blog-post/blog-post.component.html`, `src/app/components/blog-post/blog-post.component.css`, `src/scripts/generate-blog-index.js`, blog post model/output
@@ -543,9 +554,9 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 ### AUD-040 — Categories and tags are conflated into an unbounded taxonomy
 
-- **Status / priority:** `PARTIAL / P2`
+- **Status / priority:** `RESOLVED / P2`
 - **Implementation PR:** [#69](https://github.com/Finrood/NatiPsy/pull/69)
-- **Current gap (2026-09-24):** The shared card and regression test now use the registered `/blog/category/carreira` route. It passes locally; the old link remains live until deployment. The owner approved the existing category/tag classification.
+- **Closure evidence (2026-09-25):** The owner approved the classification. The deployed card links to registered `/blog/category/carreira`, which returns 200 with a self-canonical `noindex,follow` page; the live filter updates its URL and selection.
 - **Branch:** `codex/aud-040-blog-taxonomy-model`
 - **Area:** Content architecture, UX, search classification, data modeling
 - **Files:** blog frontmatter, `src/app/models/blog-post.model.ts`, `src/scripts/generate-blog-index.js`, blog list/post templates and filtering
@@ -595,7 +606,7 @@ The original `Evidence` and `Why this matters` paragraphs below describe the 202
 
 - **Status / priority:** `PARTIAL / P1`
 - **Follow-up:** `codex/finish-audit-20260924`
-- **Current gap (2026-09-24):** Filter controls remain disabled in server HTML until client hydration; ordinary article links still navigate without JavaScript. Throttled pre-hydration and no-JavaScript browser tests pass locally. Re-run the production browser suite after deployment before closing.
+- **Current gap (2026-09-25):** The deployed blog filter correctly stays disabled until hydration and native article links work before JavaScript, but several SPA-only production tests clicked prerendered links before hydration. The correction branch waits for explicit blog readiness in those tests and disables the mobile menu toggle until its handler is ready. A delayed-bundle mobile regression and all 53 local browser tests pass; rerun the production suite after deployment.
 - **Proposed branch:** `codex/aud-044-prehydration-interactions`
 - **Area:** Hydration, UX, accessibility, production browser testing
 - **Evidence:** In a live Chromium session, selecting “Carreira” immediately after the prerendered archive appeared left the URL at `/blog`; hydration then reset the visible selection. The same action worked after a short readiness wait. Twelve of 42 production-targeted browser tests failed with this timing pattern, while the local build passed all 42. `withEventReplay()` is already configured, so merely adding it is not a fix.

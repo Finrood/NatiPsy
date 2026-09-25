@@ -8,7 +8,12 @@ const nginx = fs.readFileSync('nginx.conf', 'utf8');
 assert.doesNotMatch(index, /fonts\.(?:googleapis|gstatic)\.com/);
 assert.match(styles, /montserrat-latin-ext\.woff2/);
 assert.match(styles, /montserrat-latin\.woff2/);
-assert.match(styles, /font-display:\s*swap/);
+assert.equal(
+  (styles.match(/font-display:\s*optional;/g) ?? []).length,
+  2,
+  'both Montserrat subsets should avoid a late layout-shifting swap',
+);
+assert.doesNotMatch(styles, /font-display:\s*swap/);
 assert.match(styles, /unicode-range:[^;]*U\+0100/);
 assert.doesNotMatch(nginx, /fonts\.(?:googleapis|gstatic)\.com/);
 for (const subset of ['latin', 'latin-ext']) {

@@ -14,6 +14,7 @@ test('direct article load renders under delayed article data', async ({ page }) 
 
 test('first client article navigation renders under delayed lazy chunks', async ({ page }) => {
   await page.goto('/blog');
+  await expect(page.locator('#category-filter')).toBeEnabled();
   await page.route('**/*.js', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 250));
     await route.continue();
