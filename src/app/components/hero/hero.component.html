@@ -85,12 +85,14 @@
       class="relative w-full aspect-[853/1280] rounded-3xl overflow-hidden shadow-xl z-20 bg-gray-100"
     >
       <img
-        ngSrc="assets/NatiHero.webp"
+        src="assets/NatiHero.webp"
+        srcset="assets/NatiHero-480.webp 480w, assets/NatiHero.webp 853w"
         alt="Natalia Ferreira, Psicóloga"
         class="w-full h-full object-cover"
         width="853"
         height="1280"
-        priority
+        loading="lazy"
+        decoding="async"
         sizes="(max-width: 768px) 100vw, 33vw"
       />
     </div>

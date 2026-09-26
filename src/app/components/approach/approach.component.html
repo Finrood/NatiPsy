@@ -41,16 +41,27 @@
         </div>
         <div class="lg:w-1/2 flex items-center">
           <div class="w-full aspect-[600/400] rounded-lg overflow-hidden shadow-lg bg-gray-100">
-            <img
-              ngSrc="assets/abordagem1.webp"
-              alt="Ilustração de acolhimento e escuta empática na terapia clínica"
-              class="w-full h-full object-cover"
-              loading="lazy"
-              fetchpriority="low"
-              width="600"
-              height="400"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <picture>
+              <source
+                type="image/webp"
+                srcset="
+                  assets/abordagem1-600.webp   600w,
+                  assets/abordagem1-1200.webp 1200w,
+                  assets/abordagem1.webp      1920w
+                "
+                sizes="(min-width: 1280px) 544px, (min-width: 1024px) calc(50vw - 100px), (min-width: 640px) calc(100vw - 144px), calc(100vw - 96px)"
+              />
+              <img
+                ngSrc="assets/abordagem1.webp"
+                alt="Ilustração de acolhimento e escuta empática na terapia clínica"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                fetchpriority="low"
+                width="600"
+                height="400"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </picture>
           </div>
         </div>
       </div>
@@ -59,16 +70,27 @@
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
           <div class="w-full aspect-[600/400] rounded-lg overflow-hidden shadow-lg bg-gray-100">
-            <img
-              ngSrc="assets/abordagem2.webp"
-              alt="Ilustração de reflexão e desenvolvimento de autonomia na terapia sistêmica"
-              class="w-full h-full object-cover"
-              loading="lazy"
-              fetchpriority="low"
-              width="600"
-              height="400"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <picture>
+              <source
+                type="image/webp"
+                srcset="
+                  assets/abordagem2-600.webp   600w,
+                  assets/abordagem2-1200.webp 1200w,
+                  assets/abordagem2.webp      1920w
+                "
+                sizes="(min-width: 1280px) 544px, (min-width: 1024px) calc(50vw - 100px), (min-width: 640px) calc(100vw - 144px), calc(100vw - 96px)"
+              />
+              <img
+                ngSrc="assets/abordagem2.webp"
+                alt="Ilustração de reflexão e desenvolvimento de autonomia na terapia sistêmica"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                fetchpriority="low"
+                width="600"
+                height="400"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </picture>
           </div>
         </div>
         <div class="lg:w-1/2 flex flex-col justify-center order-1 lg:order-2">
