@@ -35,6 +35,11 @@ assert.match(
   /motion-safe:hover:scale-105/,
   'hero CTA motion must respect reduced-motion preference',
 );
+assert.match(
+  hero,
+  /loading="eager"\s+fetchpriority="high"/,
+  'hero portrait must be requested promptly when it becomes the mobile LCP element',
+);
 assert.equal(
   (hero.match(/\[href\]="whatsappLink"/g) ?? []).length,
   1,
