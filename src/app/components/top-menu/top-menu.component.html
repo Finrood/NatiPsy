@@ -11,7 +11,7 @@
   <div class="container mx-auto px-4 py-2 flex justify-between items-center h-[80px]">
     <a
       href="/"
-      class="flex items-center transition-transform duration-300 motion-safe:hover:scale-110 scale-125"
+      class="flex items-center transition-transform duration-300 motion-safe:hover:scale-105 scale-125"
       (click)="refreshPage($event)"
       aria-label="Página Inicial"
     >
@@ -50,7 +50,7 @@
           routerLinkActive
           [routerLinkActiveOptions]="{ exact: item !== 'blog' }"
           ariaCurrentWhenActive="page"
-          class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark transition-[transform,color] duration-300 motion-safe:hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 rounded-sm"
+          class="text-xl font-semibold text-primary-blue hover:text-primary-pink-dark hover:underline hover:decoration-primary-pink-dark/40 hover:underline-offset-8 transition-[transform,color] duration-300 motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue focus-visible:ring-offset-2 rounded-sm"
           [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]"
         >
           {{ menuDisplayNames[item] }}
@@ -108,7 +108,7 @@
 </header>
 
 <div
-  class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/95 z-40 lg:hidden overflow-y-auto"
+  class="mobile-menu-container fixed top-[80px] left-0 right-0 bottom-0 bg-primary-pink-dark/90 backdrop-blur-xl border-t border-white/10 shadow-2xl z-40 lg:hidden overflow-y-auto"
   [class.mobile-menu-open]="isMenuOpen()"
   [class.mobile-menu-closed]="!isMenuOpen()"
   [attr.aria-hidden]="isMenuOpen() ? 'false' : 'true'"
@@ -129,7 +129,7 @@
         [routerLinkActiveOptions]="{ exact: item !== 'blog' }"
         ariaCurrentWhenActive="page"
         (click)="closeMenu()"
-        class="text-2xl sm:text-3xl font-semibold text-white hover:text-pink-100 transition-[transform,color] duration-300 motion-safe:hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-pink-dark rounded-sm"
+        class="text-2xl sm:text-3xl font-semibold text-white hover:text-pink-100 hover:underline hover:decoration-white/50 hover:underline-offset-8 transition-[transform,color] duration-300 motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-pink-dark rounded-sm"
         [attr.aria-label]="'Ir para a seção ' + menuDisplayNames[item]"
       >
         {{ menuDisplayNames[item] }}
