@@ -1,12 +1,15 @@
-<section class="bg-primary-pink py-16 px-4 sm:px-6 lg:px-8" aria-labelledby="vantagens-heading">
+<section
+  class="bg-primary-blue py-16 sm:py-24 px-4 sm:px-6 lg:px-8 text-white"
+  aria-labelledby="vantagens-heading"
+>
   <div class="max-w-7xl mx-auto">
-    <h2 id="vantagens-heading" class="text-3xl font-bold text-primary-blue text-center mb-12">
+    <h2 id="vantagens-heading" class="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
       Vantagens da Terapia Online
     </h2>
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" role="list">
       @for (advantage of advantages; track advantage.title) {
         <li
-          class="bg-white rounded-lg shadow-lg p-6 transition-transform duration-300 ease-in-out motion-safe:hover:scale-105"
+          class="bg-white rounded-2xl shadow-md p-6 sm:p-8 transition-transform duration-300 ease-in-out motion-safe:hover:scale-105 border border-white/10"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -14,7 +17,7 @@
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
-            class="w-12 h-12 text-primary-blue mb-4"
+            class="w-12 h-12 text-primary-pink-dark mb-4"
             aria-hidden="true"
             width="48"
             height="48"

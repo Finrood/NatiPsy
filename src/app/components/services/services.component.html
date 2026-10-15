@@ -1,5 +1,5 @@
 <section
-  class="services-section py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-primary-pink/20"
+  class="services-section py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-surface-warm border-y border-rose-100/40"
   aria-labelledby="services-heading"
 >
   <div class="container mx-auto">
@@ -9,21 +9,21 @@
     >
       Como posso te ajudar
       <span
-        class="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-4/5 sm:w-3/5 h-1 bg-primary-pink"
+        class="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-4/5 sm:w-3/5 h-1 bg-primary-pink-dark/40"
         aria-hidden="true"
       ></span>
     </h2>
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
       @for (service of services; track service.title) {
         <li
-          class="flex flex-col bg-white p-6 sm:p-8 rounded-lg shadow-lg transform motion-safe:hover:scale-105 transition-transform duration-300"
+          class="flex flex-col bg-white p-6 sm:p-8 rounded-2xl border border-rose-100/60 shadow-sm transform motion-safe:hover:scale-105 transition-all duration-300"
         >
           <article class="flex flex-col flex-grow">
             <header class="flex items-center mb-6">
               <img
                 [ngSrc]="service.iconPath"
                 alt=""
-                class="bg-primary-pink p-3 rounded-full"
+                class="bg-primary-pink/30 p-3 rounded-2xl"
                 aria-hidden="true"
                 width="64"
                 height="64"
