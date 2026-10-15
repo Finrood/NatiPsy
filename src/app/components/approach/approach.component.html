@@ -7,7 +7,7 @@
       Minha Abordagem
     </h2>
 
-    <div class="rounded-xl shadow-2xl p-8 sm:p-12 bg-primary-pink/20">
+    <div class="rounded-3xl border border-rose-100/70 p-8 sm:p-12 bg-surface-warm/40 shadow-sm">
       <div class="space-y-8 mb-12">
         <p class="text-lg sm:text-xl text-gray-700 leading-relaxed">
           Na minha prática clínica, utilizo a Terapia Relacional Sistêmica como principal ferramenta
@@ -27,7 +27,7 @@
           <ul class="space-y-4" role="list">
             @for (principle of firstPrinciples; track principle.title) {
               <li
-                class="bg-white rounded-lg p-4 sm:p-6 shadow-lg transform motion-safe:hover:scale-105 transition-transform duration-300"
+                class="bg-white rounded-2xl p-4 sm:p-6 border border-rose-100/60 shadow-sm transform motion-safe:hover:scale-105 transition-all duration-300"
               >
                 <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
                   {{ principle.title }}
@@ -40,7 +40,7 @@
           </ul>
         </div>
         <div class="lg:w-1/2 flex items-center">
-          <div class="w-full aspect-[600/400] rounded-lg overflow-hidden shadow-lg bg-gray-100">
+          <div class="w-full aspect-[600/400] rounded-2xl overflow-hidden shadow-md bg-gray-100">
             <picture>
               <source
                 type="image/webp"
@@ -69,7 +69,7 @@
       <!-- Segunda seção de princípios -->
       <div class="flex flex-col lg:flex-row gap-8">
         <div class="lg:w-1/2 flex items-center order-2 lg:order-1">
-          <div class="w-full aspect-[600/400] rounded-lg overflow-hidden shadow-lg bg-gray-100">
+          <div class="w-full aspect-[600/400] rounded-2xl overflow-hidden shadow-md bg-gray-100">
             <picture>
               <source
                 type="image/webp"
@@ -97,7 +97,7 @@
           <ul class="space-y-4" role="list">
             @for (principle of secondPrinciples; track principle.title) {
               <li
-                class="bg-white rounded-lg p-4 sm:p-6 shadow-lg transform motion-safe:hover:scale-105 transition-transform duration-300"
+                class="bg-white rounded-2xl p-4 sm:p-6 border border-rose-100/60 shadow-sm transform motion-safe:hover:scale-105 transition-all duration-300"
               >
                 <h3 class="text-xl sm:text-2xl font-semibold text-primary-blue mb-2 sm:mb-4">
                   {{ principle.title }}
