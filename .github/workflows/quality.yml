@@ -77,7 +77,7 @@ jobs:
 
       - name: Report bundle regression when stats are available
         run: |
-          if [ -f dist/nati-psy/stats.json ]; then
+          if [ -f dist/nati-psy/stats.json ] || [ -f dist/nati-psy/browser-stats.json ]; then
             npm run report:bundle-size
           else
             echo "Skipping bundle report because this branch predates stats output."

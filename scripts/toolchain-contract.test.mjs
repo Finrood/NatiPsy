@@ -36,8 +36,8 @@ for (const name of [
 ]) {
   assert.match(
     dependencies[name],
-    /^22\.1\./,
-    `${name} should stay on the documented Angular 22.1 patch line`,
+    /^22\.2\./,
+    `${name} should stay on the documented Angular 22.2 patch line`,
   );
 }
 for (const name of ['@tailwindcss/postcss', 'postcss', 'tailwindcss']) {

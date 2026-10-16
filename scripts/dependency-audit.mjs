@@ -39,22 +39,54 @@ if (!response.ok) {
 }
 
 const report = await response.json();
-const findings = [];
 const packageList = [...packages.values()];
-
+// NOTE: querybatch entries only carry {id, modified} — severity and summary
+// must be resolved per advisory via the full vuln record. Reading them from
+// the batch response silently degrades every finding to UNKNOWN.
+const affectedById = new Map();
 for (const [index, result] of (report.results ?? []).entries()) {
   const dependency = packageList[index];
   for (const advisory of result.vulns ?? []) {
     if (advisory.withdrawn) continue;
-    const severity = String(advisory.database_specific?.severity ?? 'UNKNOWN').toUpperCase();
-    const rank = severityRank[severity] ?? 2;
+    if (!affectedById.has(advisory.id)) affectedById.set(advisory.id, []);
+    affectedById.get(advisory.id).push(dependency);
+  }
+}
+
+async function fetchDetail(id) {
+  const detailResponse = await fetch(`https://api.osv.dev/v1/vulns/${id}`, {
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!detailResponse.ok) {
+    throw new Error(`OSV vuln lookup failed for ${id} with HTTP ${detailResponse.status}`);
+  }
+  return detailResponse.json();
+}
+
+// Small bounded pool to stay friendly to the OSV API.
+const ids = [...affectedById.keys()];
+const details = new Map();
+const concurrency = 5;
+for (let cursor = 0; cursor < ids.length; cursor += concurrency) {
+  const batch = await Promise.all(ids.slice(cursor, cursor + concurrency).map(fetchDetail));
+  for (const detail of batch) details.set(detail.id, detail);
+}
+
+const findings = [];
+for (const [id, dependencies] of affectedById) {
+  const detail = details.get(id);
+  const severity = String(detail?.database_specific?.severity ?? 'UNKNOWN').toUpperCase();
+  // Fail closed when OSV carries no severity for an advisory.
+  const rank = severityRank[severity] ?? 2;
+  const summary = detail?.summary ?? 'No summary provided';
+  for (const dependency of dependencies) {
     const minimum = dependency.production ? severityRank.MODERATE : severityRank.HIGH;
     if (rank >= minimum) {
       findings.push({
         dependency: `${dependency.name}@${dependency.version}`,
         severity,
-        id: advisory.id,
-        summary: advisory.summary ?? 'No summary provided',
+        id,
+        summary,
       });
     }
   }
