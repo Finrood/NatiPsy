@@ -4,11 +4,21 @@ import path from 'node:path';
 const distRoot = path.resolve(process.env.BUNDLE_DIST_ROOT || 'dist/nati-psy');
 const distDir = path.join(distRoot, 'browser');
 const indexPath = path.join(distDir, 'index.html');
-const statsPath = path.resolve(process.env.BUNDLE_STATS_FILE || path.join(distRoot, 'stats.json'));
+// Angular 22.2 emits per-target stats (browser-stats.json) instead of stats.json.
+const statsCandidates = [
+  process.env.BUNDLE_STATS_FILE,
+  path.join(distRoot, 'stats.json'),
+  path.join(distRoot, 'browser-stats.json'),
+].filter(Boolean);
+const statsPath = statsCandidates
+  .map((candidate) => path.resolve(candidate))
+  .find((candidate) => fs.existsSync(candidate));
 const policy = JSON.parse(fs.readFileSync('performance-budgets.json', 'utf8'));
 
-if (!fs.existsSync(indexPath) || !fs.existsSync(statsPath)) {
-  console.error(`Bundle output or stats not found. Expected ${indexPath} and ${statsPath}.`);
+if (!statsPath || !fs.existsSync(indexPath)) {
+  console.error(
+    `Bundle output or stats not found. Expected ${indexPath} and one of ${statsCandidates.join(', ')}.`,
+  );
   process.exit(1);
 }
 

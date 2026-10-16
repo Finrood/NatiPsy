@@ -1,10 +1,17 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const statsPath = process.env.BUNDLE_STATS || 'dist/nati-psy/stats.json';
+// Angular 22.2 emits per-target stats (browser-stats.json) instead of stats.json.
+const statsPath =
+  process.env.BUNDLE_STATS ||
+  ['dist/nati-psy/stats.json', 'dist/nati-psy/browser-stats.json'].find((candidate) =>
+    existsSync(candidate),
+  );
 
 test('keeps BlogPost and DOMPurify out of the initial browser graph', async () => {
+  assert.ok(statsPath, 'a browser stats file must exist under dist/nati-psy/');
   const stats = JSON.parse(await readFile(statsPath, 'utf8'));
   const outputs = Object.values(stats.outputs);
   const blogPostOutputs = outputs.filter(

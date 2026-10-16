@@ -1,6 +1,6 @@
 # NatiPsy
 
-This project uses Angular CLI 22.1.7 with SSR/prerendered routes.
+This project uses Angular CLI 22.2.3 with SSR/prerendered routes.
 
 ## Requirements
 
