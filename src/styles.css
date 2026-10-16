@@ -33,7 +33,7 @@
   --color-primary-pink: oklch(91.41% 0.0277 40.19);
   --color-primary-pink-dark: oklch(
     48% 0.14 25
-  ); /* High-contrast rich dark rose (#8C2D4F equivalent, harmonized hue angle) */
+  ); /* Rich dark rose (#9D3533), hue harmonized with blush */
   --color-primary-blue: oklch(22.97% 0.0517 269.16);
   --color-white: oklch(100% 0 0);
 }

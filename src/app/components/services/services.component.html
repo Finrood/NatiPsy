@@ -16,7 +16,7 @@
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
       @for (service of services; track service.title) {
         <li
-          class="flex flex-col bg-white p-6 sm:p-8 rounded-2xl border border-rose-100/60 shadow-sm hover:shadow-md motion-safe:hover:-translate-y-1 transition-all duration-300"
+          class="flex flex-col bg-white p-6 sm:p-8 rounded-2xl border border-rose-100/60 shadow-sm hover:shadow-md motion-safe:hover:-translate-y-1 transition-[box-shadow,transform] duration-300"
         >
           <article class="flex flex-col flex-grow">
             <header class="flex items-center mb-6">
@@ -44,7 +44,7 @@
         [href]="whatsappLink"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-2.5 bg-primary-blue text-white font-bold py-3 px-6 text-lg rounded-full shadow-md hover:bg-primary-blue/90 hover:shadow-lg motion-safe:hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue focus-visible:ring-offset-2 focus-visible:ring-offset-surface-warm"
+        class="inline-flex items-center gap-2.5 bg-primary-blue text-white font-bold py-3 px-6 text-lg rounded-full shadow-md hover:bg-primary-blue/90 hover:shadow-lg motion-safe:hover:-translate-y-0.5 transition-[box-shadow,transform,background-color] duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue focus-visible:ring-offset-2 focus-visible:ring-offset-surface-warm"
         aria-label="Agende sua consulta sobre os serviços"
       >
         <img
